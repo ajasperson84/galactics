@@ -206,12 +206,6 @@ struct AddPlayerSheet: View {
                                 name: playerName.trimmingCharacters(in: .whitespaces),
                                 teamId: selectedTeamId
                             )
-                            // Also add to team's player list
-                            if let teamId = selectedTeamId,
-                               var team = cloudService.teams.first(where: { $0.id == teamId }) {
-                                // player ID will be generated, so we rely on
-                                // the listener to pick it up
-                            }
                             dismiss()
                         }
                     }

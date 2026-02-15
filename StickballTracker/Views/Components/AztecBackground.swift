@@ -8,7 +8,7 @@ struct AztecBackground: View {
             AztecTheme.obsidian.ignoresSafeArea()
 
             // Subtle geometric pattern
-            GeometryReader { geo in
+            GeometryReader { _ in
                 Canvas { context, size in
                     let gridSize: CGFloat = 60
                     let cols = Int(size.width / gridSize) + 1

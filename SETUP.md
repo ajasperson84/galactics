@@ -50,9 +50,10 @@ For authenticated access, replace `if true` with `if request.auth != null`.
 ### 5. Open in Xcode
 
 1. Open `StickballTracker.xcodeproj` in Xcode 15+
-2. Xcode will resolve the Firebase SPM dependency automatically
-3. Ensure `GoogleService-Info.plist` is added to the target
-4. Build and run on a simulator or device running iOS 17+
+2. Select the **StickballTracker** scheme and an iOS Simulator destination
+3. Xcode will resolve the Firebase SPM dependency automatically (FirebaseCore + FirebaseFirestore)
+4. Drag `GoogleService-Info.plist` into the StickballTracker group and ensure it's added to the app target
+5. Build and run (Cmd+R) on a simulator or device running iOS 17+
 
 ## Architecture
 
