@@ -1,9 +1,9 @@
 import Foundation
-import FirebaseFirestore
 import Combine
 
-/// Cloud sync service using Firebase Firestore for real-time multi-user data synchronization.
-/// All data changes are pushed to the cloud and listeners keep every connected app in sync.
+/// Data service with local JSON persistence.
+/// Data is saved to the app's documents directory and loads on launch.
+/// To add cloud sync later, swap the save/load methods for Firebase Firestore calls.
 @MainActor
 class CloudSyncService: ObservableObject {
     @Published var players: [Player] = []
@@ -12,214 +12,169 @@ class CloudSyncService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    private let db = Firestore.firestore()
-    private var listeners: [ListenerRegistration] = []
+    private let saveQueue = DispatchQueue(label: "com.stickball.save", qos: .utility)
 
     init() {
-        attachListeners()
+        loadAll()
     }
 
-    deinit {
-        listeners.forEach { $0.remove() }
+    // MARK: - Persistence
+
+    private static var documentsURL: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 
-    // MARK: - Real-time Listeners
-
-    private func attachListeners() {
-        // Players listener
-        let playersListener = db.collection("players")
-            .order(by: "name")
-            .addSnapshotListener { [weak self] snapshot, error in
-                guard let self else { return }
-                if let error {
-                    self.errorMessage = error.localizedDescription
-                    return
-                }
-                guard let documents = snapshot?.documents else { return }
-                Task { @MainActor in
-                    self.players = documents.compactMap { doc in
-                        try? doc.data(as: Player.self)
-                    }
-                }
+    private func save<T: Encodable>(_ value: T, to filename: String) {
+        let url = Self.documentsURL.appendingPathComponent(filename)
+        saveQueue.async {
+            do {
+                let data = try JSONEncoder().encode(value)
+                try data.write(to: url, options: .atomic)
+            } catch {
+                print("Save error (\(filename)): \(error)")
             }
-        listeners.append(playersListener)
-
-        // Teams listener
-        let teamsListener = db.collection("teams")
-            .order(by: "name")
-            .addSnapshotListener { [weak self] snapshot, error in
-                guard let self else { return }
-                if let error {
-                    self.errorMessage = error.localizedDescription
-                    return
-                }
-                guard let documents = snapshot?.documents else { return }
-                Task { @MainActor in
-                    self.teams = documents.compactMap { doc in
-                        try? doc.data(as: Team.self)
-                    }
-                }
-            }
-        listeners.append(teamsListener)
-
-        // Tournament listener (single active tournament)
-        let tournamentListener = db.collection("tournaments")
-            .order(by: "createdAt", descending: true)
-            .limit(to: 1)
-            .addSnapshotListener { [weak self] snapshot, error in
-                guard let self else { return }
-                if let error {
-                    self.errorMessage = error.localizedDescription
-                    return
-                }
-                Task { @MainActor in
-                    self.tournament = snapshot?.documents.first.flatMap { doc in
-                        try? doc.data(as: Tournament.self)
-                    }
-                }
-            }
-        listeners.append(tournamentListener)
+        }
     }
+
+    private func load<T: Decodable>(_ type: T.Type, from filename: String) -> T? {
+        let url = Self.documentsURL.appendingPathComponent(filename)
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        return try? JSONDecoder().decode(type, from: data)
+    }
+
+    private func loadAll() {
+        players = load([Player].self, from: "players.json") ?? []
+        teams = load([Team].self, from: "teams.json") ?? []
+        tournament = load(Tournament.self, from: "tournament.json")
+    }
+
+    private func savePlayers() { save(players, to: "players.json") }
+    private func saveTeams() { save(teams, to: "teams.json") }
+    private func saveTournament() { save(tournament, to: "tournament.json") }
 
     // MARK: - Player Operations
 
     func addPlayer(name: String, teamId: String? = nil) async {
-        let player = Player(name: name, teamId: teamId)
-        do {
-            try db.collection("players").document(player.id).setData(from: player)
-        } catch {
-            errorMessage = "Failed to add player: \(error.localizedDescription)"
+        var player = Player(name: name, teamId: teamId)
+        players.append(player)
+        players.sort { $0.name.localizedCompare($1.name) == .orderedAscending }
+
+        if let teamId, let idx = teams.firstIndex(where: { $0.id == teamId }) {
+            if !teams[idx].playerIds.contains(player.id) {
+                teams[idx].playerIds.append(player.id)
+                saveTeams()
+            }
         }
+        savePlayers()
     }
 
     func updatePlayer(_ player: Player) async {
-        do {
-            try db.collection("players").document(player.id).setData(from: player)
-        } catch {
-            errorMessage = "Failed to update player: \(error.localizedDescription)"
+        if let idx = players.firstIndex(where: { $0.id == player.id }) {
+            players[idx] = player
         }
+        savePlayers()
     }
 
     func deletePlayer(_ player: Player) async {
-        do {
-            try await db.collection("players").document(player.id).delete()
-            // Also remove from any team
-            if let teamId = player.teamId,
-               var team = teams.first(where: { $0.id == teamId }) {
-                team.playerIds.removeAll { $0 == player.id }
-                try db.collection("teams").document(team.id).setData(from: team)
-            }
-        } catch {
-            errorMessage = "Failed to delete player: \(error.localizedDescription)"
+        players.removeAll { $0.id == player.id }
+        // Remove from any team
+        if let teamId = player.teamId,
+           let idx = teams.firstIndex(where: { $0.id == teamId }) {
+            teams[idx].playerIds.removeAll { $0 == player.id }
+            saveTeams()
         }
+        savePlayers()
     }
 
     func updatePlayerStats(playerId: String, gameStats: PlayerGameStats) async {
-        guard var player = players.first(where: { $0.id == playerId }) else { return }
+        guard let idx = players.firstIndex(where: { $0.id == playerId }) else { return }
 
-        player.stats.atBats += gameStats.atBats
-        player.stats.hits += gameStats.hits
-        player.stats.singles += gameStats.singles
-        player.stats.doubles += gameStats.doubles
-        player.stats.triples += gameStats.triples
-        player.stats.homeRuns += gameStats.homeRuns
-        player.stats.runs += gameStats.runs
-        player.stats.rbi += gameStats.rbi
-        player.stats.strikeouts += gameStats.strikeouts
-        player.stats.walks += gameStats.walks
-        player.stats.gamesPlayed += 1
+        players[idx].stats.atBats += gameStats.atBats
+        players[idx].stats.hits += gameStats.hits
+        players[idx].stats.singles += gameStats.singles
+        players[idx].stats.doubles += gameStats.doubles
+        players[idx].stats.triples += gameStats.triples
+        players[idx].stats.homeRuns += gameStats.homeRuns
+        players[idx].stats.runs += gameStats.runs
+        players[idx].stats.rbi += gameStats.rbi
+        players[idx].stats.strikeouts += gameStats.strikeouts
+        players[idx].stats.walks += gameStats.walks
+        players[idx].stats.gamesPlayed += 1
 
-        await updatePlayer(player)
+        savePlayers()
     }
 
     // MARK: - Team Operations
 
     func addTeam(name: String) async {
         let team = Team(name: name)
-        do {
-            try db.collection("teams").document(team.id).setData(from: team)
-        } catch {
-            errorMessage = "Failed to add team: \(error.localizedDescription)"
-        }
+        teams.append(team)
+        teams.sort { $0.name.localizedCompare($1.name) == .orderedAscending }
+        saveTeams()
     }
 
     func updateTeam(_ team: Team) async {
-        do {
-            try db.collection("teams").document(team.id).setData(from: team)
-        } catch {
-            errorMessage = "Failed to update team: \(error.localizedDescription)"
+        if let idx = teams.firstIndex(where: { $0.id == team.id }) {
+            teams[idx] = team
         }
+        saveTeams()
     }
 
     func deleteTeam(_ team: Team) async {
-        do {
-            // Unassign all players from this team
-            for var player in players where player.teamId == team.id {
-                player.teamId = nil
-                try db.collection("players").document(player.id).setData(from: player)
-            }
-            try await db.collection("teams").document(team.id).delete()
-        } catch {
-            errorMessage = "Failed to delete team: \(error.localizedDescription)"
+        // Unassign all players from this team
+        for i in players.indices where players[i].teamId == team.id {
+            players[i].teamId = nil
         }
+        teams.removeAll { $0.id == team.id }
+        savePlayers()
+        saveTeams()
     }
 
     func assignPlayerToTeam(playerId: String, teamId: String?) async {
-        guard var player = players.first(where: { $0.id == playerId }) else { return }
+        guard let playerIdx = players.firstIndex(where: { $0.id == playerId }) else { return }
 
         // Remove from old team
-        if let oldTeamId = player.teamId,
-           var oldTeam = teams.first(where: { $0.id == oldTeamId }) {
-            oldTeam.playerIds.removeAll { $0 == playerId }
-            await updateTeam(oldTeam)
+        if let oldTeamId = players[playerIdx].teamId,
+           let oldIdx = teams.firstIndex(where: { $0.id == oldTeamId }) {
+            teams[oldIdx].playerIds.removeAll { $0 == playerId }
         }
+
+        // Update player
+        players[playerIdx].teamId = teamId
 
         // Add to new team
-        player.teamId = teamId
         if let teamId,
-           var newTeam = teams.first(where: { $0.id == teamId }) {
-            if !newTeam.playerIds.contains(playerId) {
-                newTeam.playerIds.append(playerId)
+           let newIdx = teams.firstIndex(where: { $0.id == teamId }) {
+            if !teams[newIdx].playerIds.contains(playerId) {
+                teams[newIdx].playerIds.append(playerId)
             }
-            await updateTeam(newTeam)
         }
 
-        await updatePlayer(player)
+        savePlayers()
+        saveTeams()
     }
 
     // MARK: - Tournament Operations
 
     func createTournament(name: String, teamIds: [String]) async {
-        var tournament = Tournament(name: name, teamIds: teamIds)
-        tournament.bracket = generateBracket(teamIds: teamIds)
-        tournament.status = .inProgress
-
-        do {
-            try db.collection("tournaments").document(tournament.id).setData(from: tournament)
-        } catch {
-            errorMessage = "Failed to create tournament: \(error.localizedDescription)"
-        }
+        var newTournament = Tournament(name: name, teamIds: teamIds)
+        newTournament.bracket = generateBracket(teamIds: teamIds)
+        newTournament.status = .inProgress
+        tournament = newTournament
+        saveTournament()
     }
 
     func updateTournament(_ tournament: Tournament) async {
-        do {
-            try db.collection("tournaments").document(tournament.id).setData(from: tournament)
-        } catch {
-            errorMessage = "Failed to update tournament: \(error.localizedDescription)"
-        }
+        self.tournament = tournament
+        saveTournament()
     }
 
     func deleteTournament() async {
-        guard let tournament else { return }
-        do {
-            try await db.collection("tournaments").document(tournament.id).delete()
-        } catch {
-            errorMessage = "Failed to delete tournament: \(error.localizedDescription)"
-        }
+        tournament = nil
+        let url = Self.documentsURL.appendingPathComponent("tournament.json")
+        try? FileManager.default.removeItem(at: url)
     }
 
-    /// Records the result of a single game within a matchup, updates the series,
-    /// and advances the winner if the best-of-3 is decided.
     func recordGameResult(
         roundIndex: Int,
         matchupIndex: Int,
@@ -268,7 +223,6 @@ class CloudSyncService: ObservableObject {
         if matchup.team1Wins >= 2 {
             matchup.winnerId = matchup.team1Id
             matchup.status = .completed
-            // Update team records
             if let team1Id = matchup.team1Id {
                 await incrementTeamWins(teamId: team1Id)
             }
@@ -302,7 +256,7 @@ class CloudSyncService: ObservableObject {
             }
         }
 
-        // Check if tournament is complete (final matchup decided)
+        // Check if tournament is complete
         if let lastRound = tournament.bracket.last,
            lastRound.matchups.allSatisfy({ $0.status == .completed }) {
             tournament.status = .completed
@@ -319,38 +273,34 @@ class CloudSyncService: ObservableObject {
     // MARK: - Helpers
 
     private func incrementTeamWins(teamId: String) async {
-        guard var team = teams.first(where: { $0.id == teamId }) else { return }
-        team.wins += 1
-        await updateTeam(team)
+        guard let idx = teams.firstIndex(where: { $0.id == teamId }) else { return }
+        teams[idx].wins += 1
+        saveTeams()
     }
 
     private func incrementTeamLosses(teamId: String) async {
-        guard var team = teams.first(where: { $0.id == teamId }) else { return }
-        team.losses += 1
-        await updateTeam(team)
+        guard let idx = teams.firstIndex(where: { $0.id == teamId }) else { return }
+        teams[idx].losses += 1
+        saveTeams()
     }
 
     private func generateBracket(teamIds: [String]) -> [BracketRound] {
-        // Pad to nearest power of 2
         let count = teamIds.count
         var size = 1
         while size < count { size *= 2 }
 
         var paddedTeams: [String?] = teamIds.map { $0 }
         while paddedTeams.count < size {
-            paddedTeams.append(nil) // bye
+            paddedTeams.append(nil)
         }
 
-        // Seed the bracket
         let seeded = seedBracket(paddedTeams)
 
         var rounds: [BracketRound] = []
         var currentMatchups: [Matchup] = []
 
-        // First round
         for i in stride(from: 0, to: seeded.count, by: 2) {
             var matchup = Matchup(team1Id: seeded[i], team2Id: seeded[i + 1])
-            // Handle byes: if one team is nil, the other advances automatically
             if matchup.team1Id != nil && matchup.team2Id == nil {
                 matchup.winnerId = matchup.team1Id
                 matchup.status = .completed
@@ -368,7 +318,6 @@ class CloudSyncService: ObservableObject {
             matchups: currentMatchups
         ))
 
-        // Subsequent rounds
         var numMatchups = currentMatchups.count / 2
         var roundNum = 2
         while numMatchups >= 1 {
@@ -376,11 +325,8 @@ class CloudSyncService: ObservableObject {
             for i in 0..<numMatchups {
                 let prevIdx1 = i * 2
                 let prevIdx2 = i * 2 + 1
-
-                // Advance bye winners
                 let team1 = prevIdx1 < currentMatchups.count ? currentMatchups[prevIdx1].winnerId : nil
                 let team2 = prevIdx2 < currentMatchups.count ? currentMatchups[prevIdx2].winnerId : nil
-
                 nextMatchups.append(Matchup(team1Id: team1, team2Id: team2))
             }
 
@@ -400,7 +346,6 @@ class CloudSyncService: ObservableObject {
     }
 
     private func seedBracket(_ teams: [String?]) -> [String?] {
-        // Standard tournament seeding order
         let count = teams.count
         if count <= 1 { return teams }
 
