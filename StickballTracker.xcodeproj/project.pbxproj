@@ -22,6 +22,8 @@
 		A100000013 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000013; };
 		A100000014 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000014; };
 		A100000015 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000015; };
+		A100000016 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D100000001; };
+		A100000017 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D100000002; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +50,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A100000016 /* FirebaseCore in Frameworks */,
+				A100000017 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -189,6 +193,8 @@
 			);
 			name = StickballTracker;
 			packageProductDependencies = (
+				D100000001 /* FirebaseCore */,
+				D100000002 /* FirebaseFirestore */,
 			);
 			productName = StickballTracker;
 			productReference = B100000099 /* StickballTracker.app */;
@@ -219,6 +225,7 @@
 			);
 			mainGroup = G100000000;
 			packageReferences = (
+				E100000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = G100000099 /* Products */;
 			projectDirPath = "";
@@ -466,6 +473,29 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		E100000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.19.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D100000001 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E100000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		D100000002 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E100000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 	};
 	rootObject = P100000001 /* Project object */;
