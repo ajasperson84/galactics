@@ -111,9 +111,9 @@ struct PlayerRow: View {
 
             // Quick stats
             VStack(alignment: .trailing, spacing: 2) {
-                Text(String(format: ".%03d", Int(player.stats.battingAverage * 1000)))
-                    .font(.system(size: 16, weight: .heavy, design: .monospaced))
-                    .foregroundColor(AztecTheme.jade)
+                Text("\(player.stats.dongs) Dongs")
+                    .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                    .foregroundColor(AztecTheme.gold)
 
                 Text("\(player.stats.gamesPlayed) GP")
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
@@ -338,23 +338,14 @@ struct PlayerStatsGrid: View {
     private var statItems: [(label: String, value: String)] {
         [
             ("GP", "\(stats.gamesPlayed)"),
-            ("AB", "\(stats.atBats)"),
-            ("H", "\(stats.hits)"),
-            ("AVG", String(format: ".%03d", Int(stats.battingAverage * 1000))),
-            ("1B", "\(stats.singles)"),
-            ("2B", "\(stats.doubles)"),
-            ("3B", "\(stats.triples)"),
-            ("HR", "\(stats.homeRuns)"),
-            ("R", "\(stats.runs)"),
-            ("RBI", "\(stats.rbi)"),
-            ("BB", "\(stats.walks)"),
-            ("K", "\(stats.strikeouts)"),
-            ("SLG", String(format: ".%03d", Int(stats.sluggingPercentage * 1000))),
-            ("OBP", String(format: ".%03d", Int(stats.onBasePercentage * 1000))),
+            ("Dongs", "\(stats.dongs)"),
+            ("Salamies", "\(stats.salamies)"),
+            ("Double Plays", "\(stats.doublePlays)"),
+            ("Drops", "\(stats.drops)"),
         ]
     }
 
-    let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
+    let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
 
     var body: some View {
         LazyVGrid(columns: columns, spacing: 8) {

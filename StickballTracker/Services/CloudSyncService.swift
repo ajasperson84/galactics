@@ -108,16 +108,10 @@ class CloudSyncService: ObservableObject {
 
     func updatePlayerStats(playerId: String, gameStats: PlayerGameStats) async {
         guard var player = players.first(where: { $0.id == playerId }) else { return }
-        player.stats.atBats += gameStats.atBats
-        player.stats.hits += gameStats.hits
-        player.stats.singles += gameStats.singles
-        player.stats.doubles += gameStats.doubles
-        player.stats.triples += gameStats.triples
-        player.stats.homeRuns += gameStats.homeRuns
-        player.stats.runs += gameStats.runs
-        player.stats.rbi += gameStats.rbi
-        player.stats.strikeouts += gameStats.strikeouts
-        player.stats.walks += gameStats.walks
+        player.stats.dongs += gameStats.dongs
+        player.stats.drops += gameStats.drops
+        player.stats.doublePlays += gameStats.doublePlays
+        player.stats.salamies += gameStats.salamies
         player.stats.gamesPlayed += 1
         await updatePlayer(player)
     }
@@ -179,9 +173,10 @@ class CloudSyncService: ObservableObject {
 
     // MARK: - Tournament Operations
 
-    func createTournament(name: String, teamIds: [String]) async {
-        var tournament = Tournament(name: name, teamIds: teamIds)
-        tournament.bracket = generateBracket(teamIds: teamIds)
+    func createTournament(name: String, matchups: [(String, String)]) async {
+        let allTeamIds = matchups.flatMap { [$0.0, $0.1] }
+        var tournament = Tournament(name: name, teamIds: allTeamIds)
+        tournament.bracket = generateBracketFromMatchups(matchups)
         tournament.status = .inProgress
         do {
             try db.collection("tournaments").document(tournament.id).setData(from: tournament)
@@ -213,6 +208,7 @@ class CloudSyncService: ObservableObject {
         gameIndex: Int,
         team1Score: Int,
         team2Score: Int,
+        field: String?,
         playerStats: [PlayerGameStats]
     ) async {
         guard var tournament else { return }
@@ -226,6 +222,7 @@ class CloudSyncService: ObservableObject {
             matchup.games[gameIndex].team1Score = team1Score
             matchup.games[gameIndex].team2Score = team2Score
             matchup.games[gameIndex].playerGameStats = playerStats
+            matchup.games[gameIndex].field = field
             matchup.games[gameIndex].status = .completed
             matchup.games[gameIndex].completedAt = Date()
             if team1Score > team2Score {
@@ -238,6 +235,7 @@ class CloudSyncService: ObservableObject {
             game.team1Score = team1Score
             game.team2Score = team2Score
             game.playerGameStats = playerStats
+            game.field = field
             game.status = .completed
             game.completedAt = Date()
             if team1Score > team2Score {
@@ -252,13 +250,9 @@ class CloudSyncService: ObservableObject {
         if matchup.team1Wins >= 2 {
             matchup.winnerId = matchup.team1Id
             matchup.status = .completed
-            if let id = matchup.team1Id { await incrementTeamWins(teamId: id) }
-            if let id = matchup.team2Id { await incrementTeamLosses(teamId: id) }
         } else if matchup.team2Wins >= 2 {
             matchup.winnerId = matchup.team2Id
             matchup.status = .completed
-            if let id = matchup.team2Id { await incrementTeamWins(teamId: id) }
-            if let id = matchup.team1Id { await incrementTeamLosses(teamId: id) }
         } else {
             matchup.status = .inProgress
         }
@@ -291,81 +285,28 @@ class CloudSyncService: ObservableObject {
         await updateTournament(tournament)
     }
 
-    // MARK: - Helpers
+    // MARK: - Bracket Generation
 
-    private func incrementTeamWins(teamId: String) async {
-        guard var team = teams.first(where: { $0.id == teamId }) else { return }
-        team.wins += 1
-        await updateTeam(team)
-    }
+    private func generateBracketFromMatchups(_ matchups: [(String, String)]) -> [BracketRound] {
+        let firstRoundMatchups = matchups.map { Matchup(team1Id: $0.0, team2Id: $0.1) }
 
-    private func incrementTeamLosses(teamId: String) async {
-        guard var team = teams.first(where: { $0.id == teamId }) else { return }
-        team.losses += 1
-        await updateTeam(team)
-    }
-
-    private func generateBracket(teamIds: [String]) -> [BracketRound] {
-        let count = teamIds.count
-        var size = 1
-        while size < count { size *= 2 }
-
-        var paddedTeams: [String?] = teamIds.map { $0 }
-        while paddedTeams.count < size { paddedTeams.append(nil) }
-
-        let seeded = seedBracket(paddedTeams)
         var rounds: [BracketRound] = []
-        var currentMatchups: [Matchup] = []
+        let totalRounds = max(1, Int(ceil(log2(Double(matchups.count)))) + 1)
+        let roundNames = generateRoundNames(totalRounds: totalRounds)
 
-        for i in stride(from: 0, to: seeded.count, by: 2) {
-            var matchup = Matchup(team1Id: seeded[i], team2Id: seeded[i + 1])
-            if matchup.team1Id != nil && matchup.team2Id == nil {
-                matchup.winnerId = matchup.team1Id
-                matchup.status = .completed
-            } else if matchup.team1Id == nil && matchup.team2Id != nil {
-                matchup.winnerId = matchup.team2Id
-                matchup.status = .completed
-            }
-            currentMatchups.append(matchup)
-        }
+        rounds.append(BracketRound(roundNumber: 1, roundName: roundNames[0], matchups: firstRoundMatchups))
 
-        let roundNames = generateRoundNames(totalRounds: Int(log2(Double(size))))
-        rounds.append(BracketRound(roundNumber: 1, roundName: roundNames[0], matchups: currentMatchups))
-
-        var numMatchups = currentMatchups.count / 2
+        var numMatchups = matchups.count / 2
         var roundNum = 2
         while numMatchups >= 1 {
-            var nextMatchups: [Matchup] = []
-            for i in 0..<numMatchups {
-                let team1 = (i * 2) < currentMatchups.count ? currentMatchups[i * 2].winnerId : nil
-                let team2 = (i * 2 + 1) < currentMatchups.count ? currentMatchups[i * 2 + 1].winnerId : nil
-                nextMatchups.append(Matchup(team1Id: team1, team2Id: team2))
-            }
+            let emptyMatchups = (0..<numMatchups).map { _ in Matchup() }
             let nameIndex = min(roundNum - 1, roundNames.count - 1)
-            rounds.append(BracketRound(roundNumber: roundNum, roundName: roundNames[nameIndex], matchups: nextMatchups))
-            currentMatchups = nextMatchups
+            rounds.append(BracketRound(roundNumber: roundNum, roundName: roundNames[nameIndex], matchups: emptyMatchups))
             numMatchups /= 2
             roundNum += 1
         }
 
         return rounds
-    }
-
-    private func seedBracket(_ teams: [String?]) -> [String?] {
-        let count = teams.count
-        if count <= 1 { return teams }
-        var order: [Int] = [0]
-        var step = 1
-        while step < count {
-            var newOrder: [Int] = []
-            for idx in order {
-                newOrder.append(idx)
-                newOrder.append(step * 2 - 1 - idx)
-            }
-            order = newOrder
-            step *= 2
-        }
-        return order.map { idx in idx < teams.count ? teams[idx] : nil }
     }
 
     private func generateRoundNames(totalRounds: Int) -> [String] {

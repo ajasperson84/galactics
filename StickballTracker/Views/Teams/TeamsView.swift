@@ -100,13 +100,14 @@ struct TeamCard: View {
 
                 Spacer()
 
-                // Win-Loss record
+                // Aggregated team dongs
                 VStack(spacing: 2) {
-                    Text("\(team.wins)-\(team.losses)")
+                    let totalDongs = teamPlayers.reduce(0) { $0 + $1.stats.dongs }
+                    Text("\(totalDongs)")
                         .font(.system(size: 22, weight: .black, design: .monospaced))
                         .foregroundColor(AztecTheme.gold)
 
-                    Text("W-L")
+                    Text("DONGS")
                         .font(.system(size: 10, weight: .bold))
                         .tracking(1)
                         .foregroundColor(AztecTheme.dimText)
@@ -305,13 +306,17 @@ struct TeamDetailSheet: View {
                             .aztecTextField()
                             .multilineTextAlignment(.center)
 
-                        // Record
-                        HStack(spacing: 24) {
+                        // Team stats summary
+                        HStack(spacing: 16) {
+                            let totalDongs = teamPlayers.reduce(0) { $0 + $1.stats.dongs }
+                            let totalSalamies = teamPlayers.reduce(0) { $0 + $1.stats.salamies }
+                            let totalDP = teamPlayers.reduce(0) { $0 + $1.stats.doublePlays }
+
                             VStack {
-                                Text("\(team.wins)")
+                                Text("\(totalDongs)")
                                     .font(.system(size: 28, weight: .black, design: .monospaced))
-                                    .foregroundColor(AztecTheme.jade)
-                                Text("WINS")
+                                    .foregroundColor(AztecTheme.gold)
+                                Text("DONGS")
                                     .font(.system(size: 10, weight: .heavy))
                                     .tracking(2)
                                     .foregroundColor(AztecTheme.dimText)
@@ -322,10 +327,24 @@ struct TeamDetailSheet: View {
                                 .frame(width: 1, height: 40)
 
                             VStack {
-                                Text("\(team.losses)")
+                                Text("\(totalSalamies)")
                                     .font(.system(size: 28, weight: .black, design: .monospaced))
-                                    .foregroundColor(AztecTheme.bloodRed)
-                                Text("LOSSES")
+                                    .foregroundColor(AztecTheme.jade)
+                                Text("SALAMIES")
+                                    .font(.system(size: 10, weight: .heavy))
+                                    .tracking(2)
+                                    .foregroundColor(AztecTheme.dimText)
+                            }
+
+                            Rectangle()
+                                .fill(AztecTheme.stone.opacity(0.3))
+                                .frame(width: 1, height: 40)
+
+                            VStack {
+                                Text("\(totalDP)")
+                                    .font(.system(size: 28, weight: .black, design: .monospaced))
+                                    .foregroundColor(AztecTheme.amber)
+                                Text("DBL PLAYS")
                                     .font(.system(size: 10, weight: .heavy))
                                     .tracking(2)
                                     .foregroundColor(AztecTheme.dimText)
@@ -353,9 +372,9 @@ struct TeamDetailSheet: View {
 
                                 Spacer()
 
-                                Text(String(format: ".%03d", Int(player.stats.battingAverage * 1000)))
+                                Text("\(player.stats.dongs) D")
                                     .font(.system(size: 14, weight: .heavy, design: .monospaced))
-                                    .foregroundColor(AztecTheme.jade)
+                                    .foregroundColor(AztecTheme.gold)
 
                                 Button {
                                     Task {
@@ -453,7 +472,6 @@ struct AddPlayerToTeamSheet: View {
                                         playerId: player.id,
                                         teamId: team.id
                                     )
-                                    dismiss()
                                 }
                             } label: {
                                 HStack {
@@ -462,7 +480,10 @@ struct AddPlayerToTeamSheet: View {
 
                                     Spacer()
 
-                                    if let currentTeamId = player.teamId,
+                                    if player.teamId == team.id {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(AztecTheme.jade)
+                                    } else if let currentTeamId = player.teamId,
                                        let currentTeam = cloudService.team(for: currentTeamId) {
                                         Text(currentTeam.name)
                                             .font(.system(size: 12))
@@ -482,11 +503,11 @@ struct AddPlayerToTeamSheet: View {
                     .padding()
                 }
             }
-            .navigationTitle("Add Player")
+            .navigationTitle("Add Players")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
                         .foregroundColor(AztecTheme.gold)
                 }
             }

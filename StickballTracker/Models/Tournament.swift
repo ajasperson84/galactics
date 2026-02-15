@@ -89,6 +89,7 @@ struct Game: Identifiable, Codable {
     var team2Score: Int
     var winnerId: String?
     var playerGameStats: [PlayerGameStats]
+    var field: String?
     var status: GameStatus
     var completedAt: Date?
 
@@ -102,6 +103,7 @@ struct Game: Identifiable, Codable {
         self.team2Score = 0
         self.winnerId = nil
         self.playerGameStats = []
+        self.field = nil
         self.status = .notStarted
         self.completedAt = nil
     }
@@ -116,29 +118,31 @@ enum GameStatus: String, Codable {
 struct PlayerGameStats: Identifiable, Codable {
     var id: String
     var playerId: String
-    var atBats: Int
-    var hits: Int
-    var singles: Int
-    var doubles: Int
-    var triples: Int
-    var homeRuns: Int
-    var runs: Int
-    var rbi: Int
-    var strikeouts: Int
-    var walks: Int
+    var dongs: Int
+    var drops: Int
+    var doublePlays: Int
+    var salamies: Int
 
     init(id: String = UUID().uuidString, playerId: String) {
         self.id = id
         self.playerId = playerId
-        self.atBats = 0
-        self.hits = 0
-        self.singles = 0
-        self.doubles = 0
-        self.triples = 0
-        self.homeRuns = 0
-        self.runs = 0
-        self.rbi = 0
-        self.strikeouts = 0
-        self.walks = 0
+        self.dongs = 0
+        self.drops = 0
+        self.doublePlays = 0
+        self.salamies = 0
     }
+}
+
+/// Available fields for game location.
+enum StickballField: String, CaseIterable, Codable {
+    case stonewallJackson = "Stonewall Jackson"
+    case williamsburg = "Williamsburg"
+    case deadEnd = "Dead End"
+    case theSchoolyard = "The Schoolyard"
+    case churchLot = "Church Lot"
+    case broadwayAlley = "Broadway Alley"
+    case theSandlot = "The Sandlot"
+    case rooftopDiamond = "Rooftop Diamond"
+    case elBarrio = "El Barrio"
+    case flatbushField = "Flatbush Field"
 }

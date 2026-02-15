@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Quick game entry sheet for recording scores and individual player stats during a matchup.
-/// Designed for fast data entry during live tournament play.
+/// Game entry sheet for recording scores and individual player stats during a matchup.
+/// Dongs and Salamies auto-update team scores. Users can also pick a field location.
 struct GameEntrySheet: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @Environment(\.dismiss) var dismiss
@@ -10,10 +10,10 @@ struct GameEntrySheet: View {
     let matchupIndex: Int
     let matchup: Matchup
 
-    @State private var currentGameIndex: Int = 0
     @State private var team1Score: Int = 0
     @State private var team2Score: Int = 0
     @State private var playerStats: [String: EditablePlayerStats] = [:]
+    @State private var selectedField: StickballField?
     @State private var showConfirm = false
 
     var team1: Team? {
@@ -57,9 +57,44 @@ struct GameEntrySheet: View {
                                 .foregroundColor(AztecTheme.dimText)
                         }
 
-                        // Score entry
+                        // Field picker
+                        VStack(spacing: 6) {
+                            Text("FIELD")
+                                .font(.system(size: 11, weight: .heavy))
+                                .tracking(2)
+                                .foregroundColor(AztecTheme.dimText)
+
+                            Menu {
+                                Button("None") { selectedField = nil }
+                                ForEach(StickballField.allCases, id: \.self) { field in
+                                    Button(field.rawValue) { selectedField = field }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedField?.rawValue ?? "Select Field")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(
+                                            selectedField != nil
+                                                ? AztecTheme.lightText
+                                                : AztecTheme.stone
+                                        )
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(AztecTheme.stone)
+                                }
+                                .padding(12)
+                                .background(AztecTheme.darkStone)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(AztecTheme.stone.opacity(0.2), lineWidth: 0.5)
+                                )
+                            }
+                        }
+
+                        // Score display
                         HStack(spacing: 0) {
-                            // Team 1
                             VStack(spacing: 8) {
                                 Text(team1?.name ?? "Team 1")
                                     .font(.system(size: 14, weight: .heavy))
@@ -67,7 +102,9 @@ struct GameEntrySheet: View {
                                     .foregroundColor(AztecTheme.lightText)
                                     .lineLimit(1)
 
-                                ScoreCounter(score: $team1Score)
+                                Text("\(team1Score)")
+                                    .font(.system(size: 40, weight: .black, design: .monospaced))
+                                    .foregroundColor(AztecTheme.jade)
                             }
                             .frame(maxWidth: .infinity)
 
@@ -76,7 +113,6 @@ struct GameEntrySheet: View {
                                 .foregroundColor(AztecTheme.stone)
                                 .padding(.horizontal, 8)
 
-                            // Team 2
                             VStack(spacing: 8) {
                                 Text(team2?.name ?? "Team 2")
                                     .font(.system(size: 14, weight: .heavy))
@@ -84,7 +120,9 @@ struct GameEntrySheet: View {
                                     .foregroundColor(AztecTheme.lightText)
                                     .lineLimit(1)
 
-                                ScoreCounter(score: $team2Score)
+                                Text("\(team2Score)")
+                                    .font(.system(size: 40, weight: .black, design: .monospaced))
+                                    .foregroundColor(AztecTheme.jade)
                             }
                             .frame(maxWidth: .infinity)
                         }
@@ -92,22 +130,26 @@ struct GameEntrySheet: View {
 
                         // Player stats - Team 1
                         if let team = team1 {
-                            AztecSectionHeader(title: "\(team.name) Stats")
+                            AztecSectionHeader(title: "\(team.name) Players")
                             ForEach(team1Players) { player in
                                 QuickStatEntry(
                                     playerName: player.name,
-                                    stats: binding(for: player.id)
+                                    stats: binding(for: player.id),
+                                    onDongChanged: { delta in team1Score = max(0, team1Score + delta) },
+                                    onSalamiChanged: { delta in team1Score = max(0, team1Score + (delta * 4)) }
                                 )
                             }
                         }
 
                         // Player stats - Team 2
                         if let team = team2 {
-                            AztecSectionHeader(title: "\(team.name) Stats")
+                            AztecSectionHeader(title: "\(team.name) Players")
                             ForEach(team2Players) { player in
                                 QuickStatEntry(
                                     playerName: player.name,
-                                    stats: binding(for: player.id)
+                                    stats: binding(for: player.id),
+                                    onDongChanged: { delta in team2Score = max(0, team2Score + delta) },
+                                    onSalamiChanged: { delta in team2Score = max(0, team2Score + (delta * 4)) }
                                 )
                             }
                         }
@@ -164,16 +206,10 @@ struct GameEntrySheet: View {
     private func submitGame() {
         let gameStats = playerStats.map { playerId, stats -> PlayerGameStats in
             var gs = PlayerGameStats(playerId: playerId)
-            gs.atBats = stats.atBats
-            gs.hits = stats.singles + stats.doubles + stats.triples + stats.homeRuns
-            gs.singles = stats.singles
-            gs.doubles = stats.doubles
-            gs.triples = stats.triples
-            gs.homeRuns = stats.homeRuns
-            gs.runs = stats.runs
-            gs.rbi = stats.rbi
-            gs.strikeouts = stats.strikeouts
-            gs.walks = stats.walks
+            gs.dongs = stats.dongs
+            gs.drops = stats.drops
+            gs.doublePlays = stats.doublePlays
+            gs.salamies = stats.salamies
             return gs
         }
 
@@ -184,6 +220,7 @@ struct GameEntrySheet: View {
                 gameIndex: matchup.games.count,
                 team1Score: team1Score,
                 team2Score: team2Score,
+                field: selectedField?.rawValue,
                 playerStats: gameStats
             )
             dismiss()
@@ -192,51 +229,18 @@ struct GameEntrySheet: View {
 }
 
 struct EditablePlayerStats {
-    var atBats: Int = 0
-    var singles: Int = 0
-    var doubles: Int = 0
-    var triples: Int = 0
-    var homeRuns: Int = 0
-    var runs: Int = 0
-    var rbi: Int = 0
-    var strikeouts: Int = 0
-    var walks: Int = 0
+    var dongs: Int = 0
+    var drops: Int = 0
+    var doublePlays: Int = 0
+    var salamies: Int = 0
 }
 
-/// Compact score counter with + / - buttons for quick entry.
-struct ScoreCounter: View {
-    @Binding var score: Int
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Button {
-                if score > 0 { score -= 1 }
-            } label: {
-                Image(systemName: "minus.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(AztecTheme.bloodRed)
-            }
-
-            Text("\(score)")
-                .font(.system(size: 40, weight: .black, design: .monospaced))
-                .foregroundColor(AztecTheme.jade)
-                .frame(minWidth: 50)
-
-            Button {
-                score += 1
-            } label: {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(AztecTheme.jade)
-            }
-        }
-    }
-}
-
-/// Quick stat entry row for a single player. Uses stepper-style buttons for fast input.
+/// Quick stat entry row for a single player.
 struct QuickStatEntry: View {
     let playerName: String
     @Binding var stats: EditablePlayerStats
+    var onDongChanged: (Int) -> Void
+    var onSalamiChanged: (Int) -> Void
     @State private var isExpanded = false
 
     var body: some View {
@@ -254,11 +258,28 @@ struct QuickStatEntry: View {
 
                     Spacer()
 
-                    // Quick summary
-                    let hits = stats.singles + stats.doubles + stats.triples + stats.homeRuns
-                    Text("\(hits)-\(stats.atBats)")
-                        .font(.system(size: 13, weight: .heavy, design: .monospaced))
-                        .foregroundColor(AztecTheme.jade)
+                    HStack(spacing: 8) {
+                        if stats.dongs > 0 {
+                            Text("\(stats.dongs)D")
+                                .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                                .foregroundColor(AztecTheme.gold)
+                        }
+                        if stats.salamies > 0 {
+                            Text("\(stats.salamies)S")
+                                .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                                .foregroundColor(AztecTheme.jade)
+                        }
+                        if stats.doublePlays > 0 {
+                            Text("\(stats.doublePlays)DP")
+                                .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                                .foregroundColor(AztecTheme.amber)
+                        }
+                        if stats.drops > 0 {
+                            Text("\(stats.drops)Dr")
+                                .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                                .foregroundColor(AztecTheme.bloodRed)
+                        }
+                    }
 
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .font(.system(size: 10, weight: .bold))
@@ -270,15 +291,14 @@ struct QuickStatEntry: View {
 
             if isExpanded {
                 VStack(spacing: 6) {
-                    StatStepperRow(label: "AB", value: $stats.atBats)
-                    StatStepperRow(label: "1B", value: $stats.singles, color: AztecTheme.jade)
-                    StatStepperRow(label: "2B", value: $stats.doubles, color: AztecTheme.jade)
-                    StatStepperRow(label: "3B", value: $stats.triples, color: AztecTheme.jade)
-                    StatStepperRow(label: "HR", value: $stats.homeRuns, color: AztecTheme.gold)
-                    StatStepperRow(label: "R", value: $stats.runs, color: AztecTheme.jade)
-                    StatStepperRow(label: "RBI", value: $stats.rbi, color: AztecTheme.jade)
-                    StatStepperRow(label: "K", value: $stats.strikeouts, color: AztecTheme.bloodRed)
-                    StatStepperRow(label: "BB", value: $stats.walks)
+                    StatStepperRow(label: "Dongs", value: $stats.dongs, color: AztecTheme.gold) { delta in
+                        onDongChanged(delta)
+                    }
+                    StatStepperRow(label: "Salamies", value: $stats.salamies, color: AztecTheme.jade) { delta in
+                        onSalamiChanged(delta)
+                    }
+                    StatStepperRow(label: "Dbl Plays", value: $stats.doublePlays, color: AztecTheme.amber)
+                    StatStepperRow(label: "Drops", value: $stats.drops, color: AztecTheme.bloodRed)
                 }
                 .padding(.horizontal, 12)
                 .padding(.bottom, 10)
@@ -299,19 +319,23 @@ struct StatStepperRow: View {
     let label: String
     @Binding var value: Int
     var color: Color = AztecTheme.lightText
+    var onChanged: ((Int) -> Void)?
 
     var body: some View {
         HStack {
             Text(label)
-                .font(.system(size: 12, weight: .heavy, design: .monospaced))
-                .tracking(1)
+                .font(.system(size: 12, weight: .heavy))
+                .tracking(0.5)
                 .foregroundColor(AztecTheme.dimText)
-                .frame(width: 36, alignment: .leading)
+                .frame(width: 72, alignment: .leading)
 
             Spacer()
 
             Button {
-                if value > 0 { value -= 1 }
+                if value > 0 {
+                    value -= 1
+                    onChanged?(-1)
+                }
             } label: {
                 Image(systemName: "minus")
                     .font(.system(size: 12, weight: .bold))
@@ -328,6 +352,7 @@ struct StatStepperRow: View {
 
             Button {
                 value += 1
+                onChanged?(1)
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 12, weight: .bold))

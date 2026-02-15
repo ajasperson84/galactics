@@ -2,15 +2,14 @@ import SwiftUI
 
 struct StatsView: View {
     @EnvironmentObject var cloudService: CloudSyncService
-    @State private var sortBy: StatSort = .average
+    @State private var sortBy: StatSort = .dongs
     @State private var filterTeamId: String?
 
     enum StatSort: String, CaseIterable {
-        case average = "AVG"
-        case homeRuns = "HR"
-        case rbi = "RBI"
-        case hits = "H"
-        case ops = "OPS"
+        case dongs = "Dongs"
+        case salamies = "Salamies"
+        case doublePlays = "Dbl Plays"
+        case drops = "Drops"
 
         var label: String { rawValue }
     }
@@ -26,18 +25,14 @@ struct StatsView: View {
     var sortedPlayers: [Player] {
         filteredPlayers.sorted { p1, p2 in
             switch sortBy {
-            case .average:
-                return p1.stats.battingAverage > p2.stats.battingAverage
-            case .homeRuns:
-                return p1.stats.homeRuns > p2.stats.homeRuns
-            case .rbi:
-                return p1.stats.rbi > p2.stats.rbi
-            case .hits:
-                return p1.stats.hits > p2.stats.hits
-            case .ops:
-                let ops1 = p1.stats.onBasePercentage + p1.stats.sluggingPercentage
-                let ops2 = p2.stats.onBasePercentage + p2.stats.sluggingPercentage
-                return ops1 > ops2
+            case .dongs:
+                return p1.stats.dongs > p2.stats.dongs
+            case .salamies:
+                return p1.stats.salamies > p2.stats.salamies
+            case .doublePlays:
+                return p1.stats.doublePlays > p2.stats.doublePlays
+            case .drops:
+                return p1.stats.drops > p2.stats.drops
             }
         }
     }
@@ -153,15 +148,14 @@ struct StatsView: View {
                     .padding(.horizontal)
                 }
 
-                // Team standings
-                AztecSectionHeader(title: "Team Standings", color: AztecTheme.jade)
+                // Team aggregated stats
+                AztecSectionHeader(title: "Team Stats", color: AztecTheme.jade)
                     .padding(.horizontal)
                     .padding(.top, 8)
 
-                let sortedTeams = cloudService.teams.sorted { $0.winPercentage > $1.winPercentage }
                 LazyVStack(spacing: 6) {
-                    ForEach(Array(sortedTeams.enumerated()), id: \.element.id) { index, team in
-                        TeamStandingRow(rank: index + 1, team: team)
+                    ForEach(cloudService.teams) { team in
+                        TeamAggregatedRow(team: team)
                     }
                 }
                 .padding(.horizontal)
@@ -181,14 +175,14 @@ struct StatsTableHeader: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text("GP")
                 .frame(width: 30, alignment: .trailing)
-            Text("AVG")
+            Text("DONG")
                 .frame(width: 42, alignment: .trailing)
-            Text("HR")
-                .frame(width: 28, alignment: .trailing)
-            Text("RBI")
+            Text("SAL")
                 .frame(width: 32, alignment: .trailing)
-            Text("H")
+            Text("DP")
                 .frame(width: 28, alignment: .trailing)
+            Text("DRP")
+                .frame(width: 32, alignment: .trailing)
         }
         .font(.system(size: 10, weight: .heavy))
         .tracking(0.5)
@@ -202,22 +196,6 @@ struct StatsTableRow: View {
     let rank: Int
     let player: Player
     let highlightStat: StatsView.StatSort
-
-    var highlightValue: String {
-        switch highlightStat {
-        case .average:
-            return String(format: ".%03d", Int(player.stats.battingAverage * 1000))
-        case .homeRuns:
-            return "\(player.stats.homeRuns)"
-        case .rbi:
-            return "\(player.stats.rbi)"
-        case .hits:
-            return "\(player.stats.hits)"
-        case .ops:
-            let ops = player.stats.onBasePercentage + player.stats.sluggingPercentage
-            return String(format: ".%03d", Int(ops * 1000))
-        }
-    }
 
     var body: some View {
         HStack(spacing: 4) {
@@ -245,29 +223,29 @@ struct StatsTableRow: View {
                 .foregroundColor(AztecTheme.dimText)
                 .frame(width: 30, alignment: .trailing)
 
-            // AVG
-            Text(String(format: ".%03d", Int(player.stats.battingAverage * 1000)))
-                .font(.system(size: 12, weight: highlightStat == .average ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .average ? AztecTheme.jade : AztecTheme.lightText)
+            // Dongs
+            Text("\(player.stats.dongs)")
+                .font(.system(size: 12, weight: highlightStat == .dongs ? .black : .medium, design: .monospaced))
+                .foregroundColor(highlightStat == .dongs ? AztecTheme.gold : AztecTheme.lightText)
                 .frame(width: 42, alignment: .trailing)
 
-            // HR
-            Text("\(player.stats.homeRuns)")
-                .font(.system(size: 12, weight: highlightStat == .homeRuns ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .homeRuns ? AztecTheme.gold : AztecTheme.lightText)
-                .frame(width: 28, alignment: .trailing)
-
-            // RBI
-            Text("\(player.stats.rbi)")
-                .font(.system(size: 12, weight: highlightStat == .rbi ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .rbi ? AztecTheme.jade : AztecTheme.lightText)
+            // Salamies
+            Text("\(player.stats.salamies)")
+                .font(.system(size: 12, weight: highlightStat == .salamies ? .black : .medium, design: .monospaced))
+                .foregroundColor(highlightStat == .salamies ? AztecTheme.jade : AztecTheme.lightText)
                 .frame(width: 32, alignment: .trailing)
 
-            // H
-            Text("\(player.stats.hits)")
-                .font(.system(size: 12, weight: highlightStat == .hits ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .hits ? AztecTheme.jade : AztecTheme.lightText)
+            // Double Plays
+            Text("\(player.stats.doublePlays)")
+                .font(.system(size: 12, weight: highlightStat == .doublePlays ? .black : .medium, design: .monospaced))
+                .foregroundColor(highlightStat == .doublePlays ? AztecTheme.amber : AztecTheme.lightText)
                 .frame(width: 28, alignment: .trailing)
+
+            // Drops
+            Text("\(player.stats.drops)")
+                .font(.system(size: 12, weight: highlightStat == .drops ? .black : .medium, design: .monospaced))
+                .foregroundColor(highlightStat == .drops ? AztecTheme.bloodRed : AztecTheme.lightText)
+                .frame(width: 32, alignment: .trailing)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
@@ -280,48 +258,58 @@ struct StatsTableRow: View {
     }
 }
 
-struct TeamStandingRow: View {
-    let rank: Int
+struct TeamAggregatedRow: View {
+    @EnvironmentObject var cloudService: CloudSyncService
     let team: Team
+
+    var teamPlayers: [Player] {
+        cloudService.playersForTeam(team.id)
+    }
+
+    var totalDongs: Int { teamPlayers.reduce(0) { $0 + $1.stats.dongs } }
+    var totalSalamies: Int { teamPlayers.reduce(0) { $0 + $1.stats.salamies } }
+    var totalDoublePlays: Int { teamPlayers.reduce(0) { $0 + $1.stats.doublePlays } }
 
     var body: some View {
         HStack(spacing: 12) {
-            Text("\(rank)")
-                .font(.system(size: 14, weight: .black, design: .monospaced))
-                .foregroundColor(
-                    rank == 1 ? AztecTheme.gold : AztecTheme.dimText
-                )
-                .frame(width: 24)
-
             Text(team.name)
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(AztecTheme.lightText)
 
             Spacer()
 
-            Text("\(team.wins)-\(team.losses)")
-                .font(.system(size: 16, weight: .heavy, design: .monospaced))
-                .foregroundColor(AztecTheme.jade)
+            HStack(spacing: 16) {
+                VStack(spacing: 1) {
+                    Text("\(totalDongs)")
+                        .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .foregroundColor(AztecTheme.gold)
+                    Text("D")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(AztecTheme.dimText)
+                }
 
-            if team.wins + team.losses > 0 {
-                Text(String(format: ".%03d", Int(team.winPercentage * 1000)))
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-                    .foregroundColor(AztecTheme.dimText)
-                    .frame(width: 42)
+                VStack(spacing: 1) {
+                    Text("\(totalSalamies)")
+                        .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .foregroundColor(AztecTheme.jade)
+                    Text("S")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(AztecTheme.dimText)
+                }
+
+                VStack(spacing: 1) {
+                    Text("\(totalDoublePlays)")
+                        .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .foregroundColor(AztecTheme.amber)
+                    Text("DP")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(AztecTheme.dimText)
+                }
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(
-            rank == 1 ? AztecTheme.gold.opacity(0.06) : AztecTheme.darkStone
-        )
+        .background(AztecTheme.darkStone)
         .clipShape(RoundedRectangle(cornerRadius: 6))
-        .overlay(
-            RoundedRectangle(cornerRadius: 6)
-                .stroke(
-                    rank == 1 ? AztecTheme.gold.opacity(0.25) : Color.clear,
-                    lineWidth: 1
-                )
-        )
     }
 }

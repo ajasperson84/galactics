@@ -327,7 +327,9 @@ struct CreateTournamentSheet: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @Environment(\.dismiss) var dismiss
     @State private var tournamentName = ""
-    @State private var selectedTeamIds: Set<String> = []
+    @State private var selectedTeamIds: [String] = []
+    @State private var matchupPairs: [(String, String)] = []
+    @State private var showMatchupSetup = false
 
     var body: some View {
         NavigationStack {
@@ -336,77 +338,118 @@ struct CreateTournamentSheet: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        AztecSectionHeader(title: "Tournament Setup")
+                        if !showMatchupSetup {
+                            // Step 1: Name and team selection
+                            AztecSectionHeader(title: "Tournament Setup")
 
-                        TextField("Tournament Name", text: $tournamentName)
-                            .aztecTextField()
+                            TextField("Tournament Name", text: $tournamentName)
+                                .aztecTextField()
 
-                        AztecSectionHeader(title: "Select Teams (\(selectedTeamIds.count))", color: AztecTheme.jade)
+                            AztecSectionHeader(title: "Select Teams (\(selectedTeamIds.count))", color: AztecTheme.jade)
 
-                        ForEach(cloudService.teams) { team in
-                            Button {
-                                if selectedTeamIds.contains(team.id) {
-                                    selectedTeamIds.remove(team.id)
-                                } else {
-                                    selectedTeamIds.insert(team.id)
+                            ForEach(cloudService.teams) { team in
+                                Button {
+                                    if let idx = selectedTeamIds.firstIndex(of: team.id) {
+                                        selectedTeamIds.remove(at: idx)
+                                    } else {
+                                        selectedTeamIds.append(team.id)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(team.name)
+                                            .font(.system(size: 16, weight: .bold))
+                                            .foregroundColor(AztecTheme.lightText)
+
+                                        Spacer()
+
+                                        Text("\(cloudService.playersForTeam(team.id).count) players")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(AztecTheme.dimText)
+
+                                        Image(systemName: selectedTeamIds.contains(team.id)
+                                              ? "checkmark.circle.fill"
+                                              : "circle")
+                                            .foregroundColor(
+                                                selectedTeamIds.contains(team.id)
+                                                    ? AztecTheme.gold
+                                                    : AztecTheme.stone
+                                            )
+                                    }
+                                    .padding(14)
+                                    .background(
+                                        selectedTeamIds.contains(team.id)
+                                            ? AztecTheme.gold.opacity(0.08)
+                                            : AztecTheme.darkStone
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(
+                                                selectedTeamIds.contains(team.id)
+                                                    ? AztecTheme.gold.opacity(0.3)
+                                                    : Color.clear,
+                                                lineWidth: 1
+                                            )
+                                    )
                                 }
-                            } label: {
-                                HStack {
-                                    Text(team.name)
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundColor(AztecTheme.lightText)
+                            }
 
-                                    Spacer()
-
-                                    Text("\(cloudService.playersForTeam(team.id).count) players")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(AztecTheme.dimText)
-
-                                    Image(systemName: selectedTeamIds.contains(team.id)
-                                          ? "checkmark.circle.fill"
-                                          : "circle")
-                                        .foregroundColor(
-                                            selectedTeamIds.contains(team.id)
-                                                ? AztecTheme.gold
-                                                : AztecTheme.stone
-                                        )
+                            let isEven = selectedTeamIds.count >= 2 && selectedTeamIds.count % 2 == 0
+                            if isEven {
+                                Button("SET UP MATCHUPS") {
+                                    initializeMatchups()
+                                    showMatchupSetup = true
                                 }
-                                .padding(14)
-                                .background(
-                                    selectedTeamIds.contains(team.id)
-                                        ? AztecTheme.gold.opacity(0.08)
-                                        : AztecTheme.darkStone
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(
-                                            selectedTeamIds.contains(team.id)
-                                                ? AztecTheme.gold.opacity(0.3)
-                                                : Color.clear,
-                                            lineWidth: 1
-                                        )
+                                .buttonStyle(AztecButtonStyle())
+                            } else if selectedTeamIds.count >= 2 {
+                                Text("Select an even number of teams")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(AztecTheme.amber)
+                            } else {
+                                Text("Select at least 2 teams")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(AztecTheme.amber)
+                            }
+                        } else {
+                            // Step 2: Arrange matchups
+                            AztecSectionHeader(title: "First Round Matchups")
+
+                            Text("Drag teams to rearrange who plays whom in the first round.")
+                                .font(.system(size: 13))
+                                .foregroundColor(AztecTheme.dimText)
+                                .multilineTextAlignment(.center)
+
+                            ForEach(Array(matchupPairs.enumerated()), id: \.offset) { index, pair in
+                                MatchupPairCard(
+                                    index: index,
+                                    team1Id: pair.0,
+                                    team2Id: pair.1,
+                                    onSwapTeam1: {
+                                        swapTeamBetweenMatchups(matchupIndex: index, slot: 0)
+                                    },
+                                    onSwapTeam2: {
+                                        swapTeamBetweenMatchups(matchupIndex: index, slot: 1)
+                                    }
                                 )
                             }
-                        }
 
-                        if selectedTeamIds.count >= 2 {
                             Button("START TOURNAMENT") {
                                 guard !tournamentName.trimmingCharacters(in: .whitespaces).isEmpty
                                 else { return }
                                 Task {
                                     await cloudService.createTournament(
                                         name: tournamentName.trimmingCharacters(in: .whitespaces),
-                                        teamIds: Array(selectedTeamIds)
+                                        matchups: matchupPairs
                                     )
                                     dismiss()
                                 }
                             }
                             .buttonStyle(AztecButtonStyle())
-                        } else {
-                            Text("Select at least 2 teams")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(AztecTheme.amber)
+
+                            Button("BACK") {
+                                showMatchupSetup = false
+                            }
+                            .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.stone))
                         }
                     }
                     .padding()
@@ -421,5 +464,97 @@ struct CreateTournamentSheet: View {
                 }
             }
         }
+    }
+
+    private func initializeMatchups() {
+        matchupPairs = []
+        var ids = selectedTeamIds
+        while ids.count >= 2 {
+            let t1 = ids.removeFirst()
+            let t2 = ids.removeFirst()
+            matchupPairs.append((t1, t2))
+        }
+    }
+
+    private func swapTeamBetweenMatchups(matchupIndex: Int, slot: Int) {
+        guard matchupPairs.count > 1 else { return }
+        let nextMatchup = (matchupIndex + 1) % matchupPairs.count
+        if slot == 0 {
+            let temp = matchupPairs[matchupIndex].0
+            matchupPairs[matchupIndex].0 = matchupPairs[nextMatchup].0
+            matchupPairs[nextMatchup].0 = temp
+        } else {
+            let temp = matchupPairs[matchupIndex].1
+            matchupPairs[matchupIndex].1 = matchupPairs[nextMatchup].1
+            matchupPairs[nextMatchup].1 = temp
+        }
+    }
+}
+
+struct MatchupPairCard: View {
+    @EnvironmentObject var cloudService: CloudSyncService
+    let index: Int
+    let team1Id: String
+    let team2Id: String
+    var onSwapTeam1: () -> Void
+    var onSwapTeam2: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text("MATCHUP \(index + 1)")
+                .font(.system(size: 10, weight: .heavy))
+                .tracking(2)
+                .foregroundColor(AztecTheme.amber)
+                .padding(.vertical, 6)
+
+            HStack {
+                Button {
+                    onSwapTeam1()
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.up.arrow.down")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(AztecTheme.stone)
+                        Text(cloudService.team(for: team1Id)?.name ?? "TBD")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(AztecTheme.lightText)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(AztecTheme.obsidian.opacity(0.5))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+
+                Text("VS")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(AztecTheme.stone)
+                    .padding(.horizontal, 6)
+
+                Button {
+                    onSwapTeam2()
+                } label: {
+                    HStack {
+                        Text(cloudService.team(for: team2Id)?.name ?? "TBD")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(AztecTheme.lightText)
+                        Image(systemName: "arrow.up.arrow.down")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(AztecTheme.stone)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(AztecTheme.obsidian.opacity(0.5))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.bottom, 10)
+        }
+        .background(AztecTheme.darkStone)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(AztecTheme.gold.opacity(0.2), lineWidth: 1)
+        )
     }
 }
