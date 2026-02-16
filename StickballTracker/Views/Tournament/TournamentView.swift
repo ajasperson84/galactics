@@ -220,6 +220,43 @@ struct MatchupCard: View {
                 isTop: false
             )
 
+            // Schedule info
+            if matchup.scheduledDate != nil || matchup.scheduledField != nil {
+                Rectangle()
+                    .fill(AztecTheme.stone.opacity(0.15))
+                    .frame(height: 1)
+
+                HStack(spacing: 6) {
+                    if let date = matchup.scheduledDate {
+                        Image(systemName: "calendar.badge.clock")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(AztecTheme.jade)
+                        Text(date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().hour().minute()))
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(AztecTheme.jade)
+                    }
+
+                    if matchup.scheduledDate != nil && matchup.scheduledField != nil {
+                        Text("·")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(AztecTheme.stone)
+                    }
+
+                    if let field = matchup.scheduledField {
+                        Image(systemName: "mappin.and.ellipse")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(AztecTheme.amber)
+                        Text(field)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(AztecTheme.amber)
+                    }
+
+                    Spacer()
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+            }
+
             // Series status
             if !matchup.games.isEmpty {
                 Rectangle()
@@ -333,11 +370,19 @@ struct TeamMatchupRow: View {
     }
 }
 
+struct MatchupSetupData: Identifiable {
+    let id = UUID()
+    var team1Id: String
+    var team2Id: String
+    var scheduledDate: Date?
+    var scheduledField: StickballField?
+}
+
 struct CreateTournamentSheet: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @Environment(\.dismiss) var dismiss
     @State private var selectedTeamIds: [String] = []
-    @State private var matchupPairs: [(String, String)] = []
+    @State private var matchupSetups: [MatchupSetupData] = []
     @State private var showMatchupSetup = false
 
     var body: some View {
@@ -417,19 +462,18 @@ struct CreateTournamentSheet: View {
                                     .foregroundColor(AztecTheme.amber)
                             }
                         } else {
-                            // Step 2: Arrange matchups
+                            // Step 2: Arrange matchups & schedule
                             AztecSectionHeader(title: "First Round Matchups")
 
-                            Text("Drag teams to rearrange who plays whom in the first round.")
+                            Text("Set up who plays whom, and schedule each matchup for the weekend.")
                                 .font(.system(size: 13))
                                 .foregroundColor(AztecTheme.dimText)
                                 .multilineTextAlignment(.center)
 
-                            ForEach(Array(matchupPairs.enumerated()), id: \.offset) { index, pair in
+                            ForEach(Array(matchupSetups.enumerated()), id: \.element.id) { index, _ in
                                 MatchupPairCard(
                                     index: index,
-                                    team1Id: pair.0,
-                                    team2Id: pair.1,
+                                    setup: $matchupSetups[index],
                                     onSwapTeam1: {
                                         swapTeamBetweenMatchups(matchupIndex: index, slot: 0)
                                     },
@@ -441,9 +485,17 @@ struct CreateTournamentSheet: View {
 
                             Button("START TOURNAMENT") {
                                 Task {
+                                    let matchups = matchupSetups.map {
+                                        (
+                                            $0.team1Id,
+                                            $0.team2Id,
+                                            $0.scheduledDate,
+                                            $0.scheduledField?.rawValue
+                                        )
+                                    }
                                     await cloudService.createTournament(
                                         name: "Galactics IV",
-                                        matchups: matchupPairs
+                                        matchups: matchups
                                     )
                                     dismiss()
                                 }
@@ -471,26 +523,26 @@ struct CreateTournamentSheet: View {
     }
 
     private func initializeMatchups() {
-        matchupPairs = []
+        matchupSetups = []
         var ids = selectedTeamIds
         while ids.count >= 2 {
             let t1 = ids.removeFirst()
             let t2 = ids.removeFirst()
-            matchupPairs.append((t1, t2))
+            matchupSetups.append(MatchupSetupData(team1Id: t1, team2Id: t2))
         }
     }
 
     private func swapTeamBetweenMatchups(matchupIndex: Int, slot: Int) {
-        guard matchupPairs.count > 1 else { return }
-        let nextMatchup = (matchupIndex + 1) % matchupPairs.count
+        guard matchupSetups.count > 1 else { return }
+        let nextMatchup = (matchupIndex + 1) % matchupSetups.count
         if slot == 0 {
-            let temp = matchupPairs[matchupIndex].0
-            matchupPairs[matchupIndex].0 = matchupPairs[nextMatchup].0
-            matchupPairs[nextMatchup].0 = temp
+            let temp = matchupSetups[matchupIndex].team1Id
+            matchupSetups[matchupIndex].team1Id = matchupSetups[nextMatchup].team1Id
+            matchupSetups[nextMatchup].team1Id = temp
         } else {
-            let temp = matchupPairs[matchupIndex].1
-            matchupPairs[matchupIndex].1 = matchupPairs[nextMatchup].1
-            matchupPairs[nextMatchup].1 = temp
+            let temp = matchupSetups[matchupIndex].team2Id
+            matchupSetups[matchupIndex].team2Id = matchupSetups[nextMatchup].team2Id
+            matchupSetups[nextMatchup].team2Id = temp
         }
     }
 }
@@ -498,10 +550,22 @@ struct CreateTournamentSheet: View {
 struct MatchupPairCard: View {
     @EnvironmentObject var cloudService: CloudSyncService
     let index: Int
-    let team1Id: String
-    let team2Id: String
+    @Binding var setup: MatchupSetupData
     var onSwapTeam1: () -> Void
     var onSwapTeam2: () -> Void
+
+    @State private var showDatePicker = false
+
+    private var tournamentDateRange: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let start = calendar.date(from: DateComponents(year: 2026, month: 4, day: 25))!
+        let end = calendar.date(from: DateComponents(year: 2026, month: 4, day: 27, hour: 23, minute: 59))!
+        return start...end
+    }
+
+    private var defaultDate: Date {
+        Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 25, hour: 10))!
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -511,6 +575,7 @@ struct MatchupPairCard: View {
                 .foregroundColor(AztecTheme.amber)
                 .padding(.vertical, 6)
 
+            // Team swap buttons
             HStack {
                 Button {
                     onSwapTeam1()
@@ -519,7 +584,7 @@ struct MatchupPairCard: View {
                         Image(systemName: "arrow.up.arrow.down")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(AztecTheme.stone)
-                        Text(cloudService.team(for: team1Id)?.name ?? "TBD")
+                        Text(cloudService.team(for: setup.team1Id)?.name ?? "TBD")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(AztecTheme.lightText)
                     }
@@ -538,7 +603,7 @@ struct MatchupPairCard: View {
                     onSwapTeam2()
                 } label: {
                     HStack {
-                        Text(cloudService.team(for: team2Id)?.name ?? "TBD")
+                        Text(cloudService.team(for: setup.team2Id)?.name ?? "TBD")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(AztecTheme.lightText)
                         Image(systemName: "arrow.up.arrow.down")
@@ -552,7 +617,108 @@ struct MatchupPairCard: View {
                 }
             }
             .padding(.horizontal, 10)
-            .padding(.bottom, 10)
+            .padding(.bottom, 8)
+
+            Rectangle()
+                .fill(AztecTheme.stone.opacity(0.15))
+                .frame(height: 1)
+
+            // Schedule section
+            VStack(spacing: 8) {
+                // Date & Time
+                HStack {
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(AztecTheme.jade)
+                        .frame(width: 20)
+
+                    if let date = setup.scheduledDate {
+                        Text(date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().hour().minute()))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(AztecTheme.lightText)
+                    } else {
+                        Text("No time set")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(AztecTheme.stone)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        if setup.scheduledDate == nil {
+                            setup.scheduledDate = defaultDate
+                        }
+                        showDatePicker.toggle()
+                    } label: {
+                        Text(setup.scheduledDate == nil ? "SET" : "EDIT")
+                            .font(.system(size: 10, weight: .heavy))
+                            .tracking(1)
+                            .foregroundColor(AztecTheme.jade)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(AztecTheme.jade.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+
+                    if setup.scheduledDate != nil {
+                        Button {
+                            setup.scheduledDate = nil
+                            showDatePicker = false
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(AztecTheme.stone)
+                        }
+                    }
+                }
+
+                if showDatePicker {
+                    DatePicker(
+                        "Date & Time",
+                        selection: Binding(
+                            get: { setup.scheduledDate ?? defaultDate },
+                            set: { setup.scheduledDate = $0 }
+                        ),
+                        in: tournamentDateRange,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                    .tint(AztecTheme.gold)
+                }
+
+                // Field / Location
+                HStack {
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(AztecTheme.amber)
+                        .frame(width: 20)
+
+                    Menu {
+                        Button("None") { setup.scheduledField = nil }
+                        ForEach(StickballField.allCases, id: \.self) { field in
+                            Button(field.rawValue) { setup.scheduledField = field }
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(setup.scheduledField?.rawValue ?? "Select field")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(
+                                    setup.scheduledField != nil
+                                        ? AztecTheme.lightText
+                                        : AztecTheme.stone
+                                )
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(AztecTheme.stone)
+                        }
+                    }
+
+                    Spacer()
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
         }
         .background(AztecTheme.darkStone)
         .clipShape(RoundedRectangle(cornerRadius: 8))

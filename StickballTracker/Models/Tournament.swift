@@ -45,11 +45,15 @@ struct Matchup: Identifiable, Codable {
     var games: [Game]
     var winnerId: String?
     var status: MatchupStatus
+    var scheduledDate: Date?
+    var scheduledField: String?
 
     init(
         id: String = UUID().uuidString,
         team1Id: String? = nil,
-        team2Id: String? = nil
+        team2Id: String? = nil,
+        scheduledDate: Date? = nil,
+        scheduledField: String? = nil
     ) {
         self.id = id
         self.team1Id = team1Id
@@ -57,6 +61,8 @@ struct Matchup: Identifiable, Codable {
         self.games = []
         self.winnerId = nil
         self.status = .pending
+        self.scheduledDate = scheduledDate
+        self.scheduledField = scheduledField
     }
 
     var team1Wins: Int {

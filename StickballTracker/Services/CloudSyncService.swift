@@ -232,7 +232,7 @@ class CloudSyncService: ObservableObject {
 
     // MARK: - Tournament Operations
 
-    func createTournament(name: String, matchups: [(String, String)]) async {
+    func createTournament(name: String, matchups: [(String, String, Date?, String?)]) async {
         let allTeamIds = matchups.flatMap { [$0.0, $0.1] }
         var tournament = Tournament(name: name, teamIds: allTeamIds)
         tournament.bracket = generateBracketFromMatchups(matchups)
@@ -349,8 +349,10 @@ class CloudSyncService: ObservableObject {
 
     // MARK: - Bracket Generation
 
-    private func generateBracketFromMatchups(_ matchups: [(String, String)]) -> [BracketRound] {
-        let firstRoundMatchups = matchups.map { Matchup(team1Id: $0.0, team2Id: $0.1) }
+    private func generateBracketFromMatchups(_ matchups: [(String, String, Date?, String?)]) -> [BracketRound] {
+        let firstRoundMatchups = matchups.map {
+            Matchup(team1Id: $0.0, team2Id: $0.1, scheduledDate: $0.2, scheduledField: $0.3)
+        }
 
         var rounds: [BracketRound] = []
         let totalRounds = max(1, Int(ceil(log2(Double(matchups.count)))) + 1)
