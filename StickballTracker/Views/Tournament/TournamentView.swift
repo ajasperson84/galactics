@@ -326,7 +326,6 @@ struct TeamMatchupRow: View {
 struct CreateTournamentSheet: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @Environment(\.dismiss) var dismiss
-    @State private var tournamentName = ""
     @State private var selectedTeamIds: [String] = []
     @State private var matchupPairs: [(String, String)] = []
     @State private var showMatchupSetup = false
@@ -339,11 +338,8 @@ struct CreateTournamentSheet: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         if !showMatchupSetup {
-                            // Step 1: Name and team selection
-                            AztecSectionHeader(title: "Tournament Setup")
-
-                            TextField("Tournament Name", text: $tournamentName)
-                                .aztecTextField()
+                            // Step 1: Team selection
+                            AztecSectionHeader(title: "Galactics IV Setup")
 
                             AztecSectionHeader(title: "Select Teams (\(selectedTeamIds.count))", color: AztecTheme.jade)
 
@@ -434,11 +430,9 @@ struct CreateTournamentSheet: View {
                             }
 
                             Button("START TOURNAMENT") {
-                                guard !tournamentName.trimmingCharacters(in: .whitespaces).isEmpty
-                                else { return }
                                 Task {
                                     await cloudService.createTournament(
-                                        name: tournamentName.trimmingCharacters(in: .whitespaces),
+                                        name: "Galactics IV",
                                         matchups: matchupPairs
                                     )
                                     dismiss()

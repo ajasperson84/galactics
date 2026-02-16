@@ -73,20 +73,7 @@ struct TeamCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                // Team emblem
-                ZStack {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(AztecTheme.gold.opacity(0.15))
-                        .frame(width: 48, height: 48)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(AztecTheme.gold.opacity(0.4), lineWidth: 1)
-                        )
-
-                    Text(String(team.name.prefix(2)).uppercased())
-                        .font(.system(size: 18, weight: .black))
-                        .foregroundColor(AztecTheme.gold)
-                }
+                TeamIconView(team: team, size: 48)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(team.name)
@@ -271,6 +258,7 @@ struct TeamDetailSheet: View {
     @Environment(\.dismiss) var dismiss
     let team: Team
     @State private var editedName: String = ""
+    @State private var editedIconName: String = ""
     @State private var showDeleteConfirm = false
     @State private var showAddPlayerPicker = false
 
@@ -285,26 +273,24 @@ struct TeamDetailSheet: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Team emblem large
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(AztecTheme.gold.opacity(0.12))
-                                .frame(width: 90, height: 90)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(AztecTheme.gold.opacity(0.4), lineWidth: 2)
-                                )
-                                .shadow(color: AztecTheme.gold.opacity(0.2), radius: 12)
-
-                            Text(String(team.name.prefix(2)).uppercased())
-                                .font(.system(size: 36, weight: .black))
-                                .foregroundColor(AztecTheme.gold)
-                        }
+                        // Team icon large
+                        TeamIconView(team: team, size: 90)
+                            .shadow(color: AztecTheme.gold.opacity(0.2), radius: 12)
 
                         // Name edit
                         TextField("Team Name", text: $editedName)
                             .aztecTextField()
                             .multilineTextAlignment(.center)
+
+                        // Icon name edit
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("ICON NAME")
+                                .font(.system(size: 10, weight: .heavy))
+                                .tracking(2)
+                                .foregroundColor(AztecTheme.dimText)
+                            TextField("Asset name (e.g. team-rosecity)", text: $editedIconName)
+                                .aztecTextField()
+                        }
 
                         // Team stats summary
                         HStack(spacing: 16) {
@@ -398,6 +384,8 @@ struct TeamDetailSheet: View {
                             Task {
                                 var updated = team
                                 updated.name = editedName
+                                let trimmedIcon = editedIconName.trimmingCharacters(in: .whitespaces)
+                                updated.iconName = trimmedIcon.isEmpty ? nil : trimmedIcon
                                 await cloudService.updateTeam(updated)
                                 dismiss()
                             }
@@ -436,6 +424,7 @@ struct TeamDetailSheet: View {
             }
             .onAppear {
                 editedName = team.name
+                editedIconName = team.iconName ?? ""
             }
         }
     }

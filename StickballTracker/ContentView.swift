@@ -26,7 +26,7 @@ struct ContentView: View {
 
             VStack(spacing: 0) {
                 // Header
-                AztecHeader(title: "STICKBALL TRACKER")
+                AztecHeader(title: "GALACTICS IV")
 
                 // Content
                 TabView(selection: $selectedTab) {

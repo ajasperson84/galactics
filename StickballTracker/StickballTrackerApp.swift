@@ -15,12 +15,33 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct StickballTrackerApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var cloudService = CloudSyncService()
+    @State private var showSplash = true
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(cloudService)
-                .preferredColorScheme(.dark)
+            ZStack {
+                ContentView()
+                    .environmentObject(cloudService)
+                    .preferredColorScheme(.dark)
+
+                if showSplash {
+                    SplashView()
+                        .transition(.opacity)
+                        .zIndex(1)
+                        .onTapGesture {
+                            withAnimation(.easeOut(duration: 0.5)) {
+                                showSplash = false
+                            }
+                        }
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                                withAnimation(.easeOut(duration: 0.5)) {
+                                    showSplash = false
+                                }
+                            }
+                        }
+                }
+            }
         }
     }
 }

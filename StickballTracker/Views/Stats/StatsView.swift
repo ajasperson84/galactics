@@ -3,7 +3,6 @@ import SwiftUI
 struct StatsView: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @State private var sortBy: StatSort = .dongs
-    @State private var filterTeamId: String?
 
     enum StatSort: String, CaseIterable {
         case dongs = "Dongs"
@@ -14,16 +13,9 @@ struct StatsView: View {
         var label: String { rawValue }
     }
 
-    var filteredPlayers: [Player] {
-        var list = cloudService.players
-        if let teamId = filterTeamId {
-            list = list.filter { $0.teamId == teamId }
-        }
-        return list.filter { $0.stats.gamesPlayed > 0 }
-    }
-
     var sortedPlayers: [Player] {
-        filteredPlayers.sorted { p1, p2 in
+        let eligible = cloudService.players.filter { $0.stats.gamesPlayed > 0 }
+        let sorted = eligible.sorted { p1, p2 in
             switch sortBy {
             case .dongs:
                 return p1.stats.dongs > p2.stats.dongs
@@ -35,13 +27,14 @@ struct StatsView: View {
                 return p1.stats.drops > p2.stats.drops
             }
         }
+        return Array(sorted.prefix(10))
     }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 // Leaderboard header
-                AztecSectionHeader(title: "Leaderboards")
+                AztecSectionHeader(title: "Top 10 Leaderboard")
                     .padding(.horizontal)
 
                 // Sort options
@@ -63,55 +56,6 @@ struct StatsView: View {
                                         sortBy == sort
                                             ? AztecTheme.gold
                                             : AztecTheme.gold.opacity(0.1)
-                                    )
-                                    .clipShape(Capsule())
-                            }
-                        }
-
-                        Divider()
-                            .frame(height: 20)
-                            .background(AztecTheme.stone)
-
-                        // Team filter
-                        Button {
-                            filterTeamId = nil
-                        } label: {
-                            Text("ALL")
-                                .font(.system(size: 11, weight: .heavy))
-                                .tracking(1)
-                                .foregroundColor(
-                                    filterTeamId == nil
-                                        ? AztecTheme.obsidian
-                                        : AztecTheme.jade
-                                )
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 7)
-                                .background(
-                                    filterTeamId == nil
-                                        ? AztecTheme.jade
-                                        : AztecTheme.jade.opacity(0.1)
-                                )
-                                .clipShape(Capsule())
-                        }
-
-                        ForEach(cloudService.teams) { team in
-                            Button {
-                                filterTeamId = team.id
-                            } label: {
-                                Text(team.name.prefix(6).uppercased())
-                                    .font(.system(size: 11, weight: .heavy))
-                                    .tracking(1)
-                                    .foregroundColor(
-                                        filterTeamId == team.id
-                                            ? AztecTheme.obsidian
-                                            : AztecTheme.jade
-                                    )
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 7)
-                                    .background(
-                                        filterTeamId == team.id
-                                            ? AztecTheme.jade
-                                            : AztecTheme.jade.opacity(0.1)
                                     )
                                     .clipShape(Capsule())
                             }
@@ -199,7 +143,6 @@ struct StatsTableRow: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            // Rank
             Text("\(rank)")
                 .font(.system(size: 12, weight: rank <= 3 ? .black : .bold, design: .monospaced))
                 .foregroundColor(
@@ -210,38 +153,32 @@ struct StatsTableRow: View {
                 )
                 .frame(width: 24, alignment: .center)
 
-            // Name
             Text(player.name)
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(AztecTheme.lightText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
 
-            // GP
             Text("\(player.stats.gamesPlayed)")
                 .font(.system(size: 12, weight: .medium, design: .monospaced))
                 .foregroundColor(AztecTheme.dimText)
                 .frame(width: 30, alignment: .trailing)
 
-            // Dongs
             Text("\(player.stats.dongs)")
                 .font(.system(size: 12, weight: highlightStat == .dongs ? .black : .medium, design: .monospaced))
                 .foregroundColor(highlightStat == .dongs ? AztecTheme.gold : AztecTheme.lightText)
                 .frame(width: 42, alignment: .trailing)
 
-            // Salamies
             Text("\(player.stats.salamies)")
                 .font(.system(size: 12, weight: highlightStat == .salamies ? .black : .medium, design: .monospaced))
                 .foregroundColor(highlightStat == .salamies ? AztecTheme.jade : AztecTheme.lightText)
                 .frame(width: 32, alignment: .trailing)
 
-            // Double Plays
             Text("\(player.stats.doublePlays)")
                 .font(.system(size: 12, weight: highlightStat == .doublePlays ? .black : .medium, design: .monospaced))
                 .foregroundColor(highlightStat == .doublePlays ? AztecTheme.amber : AztecTheme.lightText)
                 .frame(width: 28, alignment: .trailing)
 
-            // Drops
             Text("\(player.stats.drops)")
                 .font(.system(size: 12, weight: highlightStat == .drops ? .black : .medium, design: .monospaced))
                 .foregroundColor(highlightStat == .drops ? AztecTheme.bloodRed : AztecTheme.lightText)
@@ -272,6 +209,8 @@ struct TeamAggregatedRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            TeamIconView(team: team, size: 28)
+
             Text(team.name)
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(AztecTheme.lightText)
@@ -311,5 +250,35 @@ struct TeamAggregatedRow: View {
         .padding(.vertical, 10)
         .background(AztecTheme.darkStone)
         .clipShape(RoundedRectangle(cornerRadius: 6))
+    }
+}
+
+/// Displays a team's custom icon from Assets if set, otherwise shows the two-letter abbreviation.
+struct TeamIconView: View {
+    let team: Team
+    var size: CGFloat = 48
+
+    var body: some View {
+        if let iconName = team.iconName {
+            Image(iconName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+                .clipShape(RoundedRectangle(cornerRadius: size * 0.125))
+        } else {
+            ZStack {
+                RoundedRectangle(cornerRadius: size * 0.125)
+                    .fill(AztecTheme.gold.opacity(0.15))
+                    .frame(width: size, height: size)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: size * 0.125)
+                            .stroke(AztecTheme.gold.opacity(0.4), lineWidth: 1)
+                    )
+
+                Text(String(team.name.prefix(2)).uppercased())
+                    .font(.system(size: size * 0.375, weight: .black))
+                    .foregroundColor(AztecTheme.gold)
+            }
+        }
     }
 }

@@ -20,6 +20,7 @@
 		A100000011 /* TournamentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000011; };
 		A100000012 /* GameEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000012; };
 		A100000013 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000013; };
+		A100000018 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000018; };
 		A100000014 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000014; };
 		A100000015 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000015; };
 		A100000016 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D100000001; };
@@ -40,6 +41,7 @@
 		B100000011 /* TournamentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TournamentView.swift; sourceTree = "<group>"; };
 		B100000012 /* GameEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEntrySheet.swift; sourceTree = "<group>"; };
 		B100000013 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+		B100000018 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		B100000014 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B100000015 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		B100000099 /* StickballTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StickballTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -123,6 +125,7 @@
 				G100000008 /* Teams */,
 				G100000009 /* Tournament */,
 				G100000011 /* Stats */,
+				B100000018 /* SplashView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -266,6 +269,7 @@
 				A100000011 /* TournamentView.swift in Sources */,
 				A100000012 /* GameEntrySheet.swift in Sources */,
 				A100000013 /* StatsView.swift in Sources */,
+				A100000018 /* SplashView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

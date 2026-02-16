@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Game entry sheet for recording scores and individual player stats during a matchup.
-/// Dongs and Salamies auto-update team scores. Users can also pick a field location.
+/// Scores can be adjusted manually or auto-updated via player Dongs/Salamies.
 struct GameEntrySheet: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @Environment(\.dismiss) var dismiss
@@ -93,18 +93,45 @@ struct GameEntrySheet: View {
                             }
                         }
 
-                        // Score display
+                        // Score display with manual +/- buttons
                         HStack(spacing: 0) {
+                            // Team 1 score
                             VStack(spacing: 8) {
-                                Text(team1?.name ?? "Team 1")
-                                    .font(.system(size: 14, weight: .heavy))
-                                    .tracking(1)
-                                    .foregroundColor(AztecTheme.lightText)
-                                    .lineLimit(1)
+                                HStack(spacing: 4) {
+                                    if let icon = team1?.iconName {
+                                        Image(icon)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
+                                    }
+                                    Text(team1?.name ?? "Team 1")
+                                        .font(.system(size: 14, weight: .heavy))
+                                        .tracking(1)
+                                        .foregroundColor(AztecTheme.lightText)
+                                        .lineLimit(1)
+                                }
 
                                 Text("\(team1Score)")
                                     .font(.system(size: 40, weight: .black, design: .monospaced))
                                     .foregroundColor(AztecTheme.jade)
+
+                                HStack(spacing: 12) {
+                                    Button {
+                                        if team1Score > 0 { team1Score -= 1 }
+                                    } label: {
+                                        Image(systemName: "minus.circle.fill")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(AztecTheme.stone)
+                                    }
+
+                                    Button {
+                                        team1Score += 1
+                                    } label: {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(AztecTheme.jade)
+                                    }
+                                }
                             }
                             .frame(maxWidth: .infinity)
 
@@ -113,16 +140,43 @@ struct GameEntrySheet: View {
                                 .foregroundColor(AztecTheme.stone)
                                 .padding(.horizontal, 8)
 
+                            // Team 2 score
                             VStack(spacing: 8) {
-                                Text(team2?.name ?? "Team 2")
-                                    .font(.system(size: 14, weight: .heavy))
-                                    .tracking(1)
-                                    .foregroundColor(AztecTheme.lightText)
-                                    .lineLimit(1)
+                                HStack(spacing: 4) {
+                                    if let icon = team2?.iconName {
+                                        Image(icon)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
+                                    }
+                                    Text(team2?.name ?? "Team 2")
+                                        .font(.system(size: 14, weight: .heavy))
+                                        .tracking(1)
+                                        .foregroundColor(AztecTheme.lightText)
+                                        .lineLimit(1)
+                                }
 
                                 Text("\(team2Score)")
                                     .font(.system(size: 40, weight: .black, design: .monospaced))
                                     .foregroundColor(AztecTheme.jade)
+
+                                HStack(spacing: 12) {
+                                    Button {
+                                        if team2Score > 0 { team2Score -= 1 }
+                                    } label: {
+                                        Image(systemName: "minus.circle.fill")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(AztecTheme.stone)
+                                    }
+
+                                    Button {
+                                        team2Score += 1
+                                    } label: {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(AztecTheme.jade)
+                                    }
+                                }
                             }
                             .frame(maxWidth: .infinity)
                         }
