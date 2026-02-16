@@ -90,6 +90,7 @@ struct Game: Identifiable, Codable {
     var winnerId: String?
     var playerGameStats: [PlayerGameStats]
     var field: String?
+    var gameDate: Date?
     var status: GameStatus
     var completedAt: Date?
 
@@ -104,6 +105,7 @@ struct Game: Identifiable, Codable {
         self.winnerId = nil
         self.playerGameStats = []
         self.field = nil
+        self.gameDate = nil
         self.status = .notStarted
         self.completedAt = nil
     }

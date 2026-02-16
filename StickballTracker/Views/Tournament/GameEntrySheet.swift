@@ -14,6 +14,7 @@ struct GameEntrySheet: View {
     @State private var team2Score: Int = 0
     @State private var playerStats: [String: EditablePlayerStats] = [:]
     @State private var selectedField: StickballField?
+    @State private var gameDate: Date = Date()
     @State private var showConfirm = false
 
     var team1: Team? {
@@ -91,6 +92,25 @@ struct GameEntrySheet: View {
                                         .stroke(AztecTheme.stone.opacity(0.2), lineWidth: 0.5)
                                 )
                             }
+                        }
+
+                        // Date & time picker
+                        VStack(spacing: 6) {
+                            Text("DATE & TIME")
+                                .font(.system(size: 11, weight: .heavy))
+                                .tracking(2)
+                                .foregroundColor(AztecTheme.dimText)
+
+                            DatePicker(
+                                "Game Date",
+                                selection: $gameDate,
+                                in: tournamentDateRange,
+                                displayedComponents: [.date, .hourAndMinute]
+                            )
+                            .datePickerStyle(.compact)
+                            .labelsHidden()
+                            .tint(AztecTheme.gold)
+                            .colorScheme(.dark)
                         }
 
                         // Score display with manual +/- buttons
@@ -242,6 +262,13 @@ struct GameEntrySheet: View {
         }
     }
 
+    private var tournamentDateRange: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let start = calendar.date(from: DateComponents(year: 2026, month: 4, day: 25))!
+        let end = calendar.date(from: DateComponents(year: 2026, month: 4, day: 27, hour: 23, minute: 59))!
+        return start...end
+    }
+
     private func binding(for playerId: String) -> Binding<EditablePlayerStats> {
         Binding(
             get: { playerStats[playerId] ?? EditablePlayerStats() },
@@ -275,6 +302,7 @@ struct GameEntrySheet: View {
                 team1Score: team1Score,
                 team2Score: team2Score,
                 field: selectedField?.rawValue,
+                gameDate: gameDate,
                 playerStats: gameStats
             )
             dismiss()

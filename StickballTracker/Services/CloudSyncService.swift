@@ -3,7 +3,7 @@ import FirebaseFirestore
 import Combine
 
 /// Cloud sync service using Firebase Firestore for real-time multi-user synchronization.
-/// Every mutation writes to Firestore; snapshot listeners push changes to all connected devices.
+/// Also persists data locally as JSON so it survives app restarts even without connectivity.
 @MainActor
 class CloudSyncService: ObservableObject {
     @Published var players: [Player] = []
@@ -15,8 +15,64 @@ class CloudSyncService: ObservableObject {
     private let db = Firestore.firestore()
     private var listeners: [ListenerRegistration] = []
 
+    // MARK: - Local Persistence Paths
+
+    private static var documentsDir: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
+    private static var playersFile: URL { documentsDir.appendingPathComponent("players.json") }
+    private static var teamsFile: URL { documentsDir.appendingPathComponent("teams.json") }
+    private static var tournamentFile: URL { documentsDir.appendingPathComponent("tournament.json") }
+
     init() {
+        loadFromDisk()
         attachListeners()
+    }
+
+    // MARK: - Local JSON Persistence
+
+    private func loadFromDisk() {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        if let data = try? Data(contentsOf: Self.playersFile),
+           let saved = try? decoder.decode([Player].self, from: data) {
+            players = saved
+        }
+
+        if let data = try? Data(contentsOf: Self.teamsFile),
+           let saved = try? decoder.decode([Team].self, from: data) {
+            teams = saved
+        }
+
+        if let data = try? Data(contentsOf: Self.tournamentFile),
+           let saved = try? decoder.decode(Tournament.self, from: data) {
+            tournament = saved
+        }
+    }
+
+    private func savePlayers() {
+        save(players, to: Self.playersFile)
+    }
+
+    private func saveTeams() {
+        save(teams, to: Self.teamsFile)
+    }
+
+    private func saveTournament() {
+        if let tournament {
+            save(tournament, to: Self.tournamentFile)
+        } else {
+            try? FileManager.default.removeItem(at: Self.tournamentFile)
+        }
+    }
+
+    private func save<T: Encodable>(_ value: T, to url: URL) {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = .prettyPrinted
+        guard let data = try? encoder.encode(value) else { return }
+        try? data.write(to: url, options: .atomic)
     }
 
     // MARK: - Real-time Listeners
@@ -33,6 +89,7 @@ class CloudSyncService: ObservableObject {
                     }
                     guard let documents = snapshot?.documents else { return }
                     self.players = documents.compactMap { try? $0.data(as: Player.self) }
+                    self.savePlayers()
                 }
             }
         listeners.append(playersListener)
@@ -48,6 +105,7 @@ class CloudSyncService: ObservableObject {
                     }
                     guard let documents = snapshot?.documents else { return }
                     self.teams = documents.compactMap { try? $0.data(as: Team.self) }
+                    self.saveTeams()
                 }
             }
         listeners.append(teamsListener)
@@ -63,6 +121,7 @@ class CloudSyncService: ObservableObject {
                         return
                     }
                     self.tournament = snapshot?.documents.first.flatMap { try? $0.data(as: Tournament.self) }
+                    self.saveTournament()
                 }
             }
         listeners.append(tournamentListener)
@@ -209,6 +268,7 @@ class CloudSyncService: ObservableObject {
         team1Score: Int,
         team2Score: Int,
         field: String?,
+        gameDate: Date?,
         playerStats: [PlayerGameStats]
     ) async {
         guard var tournament else { return }
@@ -223,6 +283,7 @@ class CloudSyncService: ObservableObject {
             matchup.games[gameIndex].team2Score = team2Score
             matchup.games[gameIndex].playerGameStats = playerStats
             matchup.games[gameIndex].field = field
+            matchup.games[gameIndex].gameDate = gameDate
             matchup.games[gameIndex].status = .completed
             matchup.games[gameIndex].completedAt = Date()
             if team1Score > team2Score {
@@ -236,6 +297,7 @@ class CloudSyncService: ObservableObject {
             game.team2Score = team2Score
             game.playerGameStats = playerStats
             game.field = field
+            game.gameDate = gameDate
             game.status = .completed
             game.completedAt = Date()
             if team1Score > team2Score {

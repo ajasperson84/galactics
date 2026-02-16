@@ -25,6 +25,11 @@ struct TournamentView: View {
                                     .tracking(2)
                                     .foregroundColor(AztecTheme.gold)
 
+                                Text("APRIL 25-27, 2026")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .tracking(1.5)
+                                    .foregroundColor(AztecTheme.dimText)
+
                                 Text(tournament.status.rawValue.uppercased())
                                     .font(.system(size: 11, weight: .heavy))
                                     .tracking(2)
@@ -232,6 +237,11 @@ struct MatchupCard: View {
                                 Text("\(game.team1Score)-\(game.team2Score)")
                                     .font(.system(size: 12, weight: .heavy, design: .monospaced))
                                     .foregroundColor(AztecTheme.jade)
+                                if let date = game.gameDate {
+                                    Text(date.formatted(.dateTime.month(.abbreviated).day()))
+                                        .font(.system(size: 8, weight: .medium))
+                                        .foregroundColor(AztecTheme.stone)
+                                }
                             }
                         } else {
                             VStack(spacing: 2) {
