@@ -291,6 +291,8 @@ struct GameEntrySheet: View {
             gs.drops = stats.drops
             gs.doublePlays = stats.doublePlays
             gs.salamies = stats.salamies
+            gs.suds = stats.suds
+            gs.tacos = stats.tacos
             return gs
         }
 
@@ -315,6 +317,8 @@ struct EditablePlayerStats {
     var drops: Int = 0
     var doublePlays: Int = 0
     var salamies: Int = 0
+    var suds: Int = 0
+    var tacos: Int = 0
 }
 
 /// Quick stat entry row for a single player.
@@ -361,6 +365,16 @@ struct QuickStatEntry: View {
                                 .font(.system(size: 12, weight: .heavy, design: .monospaced))
                                 .foregroundColor(AztecTheme.bloodRed)
                         }
+                        if stats.suds > 0 {
+                            Text("\(stats.suds)Su")
+                                .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                                .foregroundColor(AztecTheme.cosmic)
+                        }
+                        if stats.tacos > 0 {
+                            Text("\(stats.tacos)T")
+                                .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                                .foregroundColor(AztecTheme.tennisGreen)
+                        }
                     }
 
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
@@ -381,6 +395,8 @@ struct QuickStatEntry: View {
                     }
                     StatStepperRow(label: "Dbl Plays", value: $stats.doublePlays, color: AztecTheme.amber)
                     StatStepperRow(label: "Drops", value: $stats.drops, color: AztecTheme.bloodRed)
+                    StatStepperRow(label: "Suds", value: $stats.suds, color: AztecTheme.cosmic)
+                    StatStepperRow(label: "Tacos", value: $stats.tacos, color: AztecTheme.tennisGreen)
                 }
                 .padding(.horizontal, 12)
                 .padding(.bottom, 10)

@@ -130,6 +130,8 @@ struct PlayerGameStats: Identifiable, Codable {
     var drops: Int
     var doublePlays: Int
     var salamies: Int
+    var suds: Int
+    var tacos: Int
 
     init(id: String = UUID().uuidString, playerId: String) {
         self.id = id
@@ -138,6 +140,8 @@ struct PlayerGameStats: Identifiable, Codable {
         self.drops = 0
         self.doublePlays = 0
         self.salamies = 0
+        self.suds = 0
+        self.tacos = 0
     }
 }
 

@@ -5,9 +5,9 @@ struct ContentView: View {
     @State private var selectedTab: AppTab = .tournament
 
     enum AppTab: String, CaseIterable {
-        case tournament = "Tournament"
-        case teams = "Teams"
-        case players = "Players"
+        case tournament = "Tourney"
+        case teams = "Squads"
+        case players = "Ballers"
         case stats = "Stats"
 
         var icon: String {
@@ -26,7 +26,7 @@ struct ContentView: View {
 
             VStack(spacing: 0) {
                 // Header
-                AztecHeader(title: "GALACTICS IV")
+                AztecHeader(title: "G FOUR")
 
                 // Content
                 TabView(selection: $selectedTab) {
@@ -66,8 +66,7 @@ struct AztecTabBar: View {
                         Image(systemName: tab.icon)
                             .font(.system(size: 20, weight: .bold))
                         Text(tab.rawValue)
-                            .font(.system(size: 10, weight: .heavy))
-                            .tracking(1)
+                            .font(AztecTheme.handwritten(size: 11))
                     }
                     .foregroundColor(selectedTab == tab ? AztecTheme.gold : AztecTheme.stone)
                     .frame(maxWidth: .infinity)

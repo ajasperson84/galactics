@@ -16,14 +16,14 @@ struct TeamsView: View {
                     } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "plus")
-                            Text("NEW TEAM")
+                            Text("NEW SQUAD")
                         }
                     }
                     .buttonStyle(AztecButtonStyle())
                 }
                 .padding(.horizontal)
 
-                AztecSectionHeader(title: "\(cloudService.teams.count) Teams")
+                AztecSectionHeader(title: "\(cloudService.teams.count) Squads")
                     .padding(.horizontal)
 
                 // Teams
@@ -80,7 +80,7 @@ struct TeamCard: View {
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(AztecTheme.lightText)
 
-                    Text("\(teamPlayers.count) players")
+                    Text("\(teamPlayers.count) ballers")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(AztecTheme.dimText)
                 }
@@ -184,7 +184,7 @@ struct TeamPickerSheet: View {
 
                                     Spacer()
 
-                                    Text("\(cloudService.playersForTeam(team.id).count) players")
+                                    Text("\(cloudService.playersForTeam(team.id).count) ballers")
                                         .font(.system(size: 12))
                                         .foregroundColor(AztecTheme.dimText)
                                 }
@@ -197,7 +197,7 @@ struct TeamPickerSheet: View {
                     .padding()
                 }
             }
-            .navigationTitle("Pick Team")
+            .navigationTitle("Pick Squad")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -220,12 +220,12 @@ struct AddTeamSheet: View {
                 AztecTheme.obsidian.ignoresSafeArea()
 
                 VStack(spacing: 24) {
-                    AztecSectionHeader(title: "Create Team")
+                    AztecSectionHeader(title: "Create Squad")
 
-                    TextField("Team Name", text: $teamName)
+                    TextField("Squad Name", text: $teamName)
                         .aztecTextField()
 
-                    Button("CREATE TEAM") {
+                    Button("CREATE SQUAD") {
                         guard !teamName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
                         Task {
                             await cloudService.addTeam(
@@ -241,7 +241,7 @@ struct AddTeamSheet: View {
                 }
                 .padding()
             }
-            .navigationTitle("New Team")
+            .navigationTitle("New Squad")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -292,49 +292,19 @@ struct TeamDetailSheet: View {
                                 .aztecTextField()
                         }
 
-                        // Team stats summary
-                        HStack(spacing: 16) {
-                            let totalDongs = teamPlayers.reduce(0) { $0 + $1.stats.dongs }
-                            let totalSalamies = teamPlayers.reduce(0) { $0 + $1.stats.salamies }
-                            let totalDP = teamPlayers.reduce(0) { $0 + $1.stats.doublePlays }
+                        // Squad stats summary
+                        let totalDongs = teamPlayers.reduce(0) { $0 + $1.stats.dongs }
+                        let totalSalamies = teamPlayers.reduce(0) { $0 + $1.stats.salamies }
+                        let totalDP = teamPlayers.reduce(0) { $0 + $1.stats.doublePlays }
+                        let totalSuds = teamPlayers.reduce(0) { $0 + $1.stats.suds }
+                        let totalTacos = teamPlayers.reduce(0) { $0 + $1.stats.tacos }
 
-                            VStack {
-                                Text("\(totalDongs)")
-                                    .font(.system(size: 28, weight: .black, design: .monospaced))
-                                    .foregroundColor(AztecTheme.gold)
-                                Text("DONGS")
-                                    .font(.system(size: 10, weight: .heavy))
-                                    .tracking(2)
-                                    .foregroundColor(AztecTheme.dimText)
-                            }
-
-                            Rectangle()
-                                .fill(AztecTheme.stone.opacity(0.3))
-                                .frame(width: 1, height: 40)
-
-                            VStack {
-                                Text("\(totalSalamies)")
-                                    .font(.system(size: 28, weight: .black, design: .monospaced))
-                                    .foregroundColor(AztecTheme.jade)
-                                Text("SALAMIES")
-                                    .font(.system(size: 10, weight: .heavy))
-                                    .tracking(2)
-                                    .foregroundColor(AztecTheme.dimText)
-                            }
-
-                            Rectangle()
-                                .fill(AztecTheme.stone.opacity(0.3))
-                                .frame(width: 1, height: 40)
-
-                            VStack {
-                                Text("\(totalDP)")
-                                    .font(.system(size: 28, weight: .black, design: .monospaced))
-                                    .foregroundColor(AztecTheme.amber)
-                                Text("DBL PLAYS")
-                                    .font(.system(size: 10, weight: .heavy))
-                                    .tracking(2)
-                                    .foregroundColor(AztecTheme.dimText)
-                            }
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                            StatBubble(value: totalDongs, label: "DONGS", color: AztecTheme.gold)
+                            StatBubble(value: totalSalamies, label: "SALAMIES", color: AztecTheme.jade)
+                            StatBubble(value: totalDP, label: "DBL PLAYS", color: AztecTheme.amber)
+                            StatBubble(value: totalSuds, label: "SUDS", color: AztecTheme.cosmic)
+                            StatBubble(value: totalTacos, label: "TACOS", color: AztecTheme.tennisGreen)
                         }
                         .aztecCard(highlight: AztecTheme.jade)
 
@@ -392,7 +362,7 @@ struct TeamDetailSheet: View {
                         }
                         .buttonStyle(AztecButtonStyle())
 
-                        Button("DELETE TEAM") {
+                        Button("DELETE SQUAD") {
                             showDeleteConfirm = true
                         }
                         .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.bloodRed))
@@ -400,7 +370,7 @@ struct TeamDetailSheet: View {
                     .padding()
                 }
             }
-            .navigationTitle("Team Details")
+            .navigationTitle("Squad Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -408,7 +378,7 @@ struct TeamDetailSheet: View {
                         .foregroundColor(AztecTheme.gold)
                 }
             }
-            .alert("Delete Team?", isPresented: $showDeleteConfirm) {
+            .alert("Delete Squad?", isPresented: $showDeleteConfirm) {
                 Button("Delete", role: .destructive) {
                     Task {
                         await cloudService.deleteTeam(team)
@@ -417,7 +387,7 @@ struct TeamDetailSheet: View {
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("This will delete \(team.name). Players will become free agents.")
+                Text("This will delete \(team.name). Ballers will become free agents.")
             }
             .sheet(isPresented: $showAddPlayerPicker) {
                 AddPlayerToTeamSheet(team: team)
@@ -492,7 +462,7 @@ struct AddPlayerToTeamSheet: View {
                     .padding()
                 }
             }
-            .navigationTitle("Add Players")
+            .navigationTitle("Add Ballers")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -501,5 +471,25 @@ struct AddPlayerToTeamSheet: View {
                 }
             }
         }
+    }
+}
+
+struct StatBubble: View {
+    let value: Int
+    let label: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text("\(value)")
+                .font(.system(size: 22, weight: .black, design: .monospaced))
+                .foregroundColor(color)
+            Text(label)
+                .font(.system(size: 8, weight: .heavy))
+                .tracking(1)
+                .foregroundColor(AztecTheme.dimText)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
     }
 }

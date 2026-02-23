@@ -21,5 +21,7 @@ struct PlayerStats: Codable, Hashable {
     var drops: Int = 0
     var doublePlays: Int = 0
     var salamies: Int = 0
+    var suds: Int = 0
+    var tacos: Int = 0
     var gamesPlayed: Int = 0
 }

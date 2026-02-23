@@ -23,7 +23,7 @@ struct PlayersView: View {
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(AztecTheme.stone)
-                        TextField("Search players...", text: $searchText)
+                        TextField("Search ballers...", text: $searchText)
                             .foregroundColor(AztecTheme.lightText)
                     }
                     .aztecTextField()
@@ -39,7 +39,7 @@ struct PlayersView: View {
                 .padding(.horizontal)
 
                 // Player count
-                AztecSectionHeader(title: "\(filteredPlayers.count) Players")
+                AztecSectionHeader(title: "\(filteredPlayers.count) Ballers")
                     .padding(.horizontal)
 
                 // Player list
@@ -140,12 +140,12 @@ struct AddPlayerSheet: View {
                 AztecTheme.obsidian.ignoresSafeArea()
 
                 VStack(spacing: 24) {
-                    AztecSectionHeader(title: "New Player")
+                    AztecSectionHeader(title: "New Baller")
 
-                    TextField("Player Name", text: $playerName)
+                    TextField("Baller Name", text: $playerName)
                         .aztecTextField()
 
-                    AztecSectionHeader(title: "Assign to Team", color: AztecTheme.jade)
+                    AztecSectionHeader(title: "Assign to Squad", color: AztecTheme.jade)
 
                     // Team picker
                     ScrollView {
@@ -199,7 +199,7 @@ struct AddPlayerSheet: View {
 
                     Spacer()
 
-                    Button("ADD PLAYER") {
+                    Button("ADD BALLER") {
                         guard !playerName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
                         Task {
                             await cloudService.addPlayer(
@@ -214,7 +214,7 @@ struct AddPlayerSheet: View {
                 }
                 .padding()
             }
-            .navigationTitle("Add Player")
+            .navigationTitle("Add Baller")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -263,7 +263,7 @@ struct PlayerDetailSheet: View {
                             .multilineTextAlignment(.center)
 
                         // Team assignment
-                        AztecSectionHeader(title: "Team Assignment", color: AztecTheme.jade)
+                        AztecSectionHeader(title: "Squad Assignment", color: AztecTheme.jade)
 
                         Picker("Team", selection: $selectedTeamId) {
                             Text("Free Agent").tag(String?.none)
@@ -297,7 +297,7 @@ struct PlayerDetailSheet: View {
                         .buttonStyle(AztecButtonStyle())
 
                         // Delete button
-                        Button("DELETE PLAYER") {
+                        Button("DELETE BALLER") {
                             showDeleteConfirm = true
                         }
                         .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.bloodRed))
@@ -305,7 +305,7 @@ struct PlayerDetailSheet: View {
                     .padding()
                 }
             }
-            .navigationTitle("Player Details")
+            .navigationTitle("Baller Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -313,7 +313,7 @@ struct PlayerDetailSheet: View {
                         .foregroundColor(AztecTheme.gold)
                 }
             }
-            .alert("Delete Player?", isPresented: $showDeleteConfirm) {
+            .alert("Delete Baller?", isPresented: $showDeleteConfirm) {
                 Button("Delete", role: .destructive) {
                     Task {
                         await cloudService.deletePlayer(player)
@@ -340,8 +340,10 @@ struct PlayerStatsGrid: View {
             ("GP", "\(stats.gamesPlayed)"),
             ("Dongs", "\(stats.dongs)"),
             ("Salamies", "\(stats.salamies)"),
-            ("Double Plays", "\(stats.doublePlays)"),
+            ("Dbl Plays", "\(stats.doublePlays)"),
             ("Drops", "\(stats.drops)"),
+            ("Suds", "\(stats.suds)"),
+            ("Tacos", "\(stats.tacos)"),
         ]
     }
 

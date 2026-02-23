@@ -92,47 +92,35 @@ struct AztecBackground: View {
     }
 }
 
-/// App header with Aztec-styled title and decorative borders.
+/// App header with chunky "G FOUR" title.
 struct AztecHeader: View {
     let title: String
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                // Left decorative element
-                AztecCornerGlyph()
-
                 Spacer()
 
                 Text(title)
-                    .font(.system(size: 18, weight: .black))
-                    .tracking(4)
+                    .font(AztecTheme.chunky(size: 28))
+                    .tracking(6)
                     .foregroundStyle(AztecTheme.goldGradient)
-                    .shadow(color: AztecTheme.gold.opacity(0.3), radius: 8)
+                    .shadow(color: AztecTheme.gold.opacity(0.5), radius: 10)
+                    .shadow(color: AztecTheme.tennisGreen.opacity(0.2), radius: 20)
 
                 Spacer()
-
-                AztecCornerGlyph()
-                    .scaleEffect(x: -1)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 14)
 
-            // Decorative border
-            HStack(spacing: 4) {
-                ForEach(0..<30, id: \.self) { i in
-                    Rectangle()
-                        .fill(
-                            i % 3 == 0
-                                ? AztecTheme.gold.opacity(0.5)
-                                : AztecTheme.gold.opacity(0.15)
-                        )
-                        .frame(height: 2)
-                }
-            }
-            .padding(.horizontal, 8)
+            // Neon underline
+            Rectangle()
+                .fill(AztecTheme.goldGradient)
+                .frame(height: 2)
+                .shadow(color: AztecTheme.gold.opacity(0.5), radius: 4)
+                .padding(.horizontal, 16)
         }
-        .background(AztecTheme.obsidian.opacity(0.9))
+        .background(AztecTheme.obsidian.opacity(0.95))
     }
 }
 
@@ -163,7 +151,7 @@ struct AztecCornerGlyph: View {
     }
 }
 
-/// Section header with Aztec styling.
+/// Section header with handwritten styling.
 struct AztecSectionHeader: View {
     let title: String
     var color: Color = AztecTheme.gold
@@ -171,13 +159,13 @@ struct AztecSectionHeader: View {
     var body: some View {
         HStack(spacing: 8) {
             Rectangle()
-                .fill(color.opacity(0.4))
-                .frame(width: 3, height: 16)
+                .fill(color.opacity(0.5))
+                .frame(width: 3, height: 18)
 
-            Text(title.uppercased())
-                .font(.system(size: 13, weight: .heavy))
-                .tracking(3)
+            Text(title)
+                .font(AztecTheme.handwritten(size: 18))
                 .foregroundColor(color)
+                .shadow(color: color.opacity(0.3), radius: 4)
 
             VStack { Divider().background(color.opacity(0.2)) }
         }

@@ -1,59 +1,68 @@
 import SwiftUI
 
-/// Design system: Aztec meets futuristic sci-fi.
-/// Deep obsidian backgrounds, glowing gold/teal accents, geometric Aztec patterns,
-/// holographic-style borders, and angular futuristic typography.
+/// Design system: Urban street-style with vibrant neon accents.
+/// Deep dark backgrounds, electric neon colors, handwritten-style headers,
+/// and a bold, energetic visual language.
 enum AztecTheme {
     // MARK: - Colors
 
-    /// Deep obsidian black - primary background
-    static let obsidian = Color(red: 0.06, green: 0.06, blue: 0.10)
+    /// Deep dark background
+    static let obsidian = Color(red: 0.04, green: 0.04, blue: 0.08)
 
-    /// Dark charcoal - card backgrounds
-    static let darkStone = Color(red: 0.10, green: 0.10, blue: 0.14)
+    /// Dark card backgrounds
+    static let darkStone = Color(red: 0.08, green: 0.08, blue: 0.12)
 
     /// Medium stone - secondary surfaces
-    static let stone = Color(red: 0.40, green: 0.38, blue: 0.35)
+    static let stone = Color(red: 0.35, green: 0.35, blue: 0.40)
 
-    /// Warm gold - primary accent, Aztec-inspired
-    static let gold = Color(red: 0.91, green: 0.76, blue: 0.30)
+    /// Neon yellow - primary accent
+    static let gold = Color(red: 1.0, green: 0.92, blue: 0.0)
 
-    /// Deep amber - secondary gold accent
-    static let amber = Color(red: 0.80, green: 0.55, blue: 0.15)
+    /// Hot pink/magenta - secondary accent
+    static let amber = Color(red: 1.0, green: 0.18, blue: 0.55)
 
-    /// Turquoise/teal - sci-fi accent, represents jade
-    static let jade = Color(red: 0.15, green: 0.85, blue: 0.75)
+    /// Turquoise - vibrant teal accent
+    static let jade = Color(red: 0.0, green: 0.92, blue: 0.82)
 
-    /// Blood red - Aztec ceremonial, used for alerts/losses
-    static let bloodRed = Color(red: 0.80, green: 0.15, blue: 0.15)
+    /// Blood red - alerts/destructive
+    static let bloodRed = Color(red: 0.90, green: 0.12, blue: 0.15)
 
-    /// Deep purple - cosmic/mystical accent
-    static let cosmic = Color(red: 0.45, green: 0.20, blue: 0.75)
+    /// Electric blue - accent
+    static let cosmic = Color(red: 0.20, green: 0.50, blue: 1.0)
+
+    /// Tennis ball neon green
+    static let tennisGreen = Color(red: 0.78, green: 1.0, blue: 0.0)
 
     /// Light text
-    static let lightText = Color(red: 0.92, green: 0.90, blue: 0.85)
+    static let lightText = Color(red: 0.95, green: 0.95, blue: 0.95)
 
     /// Dimmed text
-    static let dimText = Color(red: 0.55, green: 0.52, blue: 0.48)
+    static let dimText = Color(red: 0.50, green: 0.50, blue: 0.55)
 
     // MARK: - Gradients
 
     static let goldGradient = LinearGradient(
-        colors: [gold, amber],
+        colors: [gold, tennisGreen],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
     static let jadeGradient = LinearGradient(
-        colors: [jade, Color(red: 0.10, green: 0.60, blue: 0.55)],
+        colors: [jade, cosmic],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
     static let cosmicGradient = LinearGradient(
-        colors: [cosmic, Color(red: 0.25, green: 0.10, blue: 0.55)],
+        colors: [cosmic, Color(red: 0.10, green: 0.25, blue: 0.70)],
         startPoint: .top,
         endPoint: .bottom
+    )
+
+    static let pinkGradient = LinearGradient(
+        colors: [amber, Color(red: 0.80, green: 0.10, blue: 0.40)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
     )
 
     static let cardGradient = LinearGradient(
@@ -61,6 +70,18 @@ enum AztecTheme {
         startPoint: .top,
         endPoint: .bottom
     )
+
+    // MARK: - Fonts
+
+    /// Handwritten style font for headers
+    static func handwritten(size: CGFloat) -> Font {
+        Font.custom("MarkerFelt-Wide", size: size)
+    }
+
+    /// Chunky display font for main title
+    static func chunky(size: CGFloat) -> Font {
+        Font.system(size: size, weight: .black, design: .rounded)
+    }
 
     // MARK: - Decorative Elements
 

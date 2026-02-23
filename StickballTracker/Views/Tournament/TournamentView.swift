@@ -120,23 +120,23 @@ struct TournamentView: View {
                                 .shadow(color: AztecTheme.gold.opacity(0.3), radius: 12)
                         }
 
-                        Text("NO ACTIVE TOURNAMENT")
+                        Text("NO ACTIVE TOURNEY")
                             .font(.system(size: 16, weight: .heavy))
                             .tracking(3)
                             .foregroundColor(AztecTheme.stone)
 
-                        Text("Create a tournament to set up brackets\nand start tracking games.")
+                        Text("Create a tourney to set up brackets\nand start tracking games.")
                             .font(.system(size: 14))
                             .foregroundColor(AztecTheme.dimText)
                             .multilineTextAlignment(.center)
 
                         if cloudService.teams.count >= 2 {
-                            Button("CREATE TOURNAMENT") {
+                            Button("CREATE TOURNEY") {
                                 showCreateTournament = true
                             }
                             .buttonStyle(AztecButtonStyle())
                         } else {
-                            Text("Add at least 2 teams to create a tournament")
+                            Text("Add at least 2 squads to create a tourney")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(AztecTheme.amber)
                         }
@@ -394,9 +394,9 @@ struct CreateTournamentSheet: View {
                     VStack(spacing: 20) {
                         if !showMatchupSetup {
                             // Step 1: Team selection
-                            AztecSectionHeader(title: "Galactics IV Setup")
+                            AztecSectionHeader(title: "G Four Setup")
 
-                            AztecSectionHeader(title: "Select Teams (\(selectedTeamIds.count))", color: AztecTheme.jade)
+                            AztecSectionHeader(title: "Select Squads (\(selectedTeamIds.count))", color: AztecTheme.jade)
 
                             ForEach(cloudService.teams) { team in
                                 Button {
@@ -413,7 +413,7 @@ struct CreateTournamentSheet: View {
 
                                         Spacer()
 
-                                        Text("\(cloudService.playersForTeam(team.id).count) players")
+                                        Text("\(cloudService.playersForTeam(team.id).count) ballers")
                                             .font(.system(size: 12))
                                             .foregroundColor(AztecTheme.dimText)
 
@@ -453,11 +453,11 @@ struct CreateTournamentSheet: View {
                                 }
                                 .buttonStyle(AztecButtonStyle())
                             } else if selectedTeamIds.count >= 2 {
-                                Text("Select an even number of teams")
+                                Text("Select an even number of squads")
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundColor(AztecTheme.amber)
                             } else {
-                                Text("Select at least 2 teams")
+                                Text("Select at least 2 squads")
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundColor(AztecTheme.amber)
                             }
@@ -483,7 +483,7 @@ struct CreateTournamentSheet: View {
                                 )
                             }
 
-                            Button("START TOURNAMENT") {
+                            Button("START TOURNEY") {
                                 Task {
                                     let matchups = matchupSetups.map {
                                         (
@@ -494,7 +494,7 @@ struct CreateTournamentSheet: View {
                                         )
                                     }
                                     await cloudService.createTournament(
-                                        name: "Galactics IV",
+                                        name: "G Four",
                                         matchups: matchups
                                     )
                                     dismiss()
@@ -511,7 +511,7 @@ struct CreateTournamentSheet: View {
                     .padding()
                 }
             }
-            .navigationTitle("New Tournament")
+            .navigationTitle("New Tourney")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

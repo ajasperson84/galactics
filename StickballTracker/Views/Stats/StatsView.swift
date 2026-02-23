@@ -9,6 +9,8 @@ struct StatsView: View {
         case salamies = "Salamies"
         case doublePlays = "Dbl Plays"
         case drops = "Drops"
+        case suds = "Suds"
+        case tacos = "Tacos"
 
         var label: String { rawValue }
     }
@@ -25,6 +27,10 @@ struct StatsView: View {
                 return p1.stats.doublePlays > p2.stats.doublePlays
             case .drops:
                 return p1.stats.drops > p2.stats.drops
+            case .suds:
+                return p1.stats.suds > p2.stats.suds
+            case .tacos:
+                return p1.stats.tacos > p2.stats.tacos
             }
         }
         return Array(sorted.prefix(10))
@@ -93,7 +99,7 @@ struct StatsView: View {
                 }
 
                 // Team aggregated stats
-                AztecSectionHeader(title: "Team Stats", color: AztecTheme.jade)
+                AztecSectionHeader(title: "Squad Stats", color: AztecTheme.jade)
                     .padding(.horizontal)
                     .padding(.top, 8)
 
@@ -114,21 +120,25 @@ struct StatsTableHeader: View {
     var body: some View {
         HStack(spacing: 4) {
             Text("#")
-                .frame(width: 24, alignment: .center)
-            Text("PLAYER")
+                .frame(width: 20, alignment: .center)
+            Text("BALLER")
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text("GP")
-                .frame(width: 30, alignment: .trailing)
-            Text("DONG")
-                .frame(width: 42, alignment: .trailing)
+                .frame(width: 26, alignment: .trailing)
+            Text("DNG")
+                .frame(width: 32, alignment: .trailing)
             Text("SAL")
-                .frame(width: 32, alignment: .trailing)
-            Text("DP")
                 .frame(width: 28, alignment: .trailing)
+            Text("DP")
+                .frame(width: 24, alignment: .trailing)
             Text("DRP")
-                .frame(width: 32, alignment: .trailing)
+                .frame(width: 28, alignment: .trailing)
+            Text("SUD")
+                .frame(width: 28, alignment: .trailing)
+            Text("TAC")
+                .frame(width: 28, alignment: .trailing)
         }
-        .font(.system(size: 10, weight: .heavy))
+        .font(.system(size: 9, weight: .heavy))
         .tracking(0.5)
         .foregroundColor(AztecTheme.dimText)
         .padding(.horizontal, 8)
@@ -151,38 +161,48 @@ struct StatsTableRow: View {
                     rank == 3 ? AztecTheme.amber :
                     AztecTheme.dimText
                 )
-                .frame(width: 24, alignment: .center)
+                .frame(width: 20, alignment: .center)
 
             Text(player.name)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundColor(AztecTheme.lightText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
 
             Text("\(player.stats.gamesPlayed)")
-                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .foregroundColor(AztecTheme.dimText)
-                .frame(width: 30, alignment: .trailing)
+                .frame(width: 26, alignment: .trailing)
 
             Text("\(player.stats.dongs)")
-                .font(.system(size: 12, weight: highlightStat == .dongs ? .black : .medium, design: .monospaced))
+                .font(.system(size: 11, weight: highlightStat == .dongs ? .black : .medium, design: .monospaced))
                 .foregroundColor(highlightStat == .dongs ? AztecTheme.gold : AztecTheme.lightText)
-                .frame(width: 42, alignment: .trailing)
+                .frame(width: 32, alignment: .trailing)
 
             Text("\(player.stats.salamies)")
-                .font(.system(size: 12, weight: highlightStat == .salamies ? .black : .medium, design: .monospaced))
+                .font(.system(size: 11, weight: highlightStat == .salamies ? .black : .medium, design: .monospaced))
                 .foregroundColor(highlightStat == .salamies ? AztecTheme.jade : AztecTheme.lightText)
-                .frame(width: 32, alignment: .trailing)
-
-            Text("\(player.stats.doublePlays)")
-                .font(.system(size: 12, weight: highlightStat == .doublePlays ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .doublePlays ? AztecTheme.amber : AztecTheme.lightText)
                 .frame(width: 28, alignment: .trailing)
 
+            Text("\(player.stats.doublePlays)")
+                .font(.system(size: 11, weight: highlightStat == .doublePlays ? .black : .medium, design: .monospaced))
+                .foregroundColor(highlightStat == .doublePlays ? AztecTheme.amber : AztecTheme.lightText)
+                .frame(width: 24, alignment: .trailing)
+
             Text("\(player.stats.drops)")
-                .font(.system(size: 12, weight: highlightStat == .drops ? .black : .medium, design: .monospaced))
+                .font(.system(size: 11, weight: highlightStat == .drops ? .black : .medium, design: .monospaced))
                 .foregroundColor(highlightStat == .drops ? AztecTheme.bloodRed : AztecTheme.lightText)
-                .frame(width: 32, alignment: .trailing)
+                .frame(width: 28, alignment: .trailing)
+
+            Text("\(player.stats.suds)")
+                .font(.system(size: 11, weight: highlightStat == .suds ? .black : .medium, design: .monospaced))
+                .foregroundColor(highlightStat == .suds ? AztecTheme.cosmic : AztecTheme.lightText)
+                .frame(width: 28, alignment: .trailing)
+
+            Text("\(player.stats.tacos)")
+                .font(.system(size: 11, weight: highlightStat == .tacos ? .black : .medium, design: .monospaced))
+                .foregroundColor(highlightStat == .tacos ? AztecTheme.tennisGreen : AztecTheme.lightText)
+                .frame(width: 28, alignment: .trailing)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
@@ -206,6 +226,8 @@ struct TeamAggregatedRow: View {
     var totalDongs: Int { teamPlayers.reduce(0) { $0 + $1.stats.dongs } }
     var totalSalamies: Int { teamPlayers.reduce(0) { $0 + $1.stats.salamies } }
     var totalDoublePlays: Int { teamPlayers.reduce(0) { $0 + $1.stats.doublePlays } }
+    var totalSuds: Int { teamPlayers.reduce(0) { $0 + $1.stats.suds } }
+    var totalTacos: Int { teamPlayers.reduce(0) { $0 + $1.stats.tacos } }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -217,7 +239,7 @@ struct TeamAggregatedRow: View {
 
             Spacer()
 
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 VStack(spacing: 1) {
                     Text("\(totalDongs)")
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
@@ -241,6 +263,24 @@ struct TeamAggregatedRow: View {
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
                         .foregroundColor(AztecTheme.amber)
                     Text("DP")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(AztecTheme.dimText)
+                }
+
+                VStack(spacing: 1) {
+                    Text("\(totalSuds)")
+                        .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .foregroundColor(AztecTheme.cosmic)
+                    Text("Su")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(AztecTheme.dimText)
+                }
+
+                VStack(spacing: 1) {
+                    Text("\(totalTacos)")
+                        .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .foregroundColor(AztecTheme.tennisGreen)
+                    Text("T")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundColor(AztecTheme.dimText)
                 }

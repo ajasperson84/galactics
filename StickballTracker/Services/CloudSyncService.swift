@@ -171,6 +171,8 @@ class CloudSyncService: ObservableObject {
         player.stats.drops += gameStats.drops
         player.stats.doublePlays += gameStats.doublePlays
         player.stats.salamies += gameStats.salamies
+        player.stats.suds += gameStats.suds
+        player.stats.tacos += gameStats.tacos
         player.stats.gamesPlayed += 1
         await updatePlayer(player)
     }
