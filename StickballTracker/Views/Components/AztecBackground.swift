@@ -92,26 +92,18 @@ struct AztecBackground: View {
     }
 }
 
-/// App header with chunky "G FOUR" title.
+/// App header using the G4_Header image asset.
 struct AztecHeader: View {
     let title: String
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Spacer()
-
-                Text(title)
-                    .font(AztecTheme.chunky(size: 28))
-                    .tracking(6)
-                    .foregroundStyle(AztecTheme.goldGradient)
-                    .shadow(color: AztecTheme.gold.opacity(0.5), radius: 10)
-                    .shadow(color: AztecTheme.tennisGreen.opacity(0.2), radius: 20)
-
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            Image("G4_Header")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 44)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
 
             // Neon underline
             Rectangle()
