@@ -10,8 +10,8 @@ struct SplashView: View {
 
     var body: some View {
         ZStack {
-            // Paper white background
-            Color.white.ignoresSafeArea()
+            // Dark neon background
+            AztecTheme.obsidian.ignoresSafeArea()
 
             // YFS Logo - slowly expands
             Image("YFS_MED")

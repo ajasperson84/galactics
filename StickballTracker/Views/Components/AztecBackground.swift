@@ -1,48 +1,38 @@
 import SwiftUI
 
-/// Full-screen paper-white background with subtle xerox noise texture.
+/// Neon background with subtle 80s grid lines.
 struct AztecBackground: View {
+    var color: Color = AztecTheme.tourneyBg
+
     var body: some View {
         ZStack {
-            // Clean paper white base
-            AztecTheme.obsidian.ignoresSafeArea()
+            color.ignoresSafeArea()
 
-            // Subtle xerox grain / noise dots
+            // Subtle horizontal speed lines
             GeometryReader { _ in
                 Canvas { context, size in
-                    let gridSize: CGFloat = 40
-                    let cols = Int(size.width / gridSize) + 1
-                    let rows = Int(size.height / gridSize) + 1
-
-                    for row in 0..<rows {
-                        for col in 0..<cols {
-                            let x = CGFloat(col) * gridSize
-                            let y = CGFloat(row) * gridSize
-
-                            // Scattered dots like xerox artifacts
-                            if (row * 7 + col * 13) % 11 == 0 {
-                                let dotSize: CGFloat = 1.5
-                                let rect = CGRect(
-                                    x: x + gridSize * 0.5,
-                                    y: y + gridSize * 0.5,
-                                    width: dotSize,
-                                    height: dotSize
-                                )
-                                context.fill(
-                                    Path(ellipseIn: rect),
-                                    with: .color(AztecTheme.ink.opacity(0.04))
-                                )
-                            }
-                        }
+                    let lineSpacing: CGFloat = 28
+                    let lineCount = Int(size.height / lineSpacing) + 1
+                    for i in 0..<lineCount {
+                        let y = CGFloat(i) * lineSpacing
+                        var path = Path()
+                        path.move(to: CGPoint(x: 0, y: y))
+                        path.addLine(to: CGPoint(x: size.width, y: y))
+                        context.stroke(
+                            path,
+                            with: .color(.white.opacity(0.035)),
+                            lineWidth: 0.5
+                        )
                     }
                 }
             }
             .ignoresSafeArea()
+            .allowsHitTesting(false)
         }
     }
 }
 
-/// App header using the G4_header image asset.
+/// App header using the G4_header image asset on dark background.
 struct AztecHeader: View {
     let title: String
 
@@ -55,35 +45,29 @@ struct AztecHeader: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
 
-            // Black rule line
             Rectangle()
-                .fill(AztecTheme.ink)
+                .fill(AztecTheme.gold)
                 .frame(height: 2)
         }
-        .background(Color.white)
+        .background(AztecTheme.obsidian)
     }
 }
 
-/// Section header with Impact font and optional color highlight block.
+/// Section header with jazzercise italic font and neon accent color.
 struct AztecSectionHeader: View {
     let title: String
-    var color: Color = AztecTheme.ink
+    var color: Color = AztecTheme.gold
 
     var body: some View {
         HStack(spacing: 0) {
             Text(" \(title.uppercased()) ")
-                .font(AztecTheme.impact(size: 16))
-                .foregroundColor(color == AztecTheme.ink ? AztecTheme.ink : AztecTheme.ink)
+                .font(AztecTheme.jazzFont(size: 16))
+                .foregroundColor(color)
                 .padding(.horizontal, 4)
                 .padding(.vertical, 2)
-                .background(
-                    color == AztecTheme.ink
-                        ? Color.clear
-                        : color.opacity(0.35)
-                )
 
             VStack {
-                Divider().background(AztecTheme.ink.opacity(0.15))
+                Divider().background(color.opacity(0.3))
             }
         }
         .padding(.vertical, 4)

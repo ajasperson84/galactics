@@ -22,7 +22,7 @@ struct StickballTrackerApp: App {
             ZStack {
                 ContentView()
                     .environmentObject(cloudService)
-                    .preferredColorScheme(.light)
+                    .preferredColorScheme(.dark)
 
                 if showSplash {
                     SplashView()

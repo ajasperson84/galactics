@@ -19,39 +19,47 @@ struct ContentView: View {
             }
         }
 
-        var highlightColor: Color {
+        var backgroundColor: Color {
+            switch self {
+            case .tournament: return AztecTheme.tourneyBg
+            case .teams: return AztecTheme.squadsBg
+            case .players: return AztecTheme.ballersBg
+            case .stats: return AztecTheme.statsBg
+            }
+        }
+
+        var accentColor: Color {
             switch self {
             case .tournament: return AztecTheme.gold
             case .teams: return AztecTheme.jade
             case .players: return AztecTheme.amber
-            case .stats: return AztecTheme.cosmic
+            case .stats: return AztecTheme.tennisGreen
             }
         }
     }
 
     var body: some View {
         ZStack {
-            AztecBackground()
+            // Dynamic neon background per section
+            selectedTab.backgroundColor
+                .ignoresSafeArea()
+                .animation(.easeInOut(duration: 0.3), value: selectedTab)
 
             VStack(spacing: 0) {
                 // Header
                 AztecHeader(title: "G FOUR")
 
-                // Content
-                TabView(selection: $selectedTab) {
-                    TournamentView()
-                        .tag(AppTab.tournament)
-
-                    TeamsView()
-                        .tag(AppTab.teams)
-
-                    PlayersView()
-                        .tag(AppTab.players)
-
-                    StatsView()
-                        .tag(AppTab.stats)
+                // Content — manual switching fixes text field interactivity
+                // (page-style TabView swipe gestures block TextField input)
+                Group {
+                    switch selectedTab {
+                    case .tournament: TournamentView()
+                    case .teams: TeamsView()
+                    case .players: PlayersView()
+                    case .stats: StatsView()
+                    }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 // Custom tab bar
                 AztecTabBar(selectedTab: $selectedTab)
@@ -75,25 +83,25 @@ struct AztecTabBar: View {
                         Image(systemName: tab.icon)
                             .font(.system(size: 18, weight: .bold))
                         Text(tab.rawValue)
-                            .font(AztecTheme.impact(size: 10))
+                            .font(AztecTheme.jazzFont(size: 10))
                             .tracking(0.5)
                     }
-                    .foregroundColor(AztecTheme.ink)
+                    .foregroundColor(selectedTab == tab ? tab.accentColor : AztecTheme.dimText)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(
                         selectedTab == tab
-                            ? tab.highlightColor.opacity(0.4)
+                            ? tab.accentColor.opacity(0.15)
                             : Color.clear
                     )
                 }
             }
         }
-        .background(Color.white)
+        .background(AztecTheme.obsidian)
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(AztecTheme.ink)
-                .frame(height: 1.5)
+                .fill(AztecTheme.gold)
+                .frame(height: 1)
         }
     }
 }

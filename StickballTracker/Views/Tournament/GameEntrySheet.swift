@@ -110,6 +110,7 @@ struct GameEntrySheet: View {
                             .datePickerStyle(.compact)
                             .labelsHidden()
                             .tint(AztecTheme.gold)
+                            .colorScheme(.dark)
                         }
 
                         // Score display with manual +/- buttons

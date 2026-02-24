@@ -474,12 +474,7 @@ struct CreateTournamentSheet: View {
                                 MatchupPairCard(
                                     index: index,
                                     setup: $matchupSetups[index],
-                                    onSwapTeam1: {
-                                        swapTeamBetweenMatchups(matchupIndex: index, slot: 0)
-                                    },
-                                    onSwapTeam2: {
-                                        swapTeamBetweenMatchups(matchupIndex: index, slot: 1)
-                                    }
+                                    availableTeamIds: selectedTeamIds
                                 )
                             }
 
@@ -532,27 +527,13 @@ struct CreateTournamentSheet: View {
         }
     }
 
-    private func swapTeamBetweenMatchups(matchupIndex: Int, slot: Int) {
-        guard matchupSetups.count > 1 else { return }
-        let nextMatchup = (matchupIndex + 1) % matchupSetups.count
-        if slot == 0 {
-            let temp = matchupSetups[matchupIndex].team1Id
-            matchupSetups[matchupIndex].team1Id = matchupSetups[nextMatchup].team1Id
-            matchupSetups[nextMatchup].team1Id = temp
-        } else {
-            let temp = matchupSetups[matchupIndex].team2Id
-            matchupSetups[matchupIndex].team2Id = matchupSetups[nextMatchup].team2Id
-            matchupSetups[nextMatchup].team2Id = temp
-        }
-    }
 }
 
 struct MatchupPairCard: View {
     @EnvironmentObject var cloudService: CloudSyncService
     let index: Int
     @Binding var setup: MatchupSetupData
-    var onSwapTeam1: () -> Void
-    var onSwapTeam2: () -> Void
+    let availableTeamIds: [String]
 
     @State private var showDatePicker = false
 
@@ -567,53 +548,73 @@ struct MatchupPairCard: View {
         Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 25, hour: 10))!
     }
 
+    private var availableTeams: [Team] {
+        availableTeamIds.compactMap { cloudService.team(for: $0) }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Text("MATCHUP \(index + 1)")
-                .font(AztecTheme.impact(size: 10))
+                .font(AztecTheme.jazzFont(size: 10))
                 .tracking(2)
                 .foregroundColor(AztecTheme.amber)
                 .padding(.vertical, 6)
 
-            // Team swap buttons
+            // Team dropdown selectors
             HStack {
-                Button {
-                    onSwapTeam1()
+                Menu {
+                    ForEach(availableTeams) { team in
+                        Button(team.name) { setup.team1Id = team.id }
+                    }
                 } label: {
                     HStack {
-                        Image(systemName: "arrow.up.arrow.down")
+                        Text(cloudService.team(for: setup.team1Id)?.name ?? "Select")
+                            .font(AztecTheme.jazzFont(size: 14))
+                            .foregroundColor(AztecTheme.lightText)
+                        Spacer()
+                        Image(systemName: "chevron.down")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(AztecTheme.stone)
-                        Text(cloudService.team(for: setup.team1Id)?.name ?? "TBD")
-                            .font(AztecTheme.impact(size: 14))
-                            .foregroundColor(AztecTheme.lightText)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(AztecTheme.obsidian.opacity(0.5))
+                    .padding(.horizontal, 10)
+                    .background(Color.white.opacity(0.08))
                     .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(AztecTheme.gold.opacity(0.3), lineWidth: 1)
+                    )
                 }
 
                 Text("VS")
-                    .font(AztecTheme.impact(size: 11))
+                    .font(AztecTheme.jazzFont(size: 11))
                     .foregroundColor(AztecTheme.stone)
                     .padding(.horizontal, 6)
 
-                Button {
-                    onSwapTeam2()
+                Menu {
+                    ForEach(availableTeams) { team in
+                        Button(team.name) { setup.team2Id = team.id }
+                    }
                 } label: {
                     HStack {
-                        Text(cloudService.team(for: setup.team2Id)?.name ?? "TBD")
-                            .font(AztecTheme.impact(size: 14))
+                        Text(cloudService.team(for: setup.team2Id)?.name ?? "Select")
+                            .font(AztecTheme.jazzFont(size: 14))
                             .foregroundColor(AztecTheme.lightText)
-                        Image(systemName: "arrow.up.arrow.down")
+                        Spacer()
+                        Image(systemName: "chevron.down")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(AztecTheme.stone)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(AztecTheme.obsidian.opacity(0.5))
+                    .padding(.horizontal, 10)
+                    .background(Color.white.opacity(0.08))
                     .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(AztecTheme.gold.opacity(0.3), lineWidth: 1)
+                    )
                 }
             }
             .padding(.horizontal, 10)
@@ -685,6 +686,7 @@ struct MatchupPairCard: View {
                     .datePickerStyle(.compact)
                     .labelsHidden()
                     .tint(AztecTheme.gold)
+                    .colorScheme(.dark)
                 }
 
                 // Field / Location

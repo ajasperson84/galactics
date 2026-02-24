@@ -13,6 +13,17 @@ struct StatsView: View {
         case tacos = "Tacos"
 
         var label: String { rawValue }
+
+        var highlightColor: Color {
+            switch self {
+            case .dongs: return AztecTheme.gold
+            case .salamies: return AztecTheme.jade
+            case .doublePlays: return AztecTheme.amber
+            case .drops: return AztecTheme.bloodRed
+            case .suds: return AztecTheme.cosmic
+            case .tacos: return AztecTheme.tennisGreen
+            }
+        }
     }
 
     var sortedPlayers: [Player] {
@@ -51,19 +62,22 @@ struct StatsView: View {
                                 withAnimation { sortBy = sort }
                             } label: {
                                 Text(sort.label)
-                                    .font(AztecTheme.impact(size: 12))
+                                    .font(AztecTheme.jazzFont(size: 12))
                                     .tracking(1)
                                     .foregroundColor(
-                                        sortBy == sort ? AztecTheme.ink : AztecTheme.ink
+                                        sortBy == sort ? Color.black : sort.highlightColor
                                     )
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 7)
                                     .background(
                                         sortBy == sort
-                                            ? AztecTheme.gold
-                                            : AztecTheme.gold.opacity(0.1)
+                                            ? sort.highlightColor
+                                            : Color.clear
                                     )
-                                    .clipShape(Capsule())
+                                    .overlay(
+                                        Rectangle()
+                                            .stroke(sort.highlightColor, lineWidth: 1.5)
+                                    )
                             }
                         }
                     }
