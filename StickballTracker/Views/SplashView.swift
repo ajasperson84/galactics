@@ -1,7 +1,7 @@
 import SwiftUI
 import AVKit
 
-/// Splash screen: YFS_MED logo slowly expands, then transitions to G4_SPLASH video.
+/// Splash screen: YFS_MED logo slowly expands, then transitions to G4_Splash video.
 struct SplashView: View {
     @State private var logoScale: CGFloat = 0.5
     @State private var logoOpacity: Double = 1.0
@@ -10,8 +10,8 @@ struct SplashView: View {
 
     var body: some View {
         ZStack {
-            // Base background
-            AztecTheme.obsidian.ignoresSafeArea()
+            // Paper white background
+            Color.white.ignoresSafeArea()
 
             // YFS Logo - slowly expands
             Image("YFS_MED")
@@ -47,14 +47,14 @@ struct SplashView: View {
     }
 }
 
-/// AVPlayer wrapper that plays the G4_SPLASH video once from the app bundle.
+/// AVPlayer wrapper that plays the G4_Splash video once from the app bundle.
 struct SplashVideoPlayer: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> AVPlayerViewController {
         let controller = AVPlayerViewController()
         controller.showsPlaybackControls = false
         controller.videoGravity = .resizeAspectFill
 
-        if let url = Bundle.main.url(forResource: "G4_SPLASH", withExtension: "mp4") {
+        if let url = Bundle.main.url(forResource: "G4_Splash", withExtension: "mp4") {
             let player = AVPlayer(url: url)
             controller.player = player
             player.play()

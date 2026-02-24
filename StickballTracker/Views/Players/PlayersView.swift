@@ -93,17 +93,17 @@ struct PlayerRow: View {
                     )
 
                 Text(String(player.name.prefix(1)).uppercased())
-                    .font(.system(size: 18, weight: .black))
+                    .font(AztecTheme.impact(size: 18))
                     .foregroundColor(AztecTheme.gold)
             }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(player.name)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(AztecTheme.typewriterBold(size: 16))
                     .foregroundColor(AztecTheme.lightText)
 
                 Text(teamName)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(AztecTheme.typewriter(size: 12))
                     .foregroundColor(AztecTheme.dimText)
             }
 
@@ -112,11 +112,11 @@ struct PlayerRow: View {
             // Quick stats
             VStack(alignment: .trailing, spacing: 2) {
                 Text("\(player.stats.dongs) Dongs")
-                    .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                    .font(AztecTheme.typewriterBold(size: 14))
                     .foregroundColor(AztecTheme.gold)
 
                 Text("\(player.stats.gamesPlayed) GP")
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .font(AztecTheme.typewriter(size: 11))
                     .foregroundColor(AztecTheme.dimText)
             }
 
@@ -253,7 +253,7 @@ struct PlayerDetailSheet: View {
                                 .shadow(color: AztecTheme.gold.opacity(0.2), radius: 12)
 
                             Text(String(player.name.prefix(1)).uppercased())
-                                .font(.system(size: 32, weight: .black))
+                                .font(AztecTheme.impact(size: 32))
                                 .foregroundColor(AztecTheme.gold)
                         }
 
@@ -354,11 +354,11 @@ struct PlayerStatsGrid: View {
             ForEach(statItems, id: \.label) { item in
                 VStack(spacing: 4) {
                     Text(item.value)
-                        .font(.system(size: 18, weight: .heavy, design: .monospaced))
+                        .font(AztecTheme.typewriterBold(size: 18))
                         .foregroundColor(AztecTheme.jade)
 
                     Text(item.label)
-                        .font(.system(size: 10, weight: .bold))
+                        .font(AztecTheme.impact(size: 10))
                         .tracking(1)
                         .foregroundColor(AztecTheme.dimText)
                 }

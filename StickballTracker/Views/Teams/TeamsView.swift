@@ -77,11 +77,11 @@ struct TeamCard: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(team.name)
-                        .font(.system(size: 18, weight: .bold))
+                        .font(AztecTheme.typewriterBold(size: 18))
                         .foregroundColor(AztecTheme.lightText)
 
                     Text("\(teamPlayers.count) ballers")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(AztecTheme.typewriter(size: 12))
                         .foregroundColor(AztecTheme.dimText)
                 }
 
@@ -91,11 +91,11 @@ struct TeamCard: View {
                 VStack(spacing: 2) {
                     let totalDongs = teamPlayers.reduce(0) { $0 + $1.stats.dongs }
                     Text("\(totalDongs)")
-                        .font(.system(size: 22, weight: .black, design: .monospaced))
+                        .font(AztecTheme.typewriterBold(size: 22))
                         .foregroundColor(AztecTheme.gold)
 
                     Text("DONGS")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(AztecTheme.impact(size: 10))
                         .tracking(1)
                         .foregroundColor(AztecTheme.dimText)
                 }
@@ -107,7 +107,7 @@ struct TeamCard: View {
                     HStack(spacing: 6) {
                         ForEach(teamPlayers) { player in
                             Text(player.name)
-                                .font(.system(size: 11, weight: .bold))
+                                .font(AztecTheme.typewriterBold(size: 11))
                                 .foregroundColor(AztecTheme.jade)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
@@ -134,7 +134,7 @@ struct FreeAgentRow: View {
     var body: some View {
         HStack {
             Text(player.name)
-                .font(.system(size: 14, weight: .medium))
+                .font(AztecTheme.typewriter(size: 14))
                 .foregroundColor(AztecTheme.lightText)
 
             Spacer()
@@ -179,13 +179,13 @@ struct TeamPickerSheet: View {
                             } label: {
                                 HStack {
                                     Text(team.name)
-                                        .font(.system(size: 16, weight: .bold))
+                                        .font(AztecTheme.impact(size: 16))
                                         .foregroundColor(AztecTheme.lightText)
 
                                     Spacer()
 
                                     Text("\(cloudService.playersForTeam(team.id).count) ballers")
-                                        .font(.system(size: 12))
+                                        .font(AztecTheme.typewriter(size: 12))
                                         .foregroundColor(AztecTheme.dimText)
                                 }
                                 .padding(14)
@@ -285,7 +285,7 @@ struct TeamDetailSheet: View {
                         // Icon name edit
                         VStack(alignment: .leading, spacing: 4) {
                             Text("ICON NAME")
-                                .font(.system(size: 10, weight: .heavy))
+                                .font(AztecTheme.impact(size: 10))
                                 .tracking(2)
                                 .foregroundColor(AztecTheme.dimText)
                             TextField("Asset name (e.g. team-rosecity)", text: $editedIconName)
@@ -323,13 +323,13 @@ struct TeamDetailSheet: View {
                         ForEach(teamPlayers) { player in
                             HStack {
                                 Text(player.name)
-                                    .font(.system(size: 14, weight: .medium))
+                                    .font(AztecTheme.typewriter(size: 14))
                                     .foregroundColor(AztecTheme.lightText)
 
                                 Spacer()
 
                                 Text("\(player.stats.dongs) D")
-                                    .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                                    .font(AztecTheme.typewriterBold(size: 14))
                                     .foregroundColor(AztecTheme.gold)
 
                                 Button {
@@ -435,6 +435,7 @@ struct AddPlayerToTeamSheet: View {
                             } label: {
                                 HStack {
                                     Text(player.name)
+                                        .font(AztecTheme.typewriter(size: 16))
                                         .foregroundColor(AztecTheme.lightText)
 
                                     Spacer()
@@ -445,11 +446,11 @@ struct AddPlayerToTeamSheet: View {
                                     } else if let currentTeamId = player.teamId,
                                        let currentTeam = cloudService.team(for: currentTeamId) {
                                         Text(currentTeam.name)
-                                            .font(.system(size: 12))
+                                            .font(AztecTheme.typewriter(size: 12))
                                             .foregroundColor(AztecTheme.dimText)
                                     } else {
                                         Text("Free Agent")
-                                            .font(.system(size: 12))
+                                            .font(AztecTheme.typewriter(size: 12))
                                             .foregroundColor(AztecTheme.jade)
                                     }
                                 }
@@ -482,10 +483,10 @@ struct StatBubble: View {
     var body: some View {
         VStack(spacing: 2) {
             Text("\(value)")
-                .font(.system(size: 22, weight: .black, design: .monospaced))
+                .font(AztecTheme.typewriterBold(size: 22))
                 .foregroundColor(color)
             Text(label)
-                .font(.system(size: 8, weight: .heavy))
+                .font(AztecTheme.impact(size: 8))
                 .tracking(1)
                 .foregroundColor(AztecTheme.dimText)
         }

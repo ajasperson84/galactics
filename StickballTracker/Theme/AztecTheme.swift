@@ -1,56 +1,59 @@
 import SwiftUI
 
-/// Design system: Urban street-style with vibrant neon accents.
-/// Deep dark backgrounds, electric neon colors, handwritten-style headers,
-/// and a bold, energetic visual language.
+/// Design system: Punk rock xerox aesthetic.
+/// White paper backgrounds, black type, highlighter color accents,
+/// typewriter body font, Impact headers. Handmade, DIY, high contrast.
 enum AztecTheme {
     // MARK: - Colors
 
-    /// Deep dark background
-    static let obsidian = Color(red: 0.04, green: 0.04, blue: 0.08)
+    /// Paper white - primary background
+    static let obsidian = Color(red: 0.97, green: 0.96, blue: 0.94)
 
-    /// Dark card backgrounds
-    static let darkStone = Color(red: 0.08, green: 0.08, blue: 0.12)
+    /// Light warm gray - card backgrounds
+    static let darkStone = Color(red: 0.92, green: 0.91, blue: 0.89)
 
-    /// Medium stone - secondary surfaces
-    static let stone = Color(red: 0.35, green: 0.35, blue: 0.40)
+    /// Medium gray - borders, secondary
+    static let stone = Color(red: 0.62, green: 0.60, blue: 0.58)
 
-    /// Neon yellow - primary accent
+    /// Neon yellow highlighter - primary accent
     static let gold = Color(red: 1.0, green: 0.92, blue: 0.0)
 
-    /// Hot pink/magenta - secondary accent
+    /// Hot pink highlighter - secondary accent
     static let amber = Color(red: 1.0, green: 0.18, blue: 0.55)
 
-    /// Turquoise - vibrant teal accent
-    static let jade = Color(red: 0.0, green: 0.92, blue: 0.82)
+    /// Turquoise highlighter
+    static let jade = Color(red: 0.0, green: 0.82, blue: 0.75)
 
-    /// Blood red - alerts/destructive
-    static let bloodRed = Color(red: 0.90, green: 0.12, blue: 0.15)
+    /// Red - alerts/destructive
+    static let bloodRed = Color(red: 0.85, green: 0.10, blue: 0.10)
 
-    /// Electric blue - accent
-    static let cosmic = Color(red: 0.20, green: 0.50, blue: 1.0)
+    /// Electric blue highlighter
+    static let cosmic = Color(red: 0.20, green: 0.45, blue: 1.0)
 
-    /// Tennis ball neon green
-    static let tennisGreen = Color(red: 0.78, green: 1.0, blue: 0.0)
+    /// Tennis ball neon green highlighter
+    static let tennisGreen = Color(red: 0.55, green: 0.85, blue: 0.0)
 
-    /// Light text
-    static let lightText = Color(red: 0.95, green: 0.95, blue: 0.95)
+    /// Primary text - near black
+    static let lightText = Color(red: 0.08, green: 0.08, blue: 0.08)
 
-    /// Dimmed text
-    static let dimText = Color(red: 0.50, green: 0.50, blue: 0.55)
+    /// Secondary text - dark gray
+    static let dimText = Color(red: 0.35, green: 0.35, blue: 0.35)
+
+    // MARK: - Ink (pure black for type)
+    static let ink = Color.black
 
     // MARK: - Gradients
 
     static let goldGradient = LinearGradient(
         colors: [gold, tennisGreen],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
+        startPoint: .leading,
+        endPoint: .trailing
     )
 
     static let jadeGradient = LinearGradient(
         colors: [jade, cosmic],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
+        startPoint: .leading,
+        endPoint: .trailing
     )
 
     static let cosmicGradient = LinearGradient(
@@ -61,8 +64,8 @@ enum AztecTheme {
 
     static let pinkGradient = LinearGradient(
         colors: [amber, Color(red: 0.80, green: 0.10, blue: 0.40)],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
+        startPoint: .leading,
+        endPoint: .trailing
     )
 
     static let cardGradient = LinearGradient(
@@ -73,44 +76,57 @@ enum AztecTheme {
 
     // MARK: - Fonts
 
-    /// Handwritten style font for headers
-    static func handwritten(size: CGFloat) -> Font {
-        Font.custom("MarkerFelt-Wide", size: size)
+    /// Impact font for buttons, menu items, section headers
+    static func impact(size: CGFloat) -> Font {
+        Font.custom("Impact", size: size)
     }
 
-    /// Chunky display font for main title
+    /// Typewriter font for non-clickable body copy
+    static func typewriter(size: CGFloat) -> Font {
+        Font.custom("AmericanTypewriter", size: size)
+    }
+
+    /// Bold typewriter
+    static func typewriterBold(size: CGFloat) -> Font {
+        Font.custom("AmericanTypewriter-Bold", size: size)
+    }
+
+    // Keep these as aliases for backward compat
+    static func handwritten(size: CGFloat) -> Font {
+        impact(size: size)
+    }
+
     static func chunky(size: CGFloat) -> Font {
-        Font.system(size: size, weight: .black, design: .rounded)
+        impact(size: size)
     }
 
     // MARK: - Decorative Elements
 
     static var glowingLine: some View {
         Rectangle()
-            .fill(goldGradient)
-            .shadow(color: gold.opacity(0.6), radius: 4, x: 0, y: 0)
+            .fill(ink)
     }
 
     static var borderLine: some View {
         Rectangle()
-            .fill(gold.opacity(0.3))
+            .fill(ink.opacity(0.2))
             .frame(height: 1)
     }
 
     static var jadeBorderLine: some View {
         Rectangle()
-            .fill(jade.opacity(0.3))
+            .fill(ink.opacity(0.15))
             .frame(height: 1)
     }
 
     // MARK: - Modifiers
 
-    static func glowShadow(color: Color = gold, radius: CGFloat = 8) -> some View {
-        Color.clear.shadow(color: color.opacity(0.4), radius: radius)
+    static func glowShadow(color: Color = ink, radius: CGFloat = 8) -> some View {
+        Color.clear.shadow(color: color.opacity(0.1), radius: radius)
     }
 }
 
-// MARK: - Aztec Card Style
+// MARK: - Card Style
 
 struct AztecCard: ViewModifier {
     var highlight: Color = AztecTheme.gold
@@ -118,11 +134,11 @@ struct AztecCard: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(16)
-            .background(AztecTheme.darkStone)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 2))
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(highlight.opacity(0.25), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 2)
+                    .stroke(AztecTheme.ink.opacity(0.15), lineWidth: 1)
             )
     }
 }
@@ -133,62 +149,62 @@ extension View {
     }
 }
 
-// MARK: - Aztec Button Style
+// MARK: - Button Styles
 
 struct AztecButtonStyle: ButtonStyle {
     var color: Color = AztecTheme.gold
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 14, weight: .heavy))
+            .font(AztecTheme.impact(size: 14))
             .tracking(2)
-            .foregroundColor(AztecTheme.obsidian)
+            .foregroundColor(AztecTheme.ink)
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 6)
+                Rectangle()
                     .fill(color)
-                    .shadow(color: color.opacity(0.4), radius: configuration.isPressed ? 2 : 6)
             )
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .overlay(
+                Rectangle()
+                    .stroke(AztecTheme.ink, lineWidth: 1.5)
+            )
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
 struct AztecSecondaryButtonStyle: ButtonStyle {
-    var color: Color = AztecTheme.gold
+    var color: Color = AztecTheme.ink
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 13, weight: .bold))
+            .font(AztecTheme.impact(size: 13))
             .tracking(1)
-            .foregroundColor(color)
+            .foregroundColor(AztecTheme.ink)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(color.opacity(0.5), lineWidth: 1)
-                    .background(color.opacity(0.08))
+                Rectangle()
+                    .stroke(AztecTheme.ink, lineWidth: 1.5)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
-// MARK: - Aztec Text Field Style
+// MARK: - Text Field Style
 
 struct AztecTextField: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(.system(size: 16, weight: .medium))
-            .foregroundColor(AztecTheme.lightText)
+            .font(AztecTheme.typewriter(size: 16))
+            .foregroundColor(AztecTheme.ink)
             .padding(12)
-            .background(AztecTheme.obsidian)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .background(Color.white)
             .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(AztecTheme.gold.opacity(0.3), lineWidth: 1)
+                Rectangle()
+                    .stroke(AztecTheme.ink.opacity(0.4), lineWidth: 1)
             )
     }
 }

@@ -49,19 +49,19 @@ struct GameEntrySheet: View {
                         // Game header
                         VStack(spacing: 4) {
                             Text("GAME \(nextGameNumber) OF 3")
-                                .font(.system(size: 12, weight: .heavy))
+                                .font(AztecTheme.impact(size: 12))
                                 .tracking(3)
                                 .foregroundColor(AztecTheme.amber)
 
                             Text("Series: \(matchup.seriesDescription)")
-                                .font(.system(size: 14, weight: .medium))
+                                .font(AztecTheme.typewriter(size: 14))
                                 .foregroundColor(AztecTheme.dimText)
                         }
 
                         // Field picker
                         VStack(spacing: 6) {
                             Text("FIELD")
-                                .font(.system(size: 11, weight: .heavy))
+                                .font(AztecTheme.impact(size: 11))
                                 .tracking(2)
                                 .foregroundColor(AztecTheme.dimText)
 
@@ -73,7 +73,7 @@ struct GameEntrySheet: View {
                             } label: {
                                 HStack {
                                     Text(selectedField?.rawValue ?? "Select Field")
-                                        .font(.system(size: 14, weight: .bold))
+                                        .font(AztecTheme.typewriterBold(size: 14))
                                         .foregroundColor(
                                             selectedField != nil
                                                 ? AztecTheme.lightText
@@ -97,7 +97,7 @@ struct GameEntrySheet: View {
                         // Date & time picker
                         VStack(spacing: 6) {
                             Text("DATE & TIME")
-                                .font(.system(size: 11, weight: .heavy))
+                                .font(AztecTheme.impact(size: 11))
                                 .tracking(2)
                                 .foregroundColor(AztecTheme.dimText)
 
@@ -110,7 +110,6 @@ struct GameEntrySheet: View {
                             .datePickerStyle(.compact)
                             .labelsHidden()
                             .tint(AztecTheme.gold)
-                            .colorScheme(.dark)
                         }
 
                         // Score display with manual +/- buttons
@@ -125,7 +124,7 @@ struct GameEntrySheet: View {
                                             .frame(width: 20, height: 20)
                                     }
                                     Text(team1?.name ?? "Team 1")
-                                        .font(.system(size: 14, weight: .heavy))
+                                        .font(AztecTheme.impact(size: 14))
                                         .tracking(1)
                                         .foregroundColor(AztecTheme.lightText)
                                         .lineLimit(1)
@@ -156,7 +155,7 @@ struct GameEntrySheet: View {
                             .frame(maxWidth: .infinity)
 
                             Text("VS")
-                                .font(.system(size: 12, weight: .black))
+                                .font(AztecTheme.impact(size: 12))
                                 .foregroundColor(AztecTheme.stone)
                                 .padding(.horizontal, 8)
 
@@ -170,7 +169,7 @@ struct GameEntrySheet: View {
                                             .frame(width: 20, height: 20)
                                     }
                                     Text(team2?.name ?? "Team 2")
-                                        .font(.system(size: 14, weight: .heavy))
+                                        .font(AztecTheme.impact(size: 14))
                                         .tracking(1)
                                         .foregroundColor(AztecTheme.lightText)
                                         .lineLimit(1)
@@ -339,7 +338,7 @@ struct QuickStatEntry: View {
             } label: {
                 HStack {
                     Text(playerName)
-                        .font(.system(size: 14, weight: .bold))
+                        .font(AztecTheme.typewriterBold(size: 14))
                         .foregroundColor(AztecTheme.lightText)
 
                     Spacer()
@@ -422,7 +421,7 @@ struct StatStepperRow: View {
     var body: some View {
         HStack {
             Text(label)
-                .font(.system(size: 12, weight: .heavy))
+                .font(AztecTheme.impact(size: 12))
                 .tracking(0.5)
                 .foregroundColor(AztecTheme.dimText)
                 .frame(width: 72, alignment: .leading)

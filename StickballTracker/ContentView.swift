@@ -18,6 +18,15 @@ struct ContentView: View {
             case .stats: return "chart.bar.fill"
             }
         }
+
+        var highlightColor: Color {
+            switch self {
+            case .tournament: return AztecTheme.gold
+            case .teams: return AztecTheme.jade
+            case .players: return AztecTheme.amber
+            case .stats: return AztecTheme.cosmic
+            }
+        }
     }
 
     var body: some View {
@@ -58,36 +67,33 @@ struct AztecTabBar: View {
         HStack(spacing: 0) {
             ForEach(ContentView.AppTab.allCases, id: \.self) { tab in
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(.easeInOut(duration: 0.15)) {
                         selectedTab = tab
                     }
                 } label: {
-                    VStack(spacing: 4) {
+                    VStack(spacing: 3) {
                         Image(systemName: tab.icon)
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.system(size: 18, weight: .bold))
                         Text(tab.rawValue)
-                            .font(AztecTheme.handwritten(size: 11))
+                            .font(AztecTheme.impact(size: 10))
+                            .tracking(0.5)
                     }
-                    .foregroundColor(selectedTab == tab ? AztecTheme.gold : AztecTheme.stone)
+                    .foregroundColor(AztecTheme.ink)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(
-                        selectedTab == tab ?
-                        AztecTheme.gold.opacity(0.15) :
-                        Color.clear
+                        selectedTab == tab
+                            ? tab.highlightColor.opacity(0.4)
+                            : Color.clear
                     )
-                    .overlay(alignment: .top) {
-                        if selectedTab == tab {
-                            AztecTheme.glowingLine
-                                .frame(height: 2)
-                        }
-                    }
                 }
             }
         }
-        .background(AztecTheme.obsidian.opacity(0.95))
+        .background(Color.white)
         .overlay(alignment: .top) {
-            AztecTheme.borderLine
+            Rectangle()
+                .fill(AztecTheme.ink)
+                .frame(height: 1.5)
         }
     }
 }

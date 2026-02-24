@@ -21,17 +21,17 @@ struct TournamentView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(tournament.name.uppercased())
-                                    .font(.system(size: 20, weight: .black))
+                                    .font(AztecTheme.impact(size: 20))
                                     .tracking(2)
                                     .foregroundColor(AztecTheme.gold)
 
                                 Text("APRIL 25-27, 2026")
-                                    .font(.system(size: 12, weight: .bold))
+                                    .font(AztecTheme.typewriter(size: 12))
                                     .tracking(1.5)
                                     .foregroundColor(AztecTheme.dimText)
 
                                 Text(tournament.status.rawValue.uppercased())
-                                    .font(.system(size: 11, weight: .heavy))
+                                    .font(AztecTheme.impact(size: 11))
                                     .tracking(2)
                                     .foregroundColor(
                                         tournament.status == .completed
@@ -121,12 +121,12 @@ struct TournamentView: View {
                         }
 
                         Text("NO ACTIVE TOURNEY")
-                            .font(.system(size: 16, weight: .heavy))
+                            .font(AztecTheme.impact(size: 16))
                             .tracking(3)
                             .foregroundColor(AztecTheme.stone)
 
                         Text("Create a tourney to set up brackets\nand start tracking games.")
-                            .font(.system(size: 14))
+                            .font(AztecTheme.typewriter(size: 14))
                             .foregroundColor(AztecTheme.dimText)
                             .multilineTextAlignment(.center)
 
@@ -137,7 +137,7 @@ struct TournamentView: View {
                             .buttonStyle(AztecButtonStyle())
                         } else {
                             Text("Add at least 2 squads to create a tourney")
-                                .font(.system(size: 12, weight: .medium))
+                                .font(AztecTheme.typewriter(size: 12))
                                 .foregroundColor(AztecTheme.amber)
                         }
                     }
@@ -170,12 +170,12 @@ struct ChampionBanner: View {
                 .shadow(color: AztecTheme.gold.opacity(0.5), radius: 8)
 
             Text("CHAMPION")
-                .font(.system(size: 12, weight: .heavy))
+                .font(AztecTheme.impact(size: 12))
                 .tracking(4)
                 .foregroundColor(AztecTheme.amber)
 
             Text(teamName.uppercased())
-                .font(.system(size: 24, weight: .black))
+                .font(AztecTheme.impact(size: 24))
                 .tracking(2)
                 .foregroundStyle(AztecTheme.goldGradient)
         }
@@ -232,7 +232,7 @@ struct MatchupCard: View {
                             .font(.system(size: 9, weight: .bold))
                             .foregroundColor(AztecTheme.jade)
                         Text(date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().hour().minute()))
-                            .font(.system(size: 11, weight: .medium))
+                            .font(AztecTheme.typewriter(size: 11))
                             .foregroundColor(AztecTheme.jade)
                     }
 
@@ -247,7 +247,7 @@ struct MatchupCard: View {
                             .font(.system(size: 9, weight: .bold))
                             .foregroundColor(AztecTheme.amber)
                         Text(field)
-                            .font(.system(size: 11, weight: .medium))
+                            .font(AztecTheme.typewriter(size: 11))
                             .foregroundColor(AztecTheme.amber)
                     }
 
@@ -269,24 +269,24 @@ struct MatchupCard: View {
                             let game = matchup.games[gameIdx]
                             VStack(spacing: 2) {
                                 Text("G\(gameIdx + 1)")
-                                    .font(.system(size: 9, weight: .bold))
+                                    .font(AztecTheme.impact(size: 9))
                                     .foregroundColor(AztecTheme.dimText)
                                 Text("\(game.team1Score)-\(game.team2Score)")
-                                    .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                                    .font(AztecTheme.typewriterBold(size: 12))
                                     .foregroundColor(AztecTheme.jade)
                                 if let date = game.gameDate {
                                     Text(date.formatted(.dateTime.month(.abbreviated).day()))
-                                        .font(.system(size: 8, weight: .medium))
+                                        .font(AztecTheme.typewriter(size: 8))
                                         .foregroundColor(AztecTheme.stone)
                                 }
                             }
                         } else {
                             VStack(spacing: 2) {
                                 Text("G\(gameIdx + 1)")
-                                    .font(.system(size: 9, weight: .bold))
+                                    .font(AztecTheme.impact(size: 9))
                                     .foregroundColor(AztecTheme.dimText)
                                 Text("--")
-                                    .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                                    .font(AztecTheme.typewriterBold(size: 12))
                                     .foregroundColor(AztecTheme.stone)
                             }
                         }
@@ -296,12 +296,12 @@ struct MatchupCard: View {
 
                     if matchup.status == .completed {
                         Text("FINAL")
-                            .font(.system(size: 10, weight: .heavy))
+                            .font(AztecTheme.impact(size: 10))
                             .tracking(2)
                             .foregroundColor(AztecTheme.gold)
                     } else if matchup.status == .inProgress {
                         Text("LIVE")
-                            .font(.system(size: 10, weight: .heavy))
+                            .font(AztecTheme.impact(size: 10))
                             .tracking(2)
                             .foregroundColor(AztecTheme.jade)
                     }
@@ -337,13 +337,13 @@ struct TeamMatchupRow: View {
         HStack {
             if let teamId, let team = cloudService.team(for: teamId) {
                 Text(team.name)
-                    .font(.system(size: 15, weight: isWinner ? .black : .medium))
+                    .font(isWinner ? AztecTheme.typewriterBold(size: 15) : AztecTheme.typewriter(size: 15))
                     .foregroundColor(
                         isWinner ? AztecTheme.gold : AztecTheme.lightText
                     )
             } else {
                 Text("TBD")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(AztecTheme.typewriter(size: 15))
                     .foregroundColor(AztecTheme.stone)
                     .italic()
             }
@@ -352,7 +352,7 @@ struct TeamMatchupRow: View {
 
             if teamId != nil {
                 Text("\(wins)")
-                    .font(.system(size: 20, weight: .black, design: .monospaced))
+                    .font(AztecTheme.typewriterBold(size: 20))
                     .foregroundColor(
                         isWinner ? AztecTheme.gold : AztecTheme.dimText
                     )
@@ -408,13 +408,13 @@ struct CreateTournamentSheet: View {
                                 } label: {
                                     HStack {
                                         Text(team.name)
-                                            .font(.system(size: 16, weight: .bold))
+                                            .font(AztecTheme.impact(size: 16))
                                             .foregroundColor(AztecTheme.lightText)
 
                                         Spacer()
 
                                         Text("\(cloudService.playersForTeam(team.id).count) ballers")
-                                            .font(.system(size: 12))
+                                            .font(AztecTheme.typewriter(size: 12))
                                             .foregroundColor(AztecTheme.dimText)
 
                                         Image(systemName: selectedTeamIds.contains(team.id)
@@ -454,11 +454,11 @@ struct CreateTournamentSheet: View {
                                 .buttonStyle(AztecButtonStyle())
                             } else if selectedTeamIds.count >= 2 {
                                 Text("Select an even number of squads")
-                                    .font(.system(size: 12, weight: .medium))
+                                    .font(AztecTheme.typewriter(size: 12))
                                     .foregroundColor(AztecTheme.amber)
                             } else {
                                 Text("Select at least 2 squads")
-                                    .font(.system(size: 12, weight: .medium))
+                                    .font(AztecTheme.typewriter(size: 12))
                                     .foregroundColor(AztecTheme.amber)
                             }
                         } else {
@@ -466,7 +466,7 @@ struct CreateTournamentSheet: View {
                             AztecSectionHeader(title: "First Round Matchups")
 
                             Text("Set up who plays whom, and schedule each matchup for the weekend.")
-                                .font(.system(size: 13))
+                                .font(AztecTheme.typewriter(size: 13))
                                 .foregroundColor(AztecTheme.dimText)
                                 .multilineTextAlignment(.center)
 
@@ -570,7 +570,7 @@ struct MatchupPairCard: View {
     var body: some View {
         VStack(spacing: 0) {
             Text("MATCHUP \(index + 1)")
-                .font(.system(size: 10, weight: .heavy))
+                .font(AztecTheme.impact(size: 10))
                 .tracking(2)
                 .foregroundColor(AztecTheme.amber)
                 .padding(.vertical, 6)
@@ -585,7 +585,7 @@ struct MatchupPairCard: View {
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(AztecTheme.stone)
                         Text(cloudService.team(for: setup.team1Id)?.name ?? "TBD")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(AztecTheme.impact(size: 14))
                             .foregroundColor(AztecTheme.lightText)
                     }
                     .frame(maxWidth: .infinity)
@@ -595,7 +595,7 @@ struct MatchupPairCard: View {
                 }
 
                 Text("VS")
-                    .font(.system(size: 11, weight: .black))
+                    .font(AztecTheme.impact(size: 11))
                     .foregroundColor(AztecTheme.stone)
                     .padding(.horizontal, 6)
 
@@ -604,7 +604,7 @@ struct MatchupPairCard: View {
                 } label: {
                     HStack {
                         Text(cloudService.team(for: setup.team2Id)?.name ?? "TBD")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(AztecTheme.impact(size: 14))
                             .foregroundColor(AztecTheme.lightText)
                         Image(systemName: "arrow.up.arrow.down")
                             .font(.system(size: 10, weight: .bold))
@@ -634,11 +634,11 @@ struct MatchupPairCard: View {
 
                     if let date = setup.scheduledDate {
                         Text(date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().hour().minute()))
-                            .font(.system(size: 13, weight: .medium))
+                            .font(AztecTheme.typewriter(size: 13))
                             .foregroundColor(AztecTheme.lightText)
                     } else {
                         Text("No time set")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(AztecTheme.typewriter(size: 13))
                             .foregroundColor(AztecTheme.stone)
                     }
 
@@ -702,7 +702,7 @@ struct MatchupPairCard: View {
                     } label: {
                         HStack(spacing: 4) {
                             Text(setup.scheduledField?.rawValue ?? "Select field")
-                                .font(.system(size: 13, weight: .medium))
+                                .font(AztecTheme.typewriter(size: 13))
                                 .foregroundColor(
                                     setup.scheduledField != nil
                                         ? AztecTheme.lightText

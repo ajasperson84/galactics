@@ -51,10 +51,10 @@ struct StatsView: View {
                                 withAnimation { sortBy = sort }
                             } label: {
                                 Text(sort.label)
-                                    .font(.system(size: 12, weight: .heavy))
+                                    .font(AztecTheme.impact(size: 12))
                                     .tracking(1)
                                     .foregroundColor(
-                                        sortBy == sort ? AztecTheme.obsidian : AztecTheme.gold
+                                        sortBy == sort ? AztecTheme.ink : AztecTheme.ink
                                     )
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 7)
@@ -78,10 +78,10 @@ struct StatsView: View {
                             .font(.system(size: 40))
                             .foregroundColor(AztecTheme.stone)
                         Text("No stats recorded yet")
-                            .font(.system(size: 14))
+                            .font(AztecTheme.typewriter(size: 14))
                             .foregroundColor(AztecTheme.dimText)
                         Text("Play some games to see leaderboards.")
-                            .font(.system(size: 12))
+                            .font(AztecTheme.typewriter(size: 12))
                             .foregroundColor(AztecTheme.stone)
                     }
                 } else {
@@ -138,7 +138,7 @@ struct StatsTableHeader: View {
             Text("TAC")
                 .frame(width: 28, alignment: .trailing)
         }
-        .font(.system(size: 9, weight: .heavy))
+        .font(AztecTheme.impact(size: 9))
         .tracking(0.5)
         .foregroundColor(AztecTheme.dimText)
         .padding(.horizontal, 8)
@@ -164,7 +164,7 @@ struct StatsTableRow: View {
                 .frame(width: 20, alignment: .center)
 
             Text(player.name)
-                .font(.system(size: 12, weight: .medium))
+                .font(AztecTheme.typewriter(size: 12))
                 .foregroundColor(AztecTheme.lightText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
@@ -234,7 +234,7 @@ struct TeamAggregatedRow: View {
             TeamIconView(team: team, size: 28)
 
             Text(team.name)
-                .font(.system(size: 14, weight: .bold))
+                .font(AztecTheme.typewriterBold(size: 14))
                 .foregroundColor(AztecTheme.lightText)
 
             Spacer()
@@ -245,7 +245,7 @@ struct TeamAggregatedRow: View {
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
                         .foregroundColor(AztecTheme.gold)
                     Text("D")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(AztecTheme.impact(size: 9))
                         .foregroundColor(AztecTheme.dimText)
                 }
 
@@ -254,7 +254,7 @@ struct TeamAggregatedRow: View {
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
                         .foregroundColor(AztecTheme.jade)
                     Text("S")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(AztecTheme.impact(size: 9))
                         .foregroundColor(AztecTheme.dimText)
                 }
 
@@ -263,7 +263,7 @@ struct TeamAggregatedRow: View {
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
                         .foregroundColor(AztecTheme.amber)
                     Text("DP")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(AztecTheme.impact(size: 9))
                         .foregroundColor(AztecTheme.dimText)
                 }
 
@@ -272,7 +272,7 @@ struct TeamAggregatedRow: View {
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
                         .foregroundColor(AztecTheme.cosmic)
                     Text("Su")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(AztecTheme.impact(size: 9))
                         .foregroundColor(AztecTheme.dimText)
                 }
 
@@ -281,7 +281,7 @@ struct TeamAggregatedRow: View {
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
                         .foregroundColor(AztecTheme.tennisGreen)
                     Text("T")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(AztecTheme.impact(size: 9))
                         .foregroundColor(AztecTheme.dimText)
                 }
             }
@@ -316,7 +316,7 @@ struct TeamIconView: View {
                     )
 
                 Text(String(team.name.prefix(2)).uppercased())
-                    .font(.system(size: size * 0.375, weight: .black))
+                    .font(AztecTheme.impact(size: size * 0.375))
                     .foregroundColor(AztecTheme.gold)
             }
         }
