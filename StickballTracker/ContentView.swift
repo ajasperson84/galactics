@@ -81,23 +81,23 @@ struct AztecTabBar: View {
                 } label: {
                     VStack(spacing: 3) {
                         Image(systemName: tab.icon)
-                            .font(.system(size: 18, weight: .bold))
+                            .font(.system(size: 20, weight: .black))
                         Text(tab.rawValue)
-                            .font(AztecTheme.jazzFont(size: 10))
+                            .font(AztecTheme.jazzFont(size: 6))
                             .tracking(0.5)
                     }
-                    .foregroundColor(selectedTab == tab ? tab.accentColor : AztecTheme.dimText)
+                    .foregroundColor(selectedTab == tab ? Color.black : AztecTheme.obsidian.opacity(0.6))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(
                         selectedTab == tab
-                            ? tab.accentColor.opacity(0.15)
+                            ? Color.black.opacity(0.15)
                             : Color.clear
                     )
                 }
             }
         }
-        .background(AztecTheme.obsidian)
+        .background(AztecTheme.tennisGreen)
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(AztecTheme.gold)

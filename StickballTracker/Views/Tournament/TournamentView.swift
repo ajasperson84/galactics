@@ -69,7 +69,7 @@ struct TournamentView: View {
                        let finalMatchup = lastRound.matchups.first,
                        let winnerId = finalMatchup.winnerId,
                        let champion = cloudService.team(for: winnerId) {
-                        ChampionBanner(teamName: champion.name)
+                        ChampionBanner(teamName: champion.name, winnerId: winnerId)
                             .padding(.horizontal)
                     }
 
@@ -160,10 +160,16 @@ struct TournamentView: View {
 }
 
 struct ChampionBanner: View {
+    @EnvironmentObject var cloudService: CloudSyncService
     let teamName: String
+    var winnerId: String?
 
     var body: some View {
         VStack(spacing: 8) {
+            if let winnerId, let team = cloudService.team(for: winnerId) {
+                TeamIconView(team: team, size: 64)
+            }
+
             Image(systemName: "trophy.fill")
                 .font(.system(size: 32))
                 .foregroundStyle(AztecTheme.goldGradient)
@@ -334,16 +340,18 @@ struct TeamMatchupRow: View {
     let isTop: Bool
 
     var body: some View {
-        HStack {
+        HStack(spacing: 8) {
             if let teamId, let team = cloudService.team(for: teamId) {
+                TeamIconView(team: team, size: 28)
+
                 Text(team.name)
-                    .font(isWinner ? AztecTheme.typewriterBold(size: 15) : AztecTheme.typewriter(size: 15))
+                    .font(isWinner ? AztecTheme.typewriterBold(size: 28) : AztecTheme.typewriter(size: 28))
                     .foregroundColor(
                         isWinner ? AztecTheme.gold : AztecTheme.lightText
                     )
             } else {
                 Text("TBD")
-                    .font(AztecTheme.typewriter(size: 15))
+                    .font(AztecTheme.typewriter(size: 28))
                     .foregroundColor(AztecTheme.stone)
                     .italic()
             }
@@ -352,7 +360,7 @@ struct TeamMatchupRow: View {
 
             if teamId != nil {
                 Text("\(wins)")
-                    .font(AztecTheme.typewriterBold(size: 20))
+                    .font(AztecTheme.typewriterBold(size: 36))
                     .foregroundColor(
                         isWinner ? AztecTheme.gold : AztecTheme.dimText
                     )
@@ -360,7 +368,7 @@ struct TeamMatchupRow: View {
 
             if isWinner {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(AztecTheme.gold)
             }
         }
@@ -567,9 +575,12 @@ struct MatchupPairCard: View {
                         Button(team.name) { setup.team1Id = team.id }
                     }
                 } label: {
-                    HStack {
+                    HStack(spacing: 6) {
+                        if let team = cloudService.team(for: setup.team1Id) {
+                            TeamIconView(team: team, size: 22)
+                        }
                         Text(cloudService.team(for: setup.team1Id)?.name ?? "Select")
-                            .font(AztecTheme.jazzFont(size: 14))
+                            .font(AztecTheme.jazzFont(size: 8))
                             .foregroundColor(AztecTheme.lightText)
                         Spacer()
                         Image(systemName: "chevron.down")
@@ -597,9 +608,12 @@ struct MatchupPairCard: View {
                         Button(team.name) { setup.team2Id = team.id }
                     }
                 } label: {
-                    HStack {
+                    HStack(spacing: 6) {
+                        if let team = cloudService.team(for: setup.team2Id) {
+                            TeamIconView(team: team, size: 22)
+                        }
                         Text(cloudService.team(for: setup.team2Id)?.name ?? "Select")
-                            .font(AztecTheme.jazzFont(size: 14))
+                            .font(AztecTheme.jazzFont(size: 8))
                             .foregroundColor(AztecTheme.lightText)
                         Spacer()
                         Image(systemName: "chevron.down")

@@ -6,7 +6,7 @@ import SwiftUI
 enum AztecTheme {
     // MARK: - Section Backgrounds (each tab gets its own neon)
     static let tourneyBg = Color(red: 0.70, green: 0.0, blue: 0.36)   // Hot magenta
-    static let squadsBg = Color(red: 0.05, green: 0.08, blue: 0.58)   // Deep electric indigo
+    static let squadsBg = Color(red: 0.0, green: 0.85, blue: 0.78)    // Cyan
     static let ballersBg = Color(red: 0.36, green: 0.03, blue: 0.60)  // Vivid purple
     static let statsBg = Color(red: 0.0, green: 0.38, blue: 0.36)     // Deep teal
     static let sheetBg = Color(red: 0.06, green: 0.03, blue: 0.14)    // Near-black purple
@@ -73,17 +73,17 @@ enum AztecTheme {
 
     /// Heavy italic — headers, buttons, labels
     static func jazzFont(size: CGFloat) -> Font {
-        Font.custom("Avenir-BlackOblique", size: size)
+        Font.custom("Avenir-BlackOblique", size: size * 2)
     }
 
     /// Medium-heavy italic — body text
     static func jazzBody(size: CGFloat) -> Font {
-        Font.custom("Avenir-HeavyOblique", size: size)
+        Font.custom("Avenir-HeavyOblique", size: size * 2)
     }
 
     /// Lighter italic — secondary body
     static func jazzLight(size: CGFloat) -> Font {
-        Font.custom("Avenir-MediumOblique", size: size)
+        Font.custom("Avenir-MediumOblique", size: size * 2)
     }
 
     // Aliases so all existing font references auto-update
@@ -111,19 +111,63 @@ enum AztecTheme {
     }
 }
 
+// MARK: - Irregular/Organic Shape
+
+/// A wobbly, hand-cut shape that gives an organic 80s collage feel.
+/// The `seed` parameter creates different wobble patterns per instance.
+struct WobblyShape: Shape {
+    var wobble: CGFloat = 0.025
+    var seed: Int = 0
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let w = rect.width
+        let h = rect.height
+        let d = wobble
+
+        // Seeded offsets for variety
+        let s = CGFloat(seed % 7 + 1) * 0.3
+
+        path.move(to: CGPoint(x: w * d * s, y: h * d))
+        // Top edge — slight wave
+        path.addQuadCurve(
+            to: CGPoint(x: w * (1 - d), y: h * d * (1 + s * 0.2)),
+            control: CGPoint(x: w * 0.5, y: -h * d * 0.6)
+        )
+        // Right edge
+        path.addQuadCurve(
+            to: CGPoint(x: w * (1 - d * s * 0.5), y: h * (1 - d)),
+            control: CGPoint(x: w * (1 + d * 0.5), y: h * 0.5)
+        )
+        // Bottom edge
+        path.addQuadCurve(
+            to: CGPoint(x: w * d, y: h * (1 - d * (1 + s * 0.3))),
+            control: CGPoint(x: w * 0.5, y: h * (1 + d * 0.4))
+        )
+        // Left edge
+        path.addQuadCurve(
+            to: CGPoint(x: w * d * s, y: h * d),
+            control: CGPoint(x: -w * d * 0.3, y: h * 0.5)
+        )
+        path.closeSubpath()
+        return path
+    }
+}
+
 // MARK: - Card Style
 
 struct AztecCard: ViewModifier {
     var highlight: Color = AztecTheme.gold
+    var seed: Int = 0
 
     func body(content: Content) -> some View {
         content
             .padding(16)
             .background(Color.white.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .clipShape(WobblyShape(seed: seed))
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(highlight.opacity(0.25), lineWidth: 1)
+                WobblyShape(seed: seed)
+                    .stroke(highlight.opacity(0.25), lineWidth: 1.5)
             )
     }
 }
@@ -141,15 +185,19 @@ struct AztecButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(AztecTheme.jazzFont(size: 15))
+            .font(AztecTheme.jazzFont(size: 10))
             .tracking(2)
             .foregroundColor(Color.black)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 14)
             .background(color)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .shadow(color: color.opacity(0.4), radius: configuration.isPressed ? 2 : 8)
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .clipShape(WobblyShape(seed: 3))
+            .overlay(
+                WobblyShape(seed: 3)
+                    .stroke(Color.black.opacity(0.2), lineWidth: 1)
+            )
+            .shadow(color: color.opacity(0.4), radius: configuration.isPressed ? 2 : 10)
+            .scaleEffect(configuration.isPressed ? 0.93 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
@@ -159,16 +207,16 @@ struct AztecSecondaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(AztecTheme.jazzFont(size: 13))
+            .font(AztecTheme.jazzFont(size: 8))
             .tracking(1)
             .foregroundColor(color)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(color, lineWidth: 1.5)
+                WobblyShape(seed: 5)
+                    .stroke(color, lineWidth: 2)
             )
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.93 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
