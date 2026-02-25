@@ -82,6 +82,7 @@ struct AztecTabBar: View {
                     VStack(spacing: 3) {
                         Image(systemName: tab.icon)
                             .font(.system(size: 20, weight: .black))
+                            .italic()
                         Text(tab.rawValue)
                             .font(AztecTheme.jazzFont(size: 6))
                             .tracking(0.5)

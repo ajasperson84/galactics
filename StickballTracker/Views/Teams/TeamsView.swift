@@ -8,7 +8,7 @@ struct TeamsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Add team button
+                // Add team button — trapezoid shape
                 HStack {
                     Spacer()
                     Button {
@@ -18,13 +18,16 @@ struct TeamsView: View {
                             Image(systemName: "plus")
                             Text("NEW SQUAD")
                         }
+                        .font(AztecTheme.jazzFont(size: 10))
+                        .tracking(2)
+                        .foregroundColor(Color.black)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 14)
+                        .background(AztecTheme.gold)
+                        .clipShape(TrapezoidShape(skew: 0.12))
                     }
-                    .buttonStyle(AztecButtonStyle())
                 }
                 .padding(.horizontal)
-
-                AztecSectionHeader(title: "\(cloudService.teams.count) Squads", shapeIndex: 0)
-                    .padding(.horizontal)
 
                 // Teams
                 LazyVStack(spacing: 12) {
@@ -81,12 +84,12 @@ struct TeamCard: View {
                         .font(AztecTheme.typewriterBold(size: 18))
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
-                        .foregroundColor(AztecTheme.lightText)
+                        .foregroundColor(Color.black)
 
                     Text("\(teamPlayers.count) ballers")
                         .font(AztecTheme.typewriter(size: 12))
                         .lineLimit(1)
-                        .foregroundColor(AztecTheme.dimText)
+                        .foregroundColor(Color.black.opacity(0.5))
                 }
 
                 Spacer()
@@ -101,32 +104,26 @@ struct TeamCard: View {
                     Text("DONGS")
                         .font(AztecTheme.impact(size: 10))
                         .tracking(1)
-                        .foregroundColor(AztecTheme.dimText)
+                        .foregroundColor(AztecTheme.gold)
                 }
             }
 
-            // Player chips
+            // Player names — plain black text, no pill borders
             if !teamPlayers.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
                         ForEach(teamPlayers) { player in
                             Text(player.name)
                                 .font(AztecTheme.typewriterBold(size: 11))
-                                .foregroundColor(AztecTheme.jade)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(AztecTheme.jade.opacity(0.1))
-                                .clipShape(Capsule())
-                                .overlay(
-                                    Capsule()
-                                        .stroke(AztecTheme.jade.opacity(0.2), lineWidth: 0.5)
-                                )
+                                .foregroundColor(Color.black)
                         }
                     }
                 }
             }
         }
-        .aztecCardColored(index: colorIndex)
+        .padding(16)
+        .background(Color.white)
+        .clipShape(Rectangle())
     }
 }
 

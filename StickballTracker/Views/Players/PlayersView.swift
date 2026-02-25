@@ -28,19 +28,21 @@ struct PlayersView: View {
                     }
                     .aztecTextField()
 
+                    // Parallelogram + button
                     Button {
                         showingAddPlayer = true
                     } label: {
                         Image(systemName: "plus")
                             .font(.system(size: 16, weight: .bold))
+                            .italic()
+                            .foregroundColor(Color.black)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
+                            .background(AztecTheme.gold)
+                            .clipShape(ParallelogramShape(slant: 0.18))
                     }
-                    .buttonStyle(AztecButtonStyle())
                 }
                 .padding(.horizontal)
-
-                // Player count
-                AztecSectionHeader(title: "\(filteredPlayers.count) Ballers", shapeIndex: 0)
-                    .padding(.horizontal)
 
                 // Player list
                 LazyVStack(spacing: 8) {
@@ -76,44 +78,45 @@ struct PlayerRow: View {
         return "Free Agent"
     }
 
+    private var playerTeam: Team? {
+        if let teamId = player.teamId {
+            return cloudService.team(for: teamId)
+        }
+        return nil
+    }
+
     var body: some View {
         HStack(spacing: 12) {
-            // Avatar
-            ZStack {
-                Circle()
-                    .fill(AztecTheme.darkStone)
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Circle()
-                            .stroke(
-                                player.teamId != nil
-                                    ? AztecTheme.gold.opacity(0.4)
-                                    : AztecTheme.stone.opacity(0.3),
-                                lineWidth: 1
-                            )
-                    )
-
-                Text(String(player.name.prefix(1)).uppercased())
-                    .font(AztecTheme.impact(size: 18))
-                    .foregroundColor(AztecTheme.gold)
+            // Team icon instead of letter avatar
+            if let team = playerTeam {
+                TeamIconView(team: team, size: 44)
+            } else {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(Color.black.opacity(0.08))
+                        .frame(width: 44, height: 44)
+                    Text("FA")
+                        .font(AztecTheme.impact(size: 14))
+                        .foregroundColor(Color.black.opacity(0.4))
+                }
             }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(player.name)
                     .font(AztecTheme.typewriterBold(size: 16))
-                    .foregroundColor(AztecTheme.lightText)
+                    .foregroundColor(Color.black)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
 
                 Text(teamName)
                     .font(AztecTheme.typewriter(size: 12))
-                    .foregroundColor(AztecTheme.dimText)
+                    .foregroundColor(Color.black.opacity(0.5))
                     .lineLimit(1)
             }
 
             Spacer()
 
-            // Quick stats
+            // Quick stats — dong numbers and "Dongs" stay yellow
             VStack(alignment: .trailing, spacing: 2) {
                 Text("\(player.stats.dongs) Dongs")
                     .font(AztecTheme.typewriterBold(size: 14))
@@ -121,14 +124,16 @@ struct PlayerRow: View {
 
                 Text("\(player.stats.gamesPlayed) GP")
                     .font(AztecTheme.typewriter(size: 11))
-                    .foregroundColor(AztecTheme.dimText)
+                    .foregroundColor(Color.black.opacity(0.5))
             }
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(AztecTheme.stone)
+                .font(.system(size: 12, weight: .bold)).italic()
+                .foregroundColor(Color.black.opacity(0.3))
         }
-        .aztecCardColored(index: colorIndex)
+        .padding(16)
+        .background(Color.white)
+        .clipShape(Rectangle())
     }
 }
 

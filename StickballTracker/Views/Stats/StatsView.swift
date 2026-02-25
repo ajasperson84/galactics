@@ -54,7 +54,7 @@ struct StatsView: View {
                 AztecSectionHeader(title: "Top 10 Leaderboard", shapeIndex: 0)
                     .padding(.horizontal)
 
-                // Sort options
+                // Sort options — parallelogram shaped
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(StatSort.allCases, id: \.self) { sort in
@@ -67,15 +67,16 @@ struct StatsView: View {
                                     .foregroundColor(
                                         sortBy == sort ? Color.black : sort.highlightColor
                                     )
-                                    .padding(.horizontal, 14)
+                                    .padding(.horizontal, 18)
                                     .padding(.vertical, 7)
                                     .background(
                                         sortBy == sort
                                             ? sort.highlightColor
                                             : Color.clear
                                     )
+                                    .clipShape(ParallelogramShape(slant: 0.15))
                                     .overlay(
-                                        Rectangle()
+                                        ParallelogramShape(slant: 0.15)
                                             .stroke(sort.highlightColor, lineWidth: 1.5)
                                     )
                             }
@@ -89,13 +90,15 @@ struct StatsView: View {
                     VStack(spacing: 12) {
                         Spacer().frame(height: 40)
                         Image(systemName: "chart.bar.xaxis")
-                            .font(.system(size: 40))
+                            .font(.system(size: 40)).italic()
                             .foregroundColor(AztecTheme.stone)
                         Text("No stats recorded yet")
                             .font(AztecTheme.typewriter(size: 14))
+                            .italic()
                             .foregroundColor(AztecTheme.dimText)
                         Text("Play some games to see leaderboards.")
                             .font(AztecTheme.typewriter(size: 12))
+                            .italic()
                             .foregroundColor(AztecTheme.stone)
                     }
                 } else {
@@ -154,9 +157,11 @@ struct StatsTableHeader: View {
         }
         .font(AztecTheme.impact(size: 9))
         .tracking(0.5)
-        .foregroundColor(AztecTheme.dimText)
+        .foregroundColor(Color.black.opacity(0.5))
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
+        .background(Color.white)
+        .clipShape(Rectangle())
     }
 }
 
@@ -169,63 +174,67 @@ struct StatsTableRow: View {
         HStack(spacing: 4) {
             Text("\(rank)")
                 .font(.system(size: 12, weight: rank <= 3 ? .black : .bold, design: .monospaced))
+                .italic()
                 .foregroundColor(
                     rank == 1 ? AztecTheme.gold :
-                    rank == 2 ? AztecTheme.lightText :
+                    rank == 2 ? Color.black :
                     rank == 3 ? AztecTheme.amber :
-                    AztecTheme.dimText
+                    Color.black.opacity(0.5)
                 )
                 .frame(width: 20, alignment: .center)
 
             Text(player.name)
                 .font(AztecTheme.typewriter(size: 12))
-                .foregroundColor(AztecTheme.lightText)
+                .foregroundColor(Color.black)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
 
             Text("\(player.stats.gamesPlayed)")
                 .font(.system(size: 11, weight: .medium, design: .monospaced))
-                .foregroundColor(AztecTheme.dimText)
+                .italic()
+                .foregroundColor(Color.black.opacity(0.5))
                 .frame(width: 26, alignment: .trailing)
 
             Text("\(player.stats.dongs)")
                 .font(.system(size: 11, weight: highlightStat == .dongs ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .dongs ? AztecTheme.gold : AztecTheme.lightText)
+                .italic()
+                .foregroundColor(highlightStat == .dongs ? AztecTheme.gold : Color.black)
                 .frame(width: 32, alignment: .trailing)
 
             Text("\(player.stats.salamies)")
                 .font(.system(size: 11, weight: highlightStat == .salamies ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .salamies ? AztecTheme.jade : AztecTheme.lightText)
+                .italic()
+                .foregroundColor(highlightStat == .salamies ? AztecTheme.jade : Color.black)
                 .frame(width: 28, alignment: .trailing)
 
             Text("\(player.stats.doublePlays)")
                 .font(.system(size: 11, weight: highlightStat == .doublePlays ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .doublePlays ? AztecTheme.amber : AztecTheme.lightText)
+                .italic()
+                .foregroundColor(highlightStat == .doublePlays ? AztecTheme.amber : Color.black)
                 .frame(width: 24, alignment: .trailing)
 
             Text("\(player.stats.drops)")
                 .font(.system(size: 11, weight: highlightStat == .drops ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .drops ? AztecTheme.bloodRed : AztecTheme.lightText)
+                .italic()
+                .foregroundColor(highlightStat == .drops ? AztecTheme.bloodRed : Color.black)
                 .frame(width: 28, alignment: .trailing)
 
             Text("\(player.stats.suds)")
                 .font(.system(size: 11, weight: highlightStat == .suds ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .suds ? AztecTheme.cosmic : AztecTheme.lightText)
+                .italic()
+                .foregroundColor(highlightStat == .suds ? AztecTheme.cosmic : Color.black)
                 .frame(width: 28, alignment: .trailing)
 
             Text("\(player.stats.tacos)")
                 .font(.system(size: 11, weight: highlightStat == .tacos ? .black : .medium, design: .monospaced))
-                .foregroundColor(highlightStat == .tacos ? AztecTheme.tennisGreen : AztecTheme.lightText)
+                .italic()
+                .foregroundColor(highlightStat == .tacos ? AztecTheme.tennisGreen : Color.black)
                 .frame(width: 28, alignment: .trailing)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
-        .background(
-            rank <= 3
-                ? (rank == 1 ? AztecTheme.gold : AztecTheme.amber).opacity(0.05)
-                : Color.clear
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .background(Color.white)
+        .clipShape(Rectangle())
     }
 }
 
@@ -249,7 +258,9 @@ struct TeamAggregatedRow: View {
 
             Text(team.name)
                 .font(AztecTheme.typewriterBold(size: 14))
-                .foregroundColor(AztecTheme.lightText)
+                .foregroundColor(Color.black)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
 
             Spacer()
 
@@ -257,53 +268,58 @@ struct TeamAggregatedRow: View {
                 VStack(spacing: 1) {
                     Text("\(totalDongs)")
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .italic()
                         .foregroundColor(AztecTheme.gold)
                     Text("D")
                         .font(AztecTheme.impact(size: 9))
-                        .foregroundColor(AztecTheme.dimText)
+                        .foregroundColor(Color.black.opacity(0.5))
                 }
 
                 VStack(spacing: 1) {
                     Text("\(totalSalamies)")
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .italic()
                         .foregroundColor(AztecTheme.jade)
                     Text("S")
                         .font(AztecTheme.impact(size: 9))
-                        .foregroundColor(AztecTheme.dimText)
+                        .foregroundColor(Color.black.opacity(0.5))
                 }
 
                 VStack(spacing: 1) {
                     Text("\(totalDoublePlays)")
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .italic()
                         .foregroundColor(AztecTheme.amber)
                     Text("DP")
                         .font(AztecTheme.impact(size: 9))
-                        .foregroundColor(AztecTheme.dimText)
+                        .foregroundColor(Color.black.opacity(0.5))
                 }
 
                 VStack(spacing: 1) {
                     Text("\(totalSuds)")
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .italic()
                         .foregroundColor(AztecTheme.cosmic)
                     Text("Su")
                         .font(AztecTheme.impact(size: 9))
-                        .foregroundColor(AztecTheme.dimText)
+                        .foregroundColor(Color.black.opacity(0.5))
                 }
 
                 VStack(spacing: 1) {
                     Text("\(totalTacos)")
                         .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .italic()
                         .foregroundColor(AztecTheme.tennisGreen)
                     Text("T")
                         .font(AztecTheme.impact(size: 9))
-                        .foregroundColor(AztecTheme.dimText)
+                        .foregroundColor(Color.black.opacity(0.5))
                 }
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(AztecTheme.darkStone)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .background(Color.white)
+        .clipShape(Rectangle())
     }
 }
 
