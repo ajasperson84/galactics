@@ -86,15 +86,10 @@ struct AztecTabBar: View {
                             .font(AztecTheme.jazzFont(size: 6))
                             .tracking(0.5)
                     }
-                    .foregroundColor(selectedTab == tab ? Color.black : AztecTheme.obsidian.opacity(0.6))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(
-                        selectedTab == tab
-                            ? Color.black.opacity(0.15)
-                            : Color.clear
-                    )
                 }
+                .buttonStyle(TabBarButtonStyle(isSelected: selectedTab == tab))
             }
         }
         .background(AztecTheme.tennisGreen)
@@ -103,5 +98,25 @@ struct AztecTabBar: View {
                 .fill(AztecTheme.gold)
                 .frame(height: 1)
         }
+    }
+}
+
+/// Custom button style for tab bar: neon pink when pressed, neon orange when selected.
+struct TabBarButtonStyle: ButtonStyle {
+    let isSelected: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundColor(
+                isSelected ? Color.black :
+                configuration.isPressed ? Color.black :
+                AztecTheme.obsidian.opacity(0.6)
+            )
+            .background(
+                isSelected ? AztecTheme.neonOrange :
+                configuration.isPressed ? AztecTheme.neonPink :
+                Color.clear
+            )
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }

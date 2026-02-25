@@ -51,7 +51,7 @@ struct StatsView: View {
         ScrollView {
             VStack(spacing: 16) {
                 // Leaderboard header
-                AztecSectionHeader(title: "Top 10 Leaderboard")
+                AztecSectionHeader(title: "Top 10 Leaderboard", shapeIndex: 0)
                     .padding(.horizontal)
 
                 // Sort options
@@ -113,7 +113,7 @@ struct StatsView: View {
                 }
 
                 // Team aggregated stats
-                AztecSectionHeader(title: "Squad Stats", color: AztecTheme.jade)
+                AztecSectionHeader(title: "Squad Stats", color: AztecTheme.jade, shapeIndex: 1)
                     .padding(.horizontal)
                     .padding(.top, 8)
 

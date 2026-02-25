@@ -39,13 +39,13 @@ struct PlayersView: View {
                 .padding(.horizontal)
 
                 // Player count
-                AztecSectionHeader(title: "\(filteredPlayers.count) Ballers")
+                AztecSectionHeader(title: "\(filteredPlayers.count) Ballers", shapeIndex: 0)
                     .padding(.horizontal)
 
                 // Player list
                 LazyVStack(spacing: 8) {
-                    ForEach(filteredPlayers) { player in
-                        PlayerRow(player: player)
+                    ForEach(Array(filteredPlayers.enumerated()), id: \.element.id) { index, player in
+                        PlayerRow(player: player, colorIndex: index)
                             .onTapGesture {
                                 selectedPlayer = player
                             }
@@ -67,6 +67,7 @@ struct PlayersView: View {
 struct PlayerRow: View {
     @EnvironmentObject var cloudService: CloudSyncService
     let player: Player
+    var colorIndex: Int = 0
 
     var teamName: String {
         if let teamId = player.teamId {
@@ -101,10 +102,13 @@ struct PlayerRow: View {
                 Text(player.name)
                     .font(AztecTheme.typewriterBold(size: 16))
                     .foregroundColor(AztecTheme.lightText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
 
                 Text(teamName)
                     .font(AztecTheme.typewriter(size: 12))
                     .foregroundColor(AztecTheme.dimText)
+                    .lineLimit(1)
             }
 
             Spacer()
@@ -124,7 +128,7 @@ struct PlayerRow: View {
                 .font(.system(size: 12, weight: .bold))
                 .foregroundColor(AztecTheme.stone)
         }
-        .aztecCard()
+        .aztecCardColored(index: colorIndex)
     }
 }
 
@@ -140,12 +144,12 @@ struct AddPlayerSheet: View {
                 AztecTheme.obsidian.ignoresSafeArea()
 
                 VStack(spacing: 24) {
-                    AztecSectionHeader(title: "New Baller")
+                    AztecSectionHeader(title: "New Baller", shapeIndex: 0)
 
                     TextField("Baller Name", text: $playerName)
                         .aztecTextField()
 
-                    AztecSectionHeader(title: "Assign to Squad", color: AztecTheme.jade)
+                    AztecSectionHeader(title: "Assign to Squad", color: AztecTheme.jade, shapeIndex: 1)
 
                     // Team picker
                     ScrollView {
@@ -263,7 +267,7 @@ struct PlayerDetailSheet: View {
                             .multilineTextAlignment(.center)
 
                         // Team assignment
-                        AztecSectionHeader(title: "Squad Assignment", color: AztecTheme.jade)
+                        AztecSectionHeader(title: "Squad Assignment", color: AztecTheme.jade, shapeIndex: 2)
 
                         Picker("Team", selection: $selectedTeamId) {
                             Text("Free Agent").tag(String?.none)
@@ -275,7 +279,7 @@ struct PlayerDetailSheet: View {
                         .tint(AztecTheme.gold)
 
                         // Stats display
-                        AztecSectionHeader(title: "Career Stats")
+                        AztecSectionHeader(title: "Career Stats", shapeIndex: 3)
                         PlayerStatsGrid(stats: player.stats)
 
                         // Save button

@@ -32,6 +32,26 @@ enum AztecTheme {
     static let cosmic = Color(red: 0.35, green: 0.55, blue: 1.0)
     /// Neon lime green
     static let tennisGreen = Color(red: 0.22, green: 1.0, blue: 0.08)
+    /// Neon orange
+    static let neonOrange = Color(red: 1.0, green: 0.55, blue: 0.0)
+    /// Neon pink (for nav highlight)
+    static let neonPink = Color(red: 1.0, green: 0.0, blue: 0.6)
+
+    // MARK: - 80s card palette (cycled per-item for variety)
+    static let cardColors: [Color] = [
+        Color(red: 1.0, green: 0.08, blue: 0.58).opacity(0.18),  // hot pink
+        Color(red: 0.0, green: 1.0, blue: 0.85).opacity(0.15),   // cyan
+        Color(red: 1.0, green: 0.95, blue: 0.0).opacity(0.12),   // yellow
+        Color(red: 0.35, green: 0.55, blue: 1.0).opacity(0.18),  // blue
+        Color(red: 0.22, green: 1.0, blue: 0.08).opacity(0.12),  // lime
+        Color(red: 1.0, green: 0.55, blue: 0.0).opacity(0.15),   // orange
+        Color(red: 0.70, green: 0.0, blue: 1.0).opacity(0.18),   // purple
+        Color(red: 1.0, green: 0.15, blue: 0.15).opacity(0.14),  // red
+    ]
+
+    static func cardColor(for index: Int) -> Color {
+        cardColors[index % cardColors.count]
+    }
 
     // MARK: - Text Colors
     static let lightText = Color.white
@@ -113,10 +133,9 @@ enum AztecTheme {
 
 // MARK: - Irregular/Organic Shape
 
-/// A wobbly, hand-cut shape that gives an organic 80s collage feel.
-/// The `seed` parameter creates different wobble patterns per instance.
+/// A wobbly, hand-cut shape — very pronounced organic 80s collage feel.
 struct WobblyShape: Shape {
-    var wobble: CGFloat = 0.025
+    var wobble: CGFloat = 0.06
     var seed: Int = 0
 
     func path(in rect: CGRect) -> Path {
@@ -125,30 +144,93 @@ struct WobblyShape: Shape {
         let h = rect.height
         let d = wobble
 
-        // Seeded offsets for variety
-        let s = CGFloat(seed % 7 + 1) * 0.3
+        let s = CGFloat(seed % 7 + 1) * 0.4
 
-        path.move(to: CGPoint(x: w * d * s, y: h * d))
-        // Top edge — slight wave
-        path.addQuadCurve(
-            to: CGPoint(x: w * (1 - d), y: h * d * (1 + s * 0.2)),
-            control: CGPoint(x: w * 0.5, y: -h * d * 0.6)
+        path.move(to: CGPoint(x: w * d * s * 0.5, y: h * d * 0.8))
+        // Top edge — big wave
+        path.addCurve(
+            to: CGPoint(x: w * (1 - d * 0.6), y: h * d * (0.5 + s * 0.15)),
+            control1: CGPoint(x: w * 0.3, y: -h * d * 1.2),
+            control2: CGPoint(x: w * 0.7, y: h * d * 2.0)
         )
-        // Right edge
-        path.addQuadCurve(
-            to: CGPoint(x: w * (1 - d * s * 0.5), y: h * (1 - d)),
-            control: CGPoint(x: w * (1 + d * 0.5), y: h * 0.5)
+        // Right edge — inward bulge
+        path.addCurve(
+            to: CGPoint(x: w * (1 - d * s * 0.3), y: h * (1 - d * 0.7)),
+            control1: CGPoint(x: w * (1 + d * 1.0), y: h * 0.35),
+            control2: CGPoint(x: w * (1 - d * 0.8), y: h * 0.65)
         )
-        // Bottom edge
-        path.addQuadCurve(
-            to: CGPoint(x: w * d, y: h * (1 - d * (1 + s * 0.3))),
-            control: CGPoint(x: w * 0.5, y: h * (1 + d * 0.4))
+        // Bottom edge — wave
+        path.addCurve(
+            to: CGPoint(x: w * d * 0.7, y: h * (1 - d * (0.6 + s * 0.2))),
+            control1: CGPoint(x: w * 0.7, y: h * (1 + d * 1.0)),
+            control2: CGPoint(x: w * 0.3, y: h * (1 - d * 1.5))
         )
-        // Left edge
-        path.addQuadCurve(
-            to: CGPoint(x: w * d * s, y: h * d),
-            control: CGPoint(x: -w * d * 0.3, y: h * 0.5)
+        // Left edge — outward bulge
+        path.addCurve(
+            to: CGPoint(x: w * d * s * 0.5, y: h * d * 0.8),
+            control1: CGPoint(x: -w * d * 0.8, y: h * 0.65),
+            control2: CGPoint(x: w * d * 1.0, y: h * 0.35)
         )
+        path.closeSubpath()
+        return path
+    }
+}
+
+// MARK: - Geometric Section Header Shapes
+
+/// Trapezoid shape — wider at bottom
+struct TrapezoidShape: Shape {
+    var skew: CGFloat = 0.15
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.width * skew, y: 0))
+        path.addLine(to: CGPoint(x: rect.width * (1 - skew * 0.5), y: 0))
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
+        path.addLine(to: CGPoint(x: 0, y: rect.height))
+        path.closeSubpath()
+        return path
+    }
+}
+
+/// Parallelogram shape — slanted right
+struct ParallelogramShape: Shape {
+    var slant: CGFloat = 0.18
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.width * slant, y: 0))
+        path.addLine(to: CGPoint(x: rect.width, y: 0))
+        path.addLine(to: CGPoint(x: rect.width * (1 - slant), y: rect.height))
+        path.addLine(to: CGPoint(x: 0, y: rect.height))
+        path.closeSubpath()
+        return path
+    }
+}
+
+/// Arrow/chevron shape — points right
+struct ArrowShape: Shape {
+    var indent: CGFloat = 0.12
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 0, y: 0))
+        path.addLine(to: CGPoint(x: rect.width * (1 - indent), y: 0))
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height * 0.5))
+        path.addLine(to: CGPoint(x: rect.width * (1 - indent), y: rect.height))
+        path.addLine(to: CGPoint(x: 0, y: rect.height))
+        path.addLine(to: CGPoint(x: rect.width * indent, y: rect.height * 0.5))
+        path.closeSubpath()
+        return path
+    }
+}
+
+/// Pentagon shape
+struct PentagonShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.width * 0.08, y: 0))
+        path.addLine(to: CGPoint(x: rect.width * 0.92, y: 0))
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height * 0.6))
+        path.addLine(to: CGPoint(x: rect.width * 0.5, y: rect.height))
+        path.addLine(to: CGPoint(x: 0, y: rect.height * 0.6))
         path.closeSubpath()
         return path
     }
@@ -159,15 +241,16 @@ struct WobblyShape: Shape {
 struct AztecCard: ViewModifier {
     var highlight: Color = AztecTheme.gold
     var seed: Int = 0
+    var bgColor: Color? = nil
 
     func body(content: Content) -> some View {
         content
             .padding(16)
-            .background(Color.white.opacity(0.08))
+            .background(bgColor ?? Color.white.opacity(0.08))
             .clipShape(WobblyShape(seed: seed))
             .overlay(
                 WobblyShape(seed: seed)
-                    .stroke(highlight.opacity(0.25), lineWidth: 1.5)
+                    .stroke(highlight.opacity(0.3), lineWidth: 2)
             )
     }
 }
@@ -175,6 +258,10 @@ struct AztecCard: ViewModifier {
 extension View {
     func aztecCard(highlight: Color = AztecTheme.gold) -> some View {
         modifier(AztecCard(highlight: highlight))
+    }
+
+    func aztecCardColored(index: Int, highlight: Color = AztecTheme.gold) -> some View {
+        modifier(AztecCard(highlight: highlight, seed: index, bgColor: AztecTheme.cardColor(for: index)))
     }
 }
 

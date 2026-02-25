@@ -17,22 +17,26 @@ struct TournamentView: View {
             VStack(spacing: 16) {
                 if let tournament = cloudService.tournament {
                     // Tournament header
-                    VStack(spacing: 8) {
+                    VStack(spacing: 4) {
                         HStack {
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text(tournament.name.uppercased())
                                     .font(AztecTheme.impact(size: 20))
                                     .tracking(2)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.5)
                                     .foregroundColor(AztecTheme.gold)
 
                                 Text("APRIL 25-27, 2026")
                                     .font(AztecTheme.typewriter(size: 12))
                                     .tracking(1.5)
+                                    .lineLimit(1)
                                     .foregroundColor(AztecTheme.dimText)
 
                                 Text(tournament.status.rawValue.uppercased())
                                     .font(AztecTheme.impact(size: 11))
                                     .tracking(2)
+                                    .lineLimit(1)
                                     .foregroundColor(
                                         tournament.status == .completed
                                             ? AztecTheme.jade
@@ -75,12 +79,13 @@ struct TournamentView: View {
 
                     // Bracket rounds
                     ForEach(Array(tournament.bracket.enumerated()), id: \.element.id) { roundIndex, round in
-                        VStack(spacing: 8) {
+                        VStack(spacing: 4) {
                             AztecSectionHeader(
                                 title: round.roundName,
                                 color: roundIndex == tournament.bracket.count - 1
                                     ? AztecTheme.gold
-                                    : AztecTheme.jade
+                                    : AztecTheme.jade,
+                                shapeIndex: roundIndex
                             )
                             .padding(.horizontal)
 
@@ -123,6 +128,8 @@ struct TournamentView: View {
                         Text("NO ACTIVE TOURNEY")
                             .font(AztecTheme.impact(size: 16))
                             .tracking(3)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                             .foregroundColor(AztecTheme.stone)
 
                         Text("Create a tourney to set up brackets\nand start tracking games.")
@@ -345,13 +352,15 @@ struct TeamMatchupRow: View {
                 TeamIconView(team: team, size: 28)
 
                 Text(team.name)
-                    .font(isWinner ? AztecTheme.typewriterBold(size: 28) : AztecTheme.typewriter(size: 28))
+                    .font(isWinner ? AztecTheme.typewriterBold(size: 14) : AztecTheme.typewriter(size: 14))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
                     .foregroundColor(
                         isWinner ? AztecTheme.gold : AztecTheme.lightText
                     )
             } else {
                 Text("TBD")
-                    .font(AztecTheme.typewriter(size: 28))
+                    .font(AztecTheme.typewriter(size: 14))
                     .foregroundColor(AztecTheme.stone)
                     .italic()
             }
@@ -360,7 +369,7 @@ struct TeamMatchupRow: View {
 
             if teamId != nil {
                 Text("\(wins)")
-                    .font(AztecTheme.typewriterBold(size: 36))
+                    .font(AztecTheme.typewriterBold(size: 18))
                     .foregroundColor(
                         isWinner ? AztecTheme.gold : AztecTheme.dimText
                     )
@@ -402,9 +411,9 @@ struct CreateTournamentSheet: View {
                     VStack(spacing: 20) {
                         if !showMatchupSetup {
                             // Step 1: Team selection
-                            AztecSectionHeader(title: "G Four Setup")
+                            AztecSectionHeader(title: "G Four Setup", shapeIndex: 0)
 
-                            AztecSectionHeader(title: "Select Squads (\(selectedTeamIds.count))", color: AztecTheme.jade)
+                            AztecSectionHeader(title: "Select Squads (\(selectedTeamIds.count))", color: AztecTheme.jade, shapeIndex: 1)
 
                             ForEach(cloudService.teams) { team in
                                 Button {
@@ -471,7 +480,7 @@ struct CreateTournamentSheet: View {
                             }
                         } else {
                             // Step 2: Arrange matchups & schedule
-                            AztecSectionHeader(title: "First Round Matchups")
+                            AztecSectionHeader(title: "First Round Matchups", shapeIndex: 2)
 
                             Text("Set up who plays whom, and schedule each matchup for the weekend.")
                                 .font(AztecTheme.typewriter(size: 13))

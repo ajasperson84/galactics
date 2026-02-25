@@ -23,13 +23,13 @@ struct TeamsView: View {
                 }
                 .padding(.horizontal)
 
-                AztecSectionHeader(title: "\(cloudService.teams.count) Squads")
+                AztecSectionHeader(title: "\(cloudService.teams.count) Squads", shapeIndex: 0)
                     .padding(.horizontal)
 
                 // Teams
                 LazyVStack(spacing: 12) {
-                    ForEach(cloudService.teams) { team in
-                        TeamCard(team: team)
+                    ForEach(Array(cloudService.teams.enumerated()), id: \.element.id) { index, team in
+                        TeamCard(team: team, colorIndex: index)
                             .onTapGesture {
                                 selectedTeam = team
                             }
@@ -40,7 +40,7 @@ struct TeamsView: View {
                 // Unassigned players
                 let unassigned = cloudService.unassignedPlayers()
                 if !unassigned.isEmpty {
-                    AztecSectionHeader(title: "\(unassigned.count) Free Agents", color: AztecTheme.jade)
+                    AztecSectionHeader(title: "\(unassigned.count) Free Agents", color: AztecTheme.jade, shapeIndex: 1)
                         .padding(.horizontal)
 
                     LazyVStack(spacing: 8) {
@@ -65,6 +65,7 @@ struct TeamsView: View {
 struct TeamCard: View {
     @EnvironmentObject var cloudService: CloudSyncService
     let team: Team
+    var colorIndex: Int = 0
 
     var teamPlayers: [Player] {
         cloudService.playersForTeam(team.id)
@@ -78,10 +79,13 @@ struct TeamCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(team.name)
                         .font(AztecTheme.typewriterBold(size: 18))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
                         .foregroundColor(AztecTheme.lightText)
 
                     Text("\(teamPlayers.count) ballers")
                         .font(AztecTheme.typewriter(size: 12))
+                        .lineLimit(1)
                         .foregroundColor(AztecTheme.dimText)
                 }
 
@@ -122,7 +126,7 @@ struct TeamCard: View {
                 }
             }
         }
-        .aztecCard()
+        .aztecCardColored(index: colorIndex)
     }
 }
 

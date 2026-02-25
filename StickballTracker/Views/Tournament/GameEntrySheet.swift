@@ -204,7 +204,7 @@ struct GameEntrySheet: View {
 
                         // Player stats - Team 1
                         if let team = team1 {
-                            AztecSectionHeader(title: "\(team.name) Players")
+                            AztecSectionHeader(title: "\(team.name) Players", shapeIndex: 0)
                             ForEach(team1Players) { player in
                                 QuickStatEntry(
                                     playerName: player.name,
@@ -217,7 +217,7 @@ struct GameEntrySheet: View {
 
                         // Player stats - Team 2
                         if let team = team2 {
-                            AztecSectionHeader(title: "\(team.name) Players")
+                            AztecSectionHeader(title: "\(team.name) Players", shapeIndex: 1)
                             ForEach(team2Players) { player in
                                 QuickStatEntry(
                                     playerName: player.name,
