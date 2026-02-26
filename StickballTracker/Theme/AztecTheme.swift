@@ -1,66 +1,69 @@
 import SwiftUI
 
-/// Design system: 80s Jazzercise aesthetic.
-/// Rich neon backgrounds per section, thick italic sans-serif type,
-/// contrasting neon accents. Bold, energetic, retro fitness vibes.
+/// Design system: Dark neon aesthetic.
+/// Black backgrounds, hot pink card borders with neon glow,
+/// yellow/gold accent text. Placeholder font until custom handwritten font is provided.
 enum AztecTheme {
-    // MARK: - Section Backgrounds (each tab gets its own neon)
-    static let tourneyBg = Color(red: 0.70, green: 0.0, blue: 0.36)   // Hot magenta
-    static let squadsBg = Color(red: 0.0, green: 0.85, blue: 0.78)    // Cyan
-    static let ballersBg = Color(red: 0.36, green: 0.03, blue: 0.60)  // Vivid purple
-    static let statsBg = Color(red: 0.0, green: 0.38, blue: 0.36)     // Deep teal
-    static let sheetBg = Color(red: 0.06, green: 0.03, blue: 0.14)    // Near-black purple
+    // MARK: - Primary Colors
 
-    // MARK: - Base Colors
-    /// Very dark purple-black — sheet/modal backgrounds
-    static let obsidian = Color(red: 0.06, green: 0.03, blue: 0.14)
-    /// Translucent white — card & element backgrounds (shows section color through)
-    static let darkStone = Color.white.opacity(0.10)
-    /// Medium translucent — secondary elements, borders
+    /// Hot pink — borders, glows, primary accent (#f229c5)
+    static let hotPink = Color(red: 242/255, green: 41/255, blue: 197/255)
+
+    /// Neon yellow/gold — text, scores, highlights (#fefd9c)
+    static let neonYellow = Color(red: 254/255, green: 253/255, blue: 156/255)
+
+    // MARK: - Backgrounds
+    static let background = Color.black
+    static let cardBg = Color.white.opacity(0.05)
+    static let sheetBg = Color(white: 0.04)
+
+    // Section backgrounds — all black
+    static let tourneyBg = Color.black
+    static let squadsBg = Color.black
+    static let ballersBg = Color.black
+    static let statsBg = Color.black
+
+    // MARK: - Semantic Color Aliases
+    static let obsidian = sheetBg
+    static let darkStone = Color.white.opacity(0.08)
     static let stone = Color.white.opacity(0.35)
 
-    // MARK: - Neon Accent Colors
-    /// Neon yellow — primary accent
-    static let gold = Color(red: 1.0, green: 0.95, blue: 0.0)
-    /// Neon hot pink — secondary accent
-    static let amber = Color(red: 1.0, green: 0.08, blue: 0.58)
-    /// Neon cyan — tertiary accent
-    static let jade = Color(red: 0.0, green: 1.0, blue: 0.85)
-    /// Bright red — alerts/destructive
-    static let bloodRed = Color(red: 1.0, green: 0.15, blue: 0.15)
-    /// Electric blue
-    static let cosmic = Color(red: 0.35, green: 0.55, blue: 1.0)
-    /// Neon lime green
-    static let tennisGreen = Color(red: 0.22, green: 1.0, blue: 0.08)
-    /// Neon orange
-    static let neonOrange = Color(red: 1.0, green: 0.55, blue: 0.0)
-    /// Neon pink (for nav highlight)
-    static let neonPink = Color(red: 1.0, green: 0.0, blue: 0.6)
+    // Primary accents map to new palette
+    static let gold = neonYellow
+    static let amber = hotPink
 
-    // MARK: - 80s card palette (cycled per-item for variety)
+    // Secondary neon accents
+    static let jade = Color(red: 0.0, green: 1.0, blue: 0.85)
+    static let bloodRed = Color(red: 1.0, green: 0.15, blue: 0.15)
+    static let cosmic = Color(red: 0.35, green: 0.55, blue: 1.0)
+    static let tennisGreen = Color(red: 0.22, green: 1.0, blue: 0.08)
+    static let neonOrange = Color(red: 1.0, green: 0.55, blue: 0.0)
+    static let neonPink = hotPink
+
+    // MARK: - Text Colors
+    static let lightText = Color.white
+    static let dimText = Color.white.opacity(0.5)
+    static let ink = neonYellow
+
+    // MARK: - Card Palette (cycled per-item)
     static let cardColors: [Color] = [
-        Color(red: 1.0, green: 0.08, blue: 0.58).opacity(0.18),  // hot pink
-        Color(red: 0.0, green: 1.0, blue: 0.85).opacity(0.15),   // cyan
-        Color(red: 1.0, green: 0.95, blue: 0.0).opacity(0.12),   // yellow
-        Color(red: 0.35, green: 0.55, blue: 1.0).opacity(0.18),  // blue
-        Color(red: 0.22, green: 1.0, blue: 0.08).opacity(0.12),  // lime
-        Color(red: 1.0, green: 0.55, blue: 0.0).opacity(0.15),   // orange
-        Color(red: 0.70, green: 0.0, blue: 1.0).opacity(0.18),   // purple
-        Color(red: 1.0, green: 0.15, blue: 0.15).opacity(0.14),  // red
+        hotPink.opacity(0.12),
+        jade.opacity(0.10),
+        neonYellow.opacity(0.08),
+        cosmic.opacity(0.12),
+        tennisGreen.opacity(0.08),
+        neonOrange.opacity(0.10),
+        Color(red: 0.70, green: 0.0, blue: 1.0).opacity(0.12),
+        bloodRed.opacity(0.10),
     ]
 
     static func cardColor(for index: Int) -> Color {
         cardColors[index % cardColors.count]
     }
 
-    // MARK: - Text Colors
-    static let lightText = Color.white
-    static let dimText = Color.white.opacity(0.6)
-    static let ink = Color.white
-
     // MARK: - Gradients
     static let goldGradient = LinearGradient(
-        colors: [gold, tennisGreen],
+        colors: [neonYellow, neonYellow.opacity(0.7)],
         startPoint: .leading,
         endPoint: .trailing
     )
@@ -78,35 +81,35 @@ enum AztecTheme {
     )
 
     static let pinkGradient = LinearGradient(
-        colors: [amber, Color(red: 0.80, green: 0.0, blue: 0.40)],
+        colors: [hotPink, hotPink.opacity(0.6)],
         startPoint: .leading,
         endPoint: .trailing
     )
 
     static let cardGradient = LinearGradient(
-        colors: [Color.white.opacity(0.12), Color.white.opacity(0.06)],
+        colors: [Color.white.opacity(0.08), Color.white.opacity(0.03)],
         startPoint: .top,
         endPoint: .bottom
     )
 
-    // MARK: - Fonts (80s Jazzercise: thick italic sans-serif)
+    // MARK: - Fonts (PLACEHOLDER — swap for custom handwritten font)
 
-    /// Heavy italic — headers, buttons, labels
+    /// Heavy — headers, buttons, labels
     static func jazzFont(size: CGFloat) -> Font {
         Font.custom("Avenir-BlackOblique", size: size * 2)
     }
 
-    /// Medium-heavy italic — body text
+    /// Medium-heavy — body text
     static func jazzBody(size: CGFloat) -> Font {
         Font.custom("Avenir-HeavyOblique", size: size * 2)
     }
 
-    /// Lighter italic — secondary body
+    /// Lighter — secondary body
     static func jazzLight(size: CGFloat) -> Font {
         Font.custom("Avenir-MediumOblique", size: size * 2)
     }
 
-    // Aliases so all existing font references auto-update
+    // Font aliases
     static func impact(size: CGFloat) -> Font { jazzFont(size: size) }
     static func typewriter(size: CGFloat) -> Font { jazzBody(size: size) }
     static func typewriterBold(size: CGFloat) -> Font { jazzFont(size: size) }
@@ -115,68 +118,23 @@ enum AztecTheme {
 
     // MARK: - Decorative Elements
     static var glowingLine: some View {
-        Rectangle().fill(gold)
+        Rectangle().fill(neonYellow)
     }
 
     static var borderLine: some View {
-        Rectangle().fill(gold.opacity(0.3)).frame(height: 1)
+        Rectangle().fill(neonYellow.opacity(0.3)).frame(height: 1)
     }
 
     static var jadeBorderLine: some View {
         Rectangle().fill(jade.opacity(0.3)).frame(height: 1)
     }
 
-    static func glowShadow(color: Color = gold, radius: CGFloat = 8) -> some View {
+    static func glowShadow(color: Color = hotPink, radius: CGFloat = 8) -> some View {
         Color.clear.shadow(color: color.opacity(0.3), radius: radius)
     }
 }
 
-// MARK: - Irregular/Organic Shape
-
-/// A wobbly, hand-cut shape — very pronounced organic 80s collage feel.
-struct WobblyShape: Shape {
-    var wobble: CGFloat = 0.06
-    var seed: Int = 0
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let w = rect.width
-        let h = rect.height
-        let d = wobble
-
-        let s = CGFloat(seed % 7 + 1) * 0.4
-
-        path.move(to: CGPoint(x: w * d * s * 0.5, y: h * d * 0.8))
-        // Top edge — big wave
-        path.addCurve(
-            to: CGPoint(x: w * (1 - d * 0.6), y: h * d * (0.5 + s * 0.15)),
-            control1: CGPoint(x: w * 0.3, y: -h * d * 1.2),
-            control2: CGPoint(x: w * 0.7, y: h * d * 2.0)
-        )
-        // Right edge — inward bulge
-        path.addCurve(
-            to: CGPoint(x: w * (1 - d * s * 0.3), y: h * (1 - d * 0.7)),
-            control1: CGPoint(x: w * (1 + d * 1.0), y: h * 0.35),
-            control2: CGPoint(x: w * (1 - d * 0.8), y: h * 0.65)
-        )
-        // Bottom edge — wave
-        path.addCurve(
-            to: CGPoint(x: w * d * 0.7, y: h * (1 - d * (0.6 + s * 0.2))),
-            control1: CGPoint(x: w * 0.7, y: h * (1 + d * 1.0)),
-            control2: CGPoint(x: w * 0.3, y: h * (1 - d * 1.5))
-        )
-        // Left edge — outward bulge
-        path.addCurve(
-            to: CGPoint(x: w * d * s * 0.5, y: h * d * 0.8),
-            control1: CGPoint(x: -w * d * 0.8, y: h * 0.65),
-            control2: CGPoint(x: w * d * 1.0, y: h * 0.35)
-        )
-        path.closeSubpath()
-        return path
-    }
-}
-
-// MARK: - Geometric Section Header Shapes
+// MARK: - Geometric Shapes
 
 /// Trapezoid shape — wider at bottom
 struct TrapezoidShape: Shape {
@@ -236,39 +194,64 @@ struct PentagonShape: Shape {
     }
 }
 
-// MARK: - Card Style
+// MARK: - Neon Card Modifier
 
-struct AztecCard: ViewModifier {
-    var highlight: Color = AztecTheme.gold
-    var seed: Int = 0
-    var bgColor: Color? = nil
+/// Dark card with neon border glow — the core visual building block.
+struct NeonCardModifier: ViewModifier {
+    var borderColor: Color = AztecTheme.hotPink
+    var cornerRadius: CGFloat = 12
+    var glowIntensity: CGFloat = 1.0
 
     func body(content: Content) -> some View {
         content
-            .padding(16)
-            .background(bgColor ?? Color.white.opacity(0.08))
-            .clipShape(WobblyShape(seed: seed))
-            .overlay(
-                WobblyShape(seed: seed)
-                    .stroke(highlight.opacity(0.3), lineWidth: 2)
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(AztecTheme.cardBg)
             )
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(borderColor, lineWidth: 1.5)
+            )
+            .shadow(color: borderColor.opacity(0.5 * glowIntensity), radius: 4)
+            .shadow(color: borderColor.opacity(0.25 * glowIntensity), radius: 10)
+            .shadow(color: borderColor.opacity(0.1 * glowIntensity), radius: 20)
     }
 }
 
 extension View {
-    func aztecCard(highlight: Color = AztecTheme.gold) -> some View {
+    /// Apply dark neon-bordered card style with glow.
+    func neonCard(border: Color = AztecTheme.hotPink, cornerRadius: CGFloat = 12, glow: CGFloat = 1.0) -> some View {
+        modifier(NeonCardModifier(borderColor: border, cornerRadius: cornerRadius, glowIntensity: glow))
+    }
+}
+
+// MARK: - Legacy Card Style (updated to neon)
+
+struct AztecCard: ViewModifier {
+    var highlight: Color = AztecTheme.hotPink
+
+    func body(content: Content) -> some View {
+        content
+            .padding(16)
+            .neonCard(border: highlight)
+    }
+}
+
+extension View {
+    func aztecCard(highlight: Color = AztecTheme.hotPink) -> some View {
         modifier(AztecCard(highlight: highlight))
     }
 
-    func aztecCardColored(index: Int, highlight: Color = AztecTheme.gold) -> some View {
-        modifier(AztecCard(highlight: highlight, seed: index, bgColor: AztecTheme.cardColor(for: index)))
+    func aztecCardColored(index: Int, highlight: Color = AztecTheme.hotPink) -> some View {
+        modifier(AztecCard(highlight: highlight))
     }
 }
 
 // MARK: - Button Styles
 
 struct AztecButtonStyle: ButtonStyle {
-    var color: Color = AztecTheme.gold
+    var color: Color = AztecTheme.neonYellow
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -278,19 +261,15 @@ struct AztecButtonStyle: ButtonStyle {
             .padding(.horizontal, 24)
             .padding(.vertical, 14)
             .background(color)
-            .clipShape(WobblyShape(seed: 3))
-            .overlay(
-                WobblyShape(seed: 3)
-                    .stroke(Color.black.opacity(0.2), lineWidth: 1)
-            )
-            .shadow(color: color.opacity(0.4), radius: configuration.isPressed ? 2 : 10)
-            .scaleEffect(configuration.isPressed ? 0.93 : 1.0)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .shadow(color: color.opacity(0.5), radius: configuration.isPressed ? 2 : 8)
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
 struct AztecSecondaryButtonStyle: ButtonStyle {
-    var color: Color = AztecTheme.gold
+    var color: Color = AztecTheme.neonYellow
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -300,10 +279,11 @@ struct AztecSecondaryButtonStyle: ButtonStyle {
             .padding(.horizontal, 18)
             .padding(.vertical, 12)
             .background(
-                WobblyShape(seed: 5)
-                    .stroke(color, lineWidth: 2)
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(color, lineWidth: 1.5)
             )
-            .scaleEffect(configuration.isPressed ? 0.93 : 1.0)
+            .shadow(color: color.opacity(0.3), radius: configuration.isPressed ? 1 : 4)
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
@@ -315,14 +295,13 @@ struct AztecTextField: ViewModifier {
         content
             .font(AztecTheme.jazzBody(size: 16))
             .foregroundColor(.white)
-            .accentColor(AztecTheme.gold)
+            .accentColor(AztecTheme.neonYellow)
             .padding(12)
-            .background(Color.white.opacity(0.12))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .background(Color.white.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(AztecTheme.stone, lineWidth: 1)
-                    .allowsHitTesting(false)
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(AztecTheme.hotPink.opacity(0.4), lineWidth: 1)
             )
     }
 }

@@ -14,43 +14,34 @@ struct ContentView: View {
             switch self {
             case .tournament: return "trophy.fill"
             case .teams: return "person.3.fill"
-            case .players: return "person.fill"
+            case .players: return "tennisball.fill"
             case .stats: return "chart.bar.fill"
             }
         }
 
         var backgroundColor: Color {
-            switch self {
-            case .tournament: return AztecTheme.tourneyBg
-            case .teams: return AztecTheme.squadsBg
-            case .players: return AztecTheme.ballersBg
-            case .stats: return AztecTheme.statsBg
-            }
+            return Color.black
         }
 
         var accentColor: Color {
             switch self {
-            case .tournament: return AztecTheme.gold
-            case .teams: return AztecTheme.jade
-            case .players: return AztecTheme.amber
-            case .stats: return AztecTheme.tennisGreen
+            case .tournament: return AztecTheme.neonYellow
+            case .teams: return AztecTheme.hotPink
+            case .players: return AztecTheme.jade
+            case .stats: return AztecTheme.cosmic
             }
         }
     }
 
     var body: some View {
         ZStack {
-            // Dynamic neon background per section
-            selectedTab.backgroundColor
-                .ignoresSafeArea()
-                .animation(.easeInOut(duration: 0.3), value: selectedTab)
+            Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Header
                 AztecHeader(title: "G FOUR")
 
-                // Content — manual switching fixes text field interactivity
-                // (page-style TabView swipe gestures block TextField input)
+                // Content
                 Group {
                     switch selectedTab {
                     case .tournament: TournamentView()
@@ -90,34 +81,40 @@ struct AztecTabBar: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                 }
-                .buttonStyle(TabBarButtonStyle(isSelected: selectedTab == tab))
+                .buttonStyle(TabBarButtonStyle(
+                    isSelected: selectedTab == tab,
+                    accentColor: tab.accentColor
+                ))
             }
         }
-        .background(AztecTheme.tennisGreen)
+        .background(Color(white: 0.06))
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(AztecTheme.gold)
+                .fill(AztecTheme.hotPink)
                 .frame(height: 1)
+                .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 3)
         }
     }
 }
 
-/// Custom button style for tab bar: neon pink when pressed, neon orange when selected.
+/// Tab bar button: neon accent when selected, dim when not.
 struct TabBarButtonStyle: ButtonStyle {
     let isSelected: Bool
+    var accentColor: Color = AztecTheme.hotPink
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundColor(
-                isSelected ? Color.black :
-                configuration.isPressed ? Color.black :
-                AztecTheme.obsidian.opacity(0.6)
+                isSelected ? accentColor :
+                configuration.isPressed ? accentColor.opacity(0.7) :
+                Color.white.opacity(0.4)
             )
             .background(
-                isSelected ? AztecTheme.neonOrange :
-                configuration.isPressed ? AztecTheme.neonPink :
+                isSelected ? accentColor.opacity(0.12) :
+                configuration.isPressed ? accentColor.opacity(0.06) :
                 Color.clear
             )
+            .shadow(color: isSelected ? accentColor.opacity(0.3) : .clear, radius: 4)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }

@@ -1,7 +1,6 @@
 import SwiftUI
 
 /// Game entry sheet for recording scores and individual player stats during a matchup.
-/// Scores can be adjusted manually or auto-updated via player Dongs/Salamies.
 struct GameEntrySheet: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @Environment(\.dismiss) var dismiss
@@ -42,7 +41,7 @@ struct GameEntrySheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AztecTheme.obsidian.ignoresSafeArea()
+                Color.black.ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 20) {
@@ -51,7 +50,8 @@ struct GameEntrySheet: View {
                             Text("GAME \(nextGameNumber) OF 3")
                                 .font(AztecTheme.impact(size: 12))
                                 .tracking(3)
-                                .foregroundColor(AztecTheme.amber)
+                                .foregroundColor(AztecTheme.hotPink)
+                                .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
 
                             Text("Series: \(matchup.seriesDescription)")
                                 .font(AztecTheme.typewriter(size: 14))
@@ -86,10 +86,10 @@ struct GameEntrySheet: View {
                                 }
                                 .padding(12)
                                 .background(AztecTheme.darkStone)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(AztecTheme.stone.opacity(0.2), lineWidth: 0.5)
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 1)
                                 )
                             }
                         }
@@ -109,7 +109,7 @@ struct GameEntrySheet: View {
                             )
                             .datePickerStyle(.compact)
                             .labelsHidden()
-                            .tint(AztecTheme.gold)
+                            .tint(AztecTheme.neonYellow)
                             .colorScheme(.dark)
                         }
 
@@ -133,7 +133,8 @@ struct GameEntrySheet: View {
 
                                 Text("\(team1Score)")
                                     .font(.system(size: 40, weight: .black, design: .monospaced))
-                                    .foregroundColor(AztecTheme.jade)
+                                    .foregroundColor(AztecTheme.neonYellow)
+                                    .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 6)
 
                                 HStack(spacing: 12) {
                                     Button {
@@ -157,7 +158,8 @@ struct GameEntrySheet: View {
 
                             Text("VS")
                                 .font(AztecTheme.impact(size: 12))
-                                .foregroundColor(AztecTheme.stone)
+                                .foregroundColor(AztecTheme.neonYellow)
+                                .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 3)
                                 .padding(.horizontal, 8)
 
                             // Team 2 score
@@ -178,7 +180,8 @@ struct GameEntrySheet: View {
 
                                 Text("\(team2Score)")
                                     .font(.system(size: 40, weight: .black, design: .monospaced))
-                                    .foregroundColor(AztecTheme.jade)
+                                    .foregroundColor(AztecTheme.neonYellow)
+                                    .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 6)
 
                                 HStack(spacing: 12) {
                                     Button {
@@ -200,7 +203,7 @@ struct GameEntrySheet: View {
                             }
                             .frame(maxWidth: .infinity)
                         }
-                        .aztecCard(highlight: AztecTheme.jade)
+                        .aztecCard(highlight: AztecTheme.hotPink)
 
                         // Player stats - Team 1
                         if let team = team1 {
@@ -243,7 +246,7 @@ struct GameEntrySheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(AztecTheme.gold)
+                        .foregroundColor(AztecTheme.neonYellow)
                 }
             }
             .alert("Record Game?", isPresented: $showConfirm) {
@@ -348,7 +351,7 @@ struct QuickStatEntry: View {
                         if stats.dongs > 0 {
                             Text("\(stats.dongs)D")
                                 .font(.system(size: 12, weight: .heavy, design: .monospaced))
-                                .foregroundColor(AztecTheme.gold)
+                                .foregroundColor(AztecTheme.neonYellow)
                         }
                         if stats.salamies > 0 {
                             Text("\(stats.salamies)S")
@@ -358,7 +361,7 @@ struct QuickStatEntry: View {
                         if stats.doublePlays > 0 {
                             Text("\(stats.doublePlays)DP")
                                 .font(.system(size: 12, weight: .heavy, design: .monospaced))
-                                .foregroundColor(AztecTheme.amber)
+                                .foregroundColor(AztecTheme.hotPink)
                         }
                         if stats.drops > 0 {
                             Text("\(stats.drops)Dr")
@@ -387,13 +390,13 @@ struct QuickStatEntry: View {
 
             if isExpanded {
                 VStack(spacing: 6) {
-                    StatStepperRow(label: "Dongs", value: $stats.dongs, color: AztecTheme.gold) { delta in
+                    StatStepperRow(label: "Dongs", value: $stats.dongs, color: AztecTheme.neonYellow) { delta in
                         onDongChanged(delta)
                     }
                     StatStepperRow(label: "Salamies", value: $stats.salamies, color: AztecTheme.jade) { delta in
                         onSalamiChanged(delta)
                     }
-                    StatStepperRow(label: "Dbl Plays", value: $stats.doublePlays, color: AztecTheme.amber)
+                    StatStepperRow(label: "Dbl Plays", value: $stats.doublePlays, color: AztecTheme.hotPink)
                     StatStepperRow(label: "Drops", value: $stats.drops, color: AztecTheme.bloodRed)
                     StatStepperRow(label: "Suds", value: $stats.suds, color: AztecTheme.cosmic)
                     StatStepperRow(label: "Tacos", value: $stats.tacos, color: AztecTheme.tennisGreen)
@@ -404,10 +407,10 @@ struct QuickStatEntry: View {
             }
         }
         .background(AztecTheme.darkStone)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(
-            RoundedRectangle(cornerRadius: 6)
-                .stroke(AztecTheme.stone.opacity(0.15), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(AztecTheme.hotPink.opacity(0.2), lineWidth: 1)
         )
     }
 }
@@ -439,7 +442,7 @@ struct StatStepperRow: View {
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(AztecTheme.stone)
                     .frame(width: 32, height: 28)
-                    .background(AztecTheme.obsidian)
+                    .background(Color.white.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 4))
             }
 
@@ -456,7 +459,7 @@ struct StatStepperRow: View {
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(AztecTheme.jade)
                     .frame(width: 32, height: 28)
-                    .background(AztecTheme.obsidian)
+                    .background(Color.white.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 4))
             }
         }

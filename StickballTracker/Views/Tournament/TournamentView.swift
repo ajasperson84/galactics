@@ -16,7 +16,7 @@ struct TournamentView: View {
         ScrollView {
             VStack(spacing: 16) {
                 if let tournament = cloudService.tournament {
-                    // Tournament header — just trash button
+                    // Trash button
                     HStack {
                         Spacer()
                         Button {
@@ -42,12 +42,12 @@ struct TournamentView: View {
 
                     // Bracket rounds
                     ForEach(Array(tournament.bracket.enumerated()), id: \.element.id) { roundIndex, round in
-                        VStack(spacing: 4) {
+                        VStack(spacing: 8) {
                             AztecSectionHeader(
                                 title: round.roundName,
                                 color: roundIndex == tournament.bracket.count - 1
-                                    ? AztecTheme.gold
-                                    : AztecTheme.jade,
+                                    ? AztecTheme.neonYellow
+                                    : AztecTheme.hotPink,
                                 shapeIndex: roundIndex
                             )
                             .padding(.horizontal)
@@ -73,19 +73,20 @@ struct TournamentView: View {
                         }
                     }
                 } else {
-                    // No tournament - show create
+                    // No tournament — show create
                     VStack(spacing: 24) {
                         Spacer().frame(height: 40)
 
                         ZStack {
                             Circle()
-                                .fill(AztecTheme.gold.opacity(0.08))
+                                .fill(AztecTheme.hotPink.opacity(0.08))
                                 .frame(width: 120, height: 120)
 
                             Image(systemName: "trophy.fill")
                                 .font(.system(size: 48)).italic()
-                                .foregroundStyle(AztecTheme.goldGradient)
-                                .shadow(color: AztecTheme.gold.opacity(0.3), radius: 12)
+                                .foregroundColor(AztecTheme.neonYellow)
+                                .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 8)
+                                .shadow(color: AztecTheme.neonYellow.opacity(0.2), radius: 16)
                         }
 
                         Text("NO ACTIVE TOURNEY")
@@ -93,7 +94,7 @@ struct TournamentView: View {
                             .tracking(3)
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
-                            .foregroundColor(AztecTheme.stone)
+                            .foregroundColor(AztecTheme.dimText)
 
                         Text("Create a tourney to set up brackets\nand start tracking games.")
                             .font(AztecTheme.typewriter(size: 14))
@@ -108,7 +109,7 @@ struct TournamentView: View {
                         } else {
                             Text("Add at least 2 squads to create a tourney")
                                 .font(AztecTheme.typewriter(size: 12))
-                                .foregroundColor(AztecTheme.amber)
+                                .foregroundColor(AztecTheme.hotPink)
                         }
                     }
                 }
@@ -129,6 +130,8 @@ struct TournamentView: View {
     }
 }
 
+// MARK: - Champion Banner
+
 struct ChampionBanner: View {
     @EnvironmentObject var cloudService: CloudSyncService
     let teamName: String
@@ -142,32 +145,29 @@ struct ChampionBanner: View {
 
             Image(systemName: "trophy.fill")
                 .font(.system(size: 32)).italic()
-                .foregroundStyle(AztecTheme.goldGradient)
-                .shadow(color: AztecTheme.gold.opacity(0.5), radius: 8)
+                .foregroundColor(AztecTheme.neonYellow)
+                .shadow(color: AztecTheme.neonYellow.opacity(0.7), radius: 6)
+                .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 12)
 
             Text("CHAMPION")
                 .font(AztecTheme.impact(size: 12))
                 .tracking(4)
-                .foregroundColor(AztecTheme.amber)
+                .foregroundColor(AztecTheme.hotPink)
+                .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
 
             Text(teamName.uppercased())
                 .font(AztecTheme.impact(size: 24))
                 .tracking(2)
-                .foregroundStyle(AztecTheme.goldGradient)
+                .foregroundColor(AztecTheme.neonYellow)
+                .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 6)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(AztecTheme.gold.opacity(0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(AztecTheme.gold.opacity(0.3), lineWidth: 1)
-                )
-        )
-        .shadow(color: AztecTheme.gold.opacity(0.15), radius: 16)
+        .neonCard(border: AztecTheme.neonYellow)
     }
 }
+
+// MARK: - Matchup Card (Option 1 Reference Design)
 
 struct MatchupCard: View {
     @EnvironmentObject var cloudService: CloudSyncService
@@ -175,32 +175,114 @@ struct MatchupCard: View {
     let roundIndex: Int
     let matchupIndex: Int
 
+    private var team1: Team? {
+        matchup.team1Id.flatMap { cloudService.team(for: $0) }
+    }
+
+    private var team2: Team? {
+        matchup.team2Id.flatMap { cloudService.team(for: $0) }
+    }
+
+    private var team1IsWinner: Bool {
+        matchup.winnerId != nil && matchup.winnerId == matchup.team1Id
+    }
+
+    private var team2IsWinner: Bool {
+        matchup.winnerId != nil && matchup.winnerId == matchup.team2Id
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // Team rows
-            TeamMatchupRow(
-                teamId: matchup.team1Id,
-                wins: matchup.team1Wins,
-                isWinner: matchup.winnerId == matchup.team1Id,
-                isTop: true
-            )
+            // Team names row
+            HStack(alignment: .center) {
+                // Team 1
+                HStack(spacing: 8) {
+                    if let team = team1 {
+                        TeamIconView(team: team, size: 28)
+                        Text(team.name.uppercased())
+                            .font(AztecTheme.jazzFont(size: 11))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .foregroundColor(team1IsWinner ? AztecTheme.neonYellow : .white)
+                            .shadow(color: team1IsWinner ? AztecTheme.neonYellow.opacity(0.6) : .clear, radius: 4)
+                    } else {
+                        Text("TBD")
+                            .font(AztecTheme.typewriter(size: 11))
+                            .foregroundColor(AztecTheme.dimText)
+                    }
+                }
 
+                Spacer()
+
+                // Team 2
+                HStack(spacing: 8) {
+                    if let team = team2 {
+                        Text(team.name.uppercased())
+                            .font(AztecTheme.jazzFont(size: 11))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .foregroundColor(team2IsWinner ? AztecTheme.neonYellow : .white)
+                            .shadow(color: team2IsWinner ? AztecTheme.neonYellow.opacity(0.6) : .clear, radius: 4)
+                        TeamIconView(team: team, size: 28)
+                    } else {
+                        Text("TBD")
+                            .font(AztecTheme.typewriter(size: 11))
+                            .foregroundColor(AztecTheme.dimText)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 8)
+
+            // VS with neon glow
+            Text("VS")
+                .font(AztecTheme.jazzFont(size: 16))
+                .foregroundColor(AztecTheme.neonYellow)
+                .shadow(color: AztecTheme.neonYellow.opacity(0.8), radius: 4)
+                .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 8)
+                .shadow(color: AztecTheme.neonYellow.opacity(0.2), radius: 14)
+                .padding(.bottom, 8)
+
+            // Yellow divider
             Rectangle()
-                .fill(Color.black.opacity(0.08))
+                .fill(AztecTheme.neonYellow.opacity(0.5))
                 .frame(height: 1)
+                .padding(.horizontal, 16)
+                .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 2)
 
-            TeamMatchupRow(
-                teamId: matchup.team2Id,
-                wins: matchup.team2Wins,
-                isWinner: matchup.winnerId == matchup.team2Id,
-                isTop: false
-            )
+            // Game score rows
+            VStack(spacing: 4) {
+                ForEach(0..<3, id: \.self) { gameIdx in
+                    if gameIdx < matchup.games.count {
+                        let game = matchup.games[gameIdx]
+                        GameScoreRow(
+                            gameNumber: gameIdx + 1,
+                            team1Score: game.team1Score,
+                            team2Score: game.team2Score,
+                            isCompleted: game.status == .completed,
+                            gameDate: game.gameDate
+                        )
+                    } else if matchup.status != .completed {
+                        GameScoreRow(
+                            gameNumber: gameIdx + 1,
+                            team1Score: nil,
+                            team2Score: nil,
+                            isCompleted: false,
+                            gameDate: nil
+                        )
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
 
             // Schedule info
             if matchup.scheduledDate != nil || matchup.scheduledField != nil {
                 Rectangle()
-                    .fill(Color.black.opacity(0.08))
+                    .fill(Color.white.opacity(0.06))
                     .frame(height: 1)
+                    .padding(.horizontal, 16)
 
                 HStack(spacing: 6) {
                     if let date = matchup.scheduledDate {
@@ -208,136 +290,130 @@ struct MatchupCard: View {
                             .font(.system(size: 9, weight: .bold)).italic()
                             .foregroundColor(AztecTheme.jade)
                         Text(date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().hour().minute()))
-                            .font(AztecTheme.typewriter(size: 11))
-                            .foregroundColor(Color.black.opacity(0.6))
+                            .font(AztecTheme.typewriter(size: 10))
+                            .foregroundColor(AztecTheme.dimText)
                     }
 
                     if matchup.scheduledDate != nil && matchup.scheduledField != nil {
                         Text("·")
                             .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(Color.black.opacity(0.3))
+                            .foregroundColor(AztecTheme.stone)
                     }
 
                     if let field = matchup.scheduledField {
                         Image(systemName: "mappin.and.ellipse")
                             .font(.system(size: 9, weight: .bold)).italic()
-                            .foregroundColor(AztecTheme.amber)
+                            .foregroundColor(AztecTheme.hotPink)
                         Text(field)
-                            .font(AztecTheme.typewriter(size: 11))
-                            .foregroundColor(Color.black.opacity(0.6))
+                            .font(AztecTheme.typewriter(size: 10))
+                            .foregroundColor(AztecTheme.dimText)
                     }
 
                     Spacer()
                 }
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 16)
                 .padding(.vertical, 6)
             }
 
             // Series status
-            if !matchup.games.isEmpty {
-                Rectangle()
-                    .fill(Color.black.opacity(0.08))
-                    .frame(height: 1)
-
-                HStack(spacing: 12) {
-                    ForEach(0..<3, id: \.self) { gameIdx in
-                        if gameIdx < matchup.games.count {
-                            let game = matchup.games[gameIdx]
-                            VStack(spacing: 2) {
-                                Text("G\(gameIdx + 1)")
-                                    .font(AztecTheme.impact(size: 9))
-                                    .foregroundColor(Color.black.opacity(0.4))
-                                Text("\(game.team1Score)-\(game.team2Score)")
-                                    .font(AztecTheme.typewriterBold(size: 12))
-                                    .foregroundColor(AztecTheme.jade)
-                                if let date = game.gameDate {
-                                    Text(date.formatted(.dateTime.month(.abbreviated).day()))
-                                        .font(AztecTheme.typewriter(size: 8))
-                                        .foregroundColor(Color.black.opacity(0.3))
-                                }
-                            }
-                        } else {
-                            VStack(spacing: 2) {
-                                Text("G\(gameIdx + 1)")
-                                    .font(AztecTheme.impact(size: 9))
-                                    .foregroundColor(Color.black.opacity(0.4))
-                                Text("--")
-                                    .font(AztecTheme.typewriterBold(size: 12))
-                                    .foregroundColor(Color.black.opacity(0.3))
-                            }
-                        }
-                    }
-
-                    Spacer()
-
-                    if matchup.status == .completed {
-                        Text("FINAL")
-                            .font(AztecTheme.impact(size: 10))
-                            .tracking(2)
-                            .foregroundColor(AztecTheme.gold)
-                    } else if matchup.status == .inProgress {
-                        Text("LIVE")
-                            .font(AztecTheme.impact(size: 10))
-                            .tracking(2)
-                            .foregroundColor(AztecTheme.jade)
-                    }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+            if matchup.status == .completed {
+                Text("FINAL")
+                    .font(AztecTheme.impact(size: 10))
+                    .tracking(3)
+                    .foregroundColor(AztecTheme.neonYellow)
+                    .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
+                    .padding(.bottom, 12)
+            } else if matchup.status == .inProgress {
+                Text("SERIES: \(matchup.seriesDescription)")
+                    .font(AztecTheme.impact(size: 9))
+                    .tracking(2)
+                    .foregroundColor(AztecTheme.hotPink)
+                    .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
+                    .padding(.bottom, 12)
+            } else {
+                Spacer().frame(height: 8)
             }
         }
-        .background(Color.white)
-        .clipShape(Rectangle())
+        .neonCard()
     }
 }
 
-struct TeamMatchupRow: View {
-    @EnvironmentObject var cloudService: CloudSyncService
-    let teamId: String?
-    let wins: Int
-    let isWinner: Bool
-    let isTop: Bool
+// MARK: - Game Score Row
 
-    /// Neon colors for scores — top team gets jade, bottom gets amber
-    private var scoreColor: Color {
-        isTop ? AztecTheme.jade : AztecTheme.amber
+struct GameScoreRow: View {
+    let gameNumber: Int
+    let team1Score: Int?
+    let team2Score: Int?
+    let isCompleted: Bool
+    let gameDate: Date?
+
+    private var team1Won: Bool {
+        guard let s1 = team1Score, let s2 = team2Score, isCompleted else { return false }
+        return s1 > s2
+    }
+
+    private var team2Won: Bool {
+        guard let s1 = team1Score, let s2 = team2Score, isCompleted else { return false }
+        return s2 > s1
     }
 
     var body: some View {
-        HStack(spacing: 8) {
-            if let teamId, let team = cloudService.team(for: teamId) {
-                TeamIconView(team: team, size: 28)
+        HStack {
+            Text("G\(gameNumber)")
+                .font(AztecTheme.impact(size: 9))
+                .foregroundColor(AztecTheme.dimText)
+                .frame(width: 24, alignment: .leading)
 
-                Text(team.name)
-                    .font(isWinner ? AztecTheme.typewriterBold(size: 14) : AztecTheme.typewriter(size: 14))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                    .foregroundColor(Color.black)
-            } else {
-                Text("TBD")
-                    .font(AztecTheme.typewriter(size: 14))
-                    .foregroundColor(Color.black.opacity(0.4))
+            Spacer()
+
+            if let s1 = team1Score, let s2 = team2Score {
+                Text("\(s1)")
+                    .font(.system(size: 18, weight: .heavy, design: .monospaced))
                     .italic()
+                    .foregroundColor(team1Won ? AztecTheme.neonYellow : AztecTheme.dimText)
+                    .shadow(color: team1Won ? AztecTheme.neonYellow.opacity(0.4) : .clear, radius: 3)
+
+                Text("—")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AztecTheme.stone)
+                    .padding(.horizontal, 8)
+
+                Text("\(s2)")
+                    .font(.system(size: 18, weight: .heavy, design: .monospaced))
+                    .italic()
+                    .foregroundColor(team2Won ? AztecTheme.neonYellow : AztecTheme.dimText)
+                    .shadow(color: team2Won ? AztecTheme.neonYellow.opacity(0.4) : .clear, radius: 3)
+            } else {
+                Text("·")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(AztecTheme.stone)
+                    .padding(.horizontal, 4)
+                Text("—")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color.white.opacity(0.15))
+                    .padding(.horizontal, 8)
+                Text("·")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(AztecTheme.stone)
+                    .padding(.horizontal, 4)
             }
 
             Spacer()
 
-            if teamId != nil {
-                Text("\(wins)")
-                    .font(AztecTheme.typewriterBold(size: 18))
-                    .foregroundColor(scoreColor)
-            }
-
-            if isWinner {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .bold)).italic()
-                    .foregroundColor(AztecTheme.gold)
+            if let date = gameDate {
+                Text(date.formatted(.dateTime.month(.abbreviated).day()))
+                    .font(AztecTheme.typewriter(size: 8))
+                    .foregroundColor(AztecTheme.stone)
+                    .frame(width: 40, alignment: .trailing)
+            } else {
+                Spacer().frame(width: 40)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.vertical, 2)
     }
 }
+
+// MARK: - Create Tournament Sheet
 
 struct MatchupSetupData: Identifiable {
     let id = UUID()
@@ -357,7 +433,7 @@ struct CreateTournamentSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AztecTheme.obsidian.ignoresSafeArea()
+                Color.black.ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 20) {
@@ -391,22 +467,24 @@ struct CreateTournamentSheet: View {
                                               : "circle")
                                             .foregroundColor(
                                                 selectedTeamIds.contains(team.id)
-                                                    ? AztecTheme.gold
+                                                    ? AztecTheme.neonYellow
                                                     : AztecTheme.stone
                                             )
+                                            .shadow(color: selectedTeamIds.contains(team.id)
+                                                    ? AztecTheme.neonYellow.opacity(0.4) : .clear, radius: 3)
                                     }
                                     .padding(14)
                                     .background(
                                         selectedTeamIds.contains(team.id)
-                                            ? AztecTheme.gold.opacity(0.08)
+                                            ? AztecTheme.hotPink.opacity(0.08)
                                             : AztecTheme.darkStone
                                     )
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
+                                        RoundedRectangle(cornerRadius: 8)
                                             .stroke(
                                                 selectedTeamIds.contains(team.id)
-                                                    ? AztecTheme.gold.opacity(0.3)
+                                                    ? AztecTheme.hotPink.opacity(0.4)
                                                     : Color.clear,
                                                 lineWidth: 1
                                             )
@@ -424,11 +502,11 @@ struct CreateTournamentSheet: View {
                             } else if selectedTeamIds.count >= 2 {
                                 Text("Select an even number of squads")
                                     .font(AztecTheme.typewriter(size: 12))
-                                    .foregroundColor(AztecTheme.amber)
+                                    .foregroundColor(AztecTheme.hotPink)
                             } else {
                                 Text("Select at least 2 squads")
                                     .font(AztecTheme.typewriter(size: 12))
-                                    .foregroundColor(AztecTheme.amber)
+                                    .foregroundColor(AztecTheme.hotPink)
                             }
                         } else {
                             // Step 2: Arrange matchups & schedule
@@ -480,7 +558,7 @@ struct CreateTournamentSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(AztecTheme.gold)
+                        .foregroundColor(AztecTheme.neonYellow)
                 }
             }
         }
@@ -495,8 +573,9 @@ struct CreateTournamentSheet: View {
             matchupSetups.append(MatchupSetupData(team1Id: t1, team2Id: t2))
         }
     }
-
 }
+
+// MARK: - Matchup Pair Card (Tournament Setup)
 
 struct MatchupPairCard: View {
     @EnvironmentObject var cloudService: CloudSyncService
@@ -526,8 +605,9 @@ struct MatchupPairCard: View {
             Text("MATCHUP \(index + 1)")
                 .font(AztecTheme.jazzFont(size: 10))
                 .tracking(2)
-                .foregroundColor(AztecTheme.amber)
-                .padding(.vertical, 6)
+                .foregroundColor(AztecTheme.hotPink)
+                .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
+                .padding(.vertical, 8)
 
             // Team dropdown selectors
             HStack {
@@ -551,17 +631,18 @@ struct MatchupPairCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .padding(.horizontal, 10)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(AztecTheme.gold.opacity(0.3), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 1)
                     )
                 }
 
                 Text("VS")
                     .font(AztecTheme.jazzFont(size: 11))
-                    .foregroundColor(AztecTheme.stone)
+                    .foregroundColor(AztecTheme.neonYellow)
+                    .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 3)
                     .padding(.horizontal, 6)
 
                 Menu {
@@ -584,19 +665,19 @@ struct MatchupPairCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .padding(.horizontal, 10)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(AztecTheme.gold.opacity(0.3), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 1)
                     )
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 12)
+            .padding(.bottom, 10)
 
             Rectangle()
-                .fill(AztecTheme.stone.opacity(0.15))
+                .fill(Color.white.opacity(0.06))
                 .frame(height: 1)
 
             // Schedule section
@@ -660,7 +741,7 @@ struct MatchupPairCard: View {
                     )
                     .datePickerStyle(.compact)
                     .labelsHidden()
-                    .tint(AztecTheme.gold)
+                    .tint(AztecTheme.neonYellow)
                     .colorScheme(.dark)
                 }
 
@@ -668,7 +749,7 @@ struct MatchupPairCard: View {
                 HStack {
                     Image(systemName: "mappin.and.ellipse")
                         .font(.system(size: 12, weight: .bold)).italic()
-                        .foregroundColor(AztecTheme.amber)
+                        .foregroundColor(AztecTheme.hotPink)
                         .frame(width: 20)
 
                     Menu {
@@ -694,14 +775,9 @@ struct MatchupPairCard: View {
                     Spacer()
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
         }
-        .background(AztecTheme.darkStone)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(AztecTheme.gold.opacity(0.2), lineWidth: 1)
-        )
+        .neonCard(border: AztecTheme.hotPink, cornerRadius: 10, glow: 0.6)
     }
 }

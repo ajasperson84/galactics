@@ -1,38 +1,6 @@
 import SwiftUI
 
-/// Neon background with subtle 80s grid lines.
-struct AztecBackground: View {
-    var color: Color = AztecTheme.tourneyBg
-
-    var body: some View {
-        ZStack {
-            color.ignoresSafeArea()
-
-            // Subtle horizontal speed lines
-            GeometryReader { _ in
-                Canvas { context, size in
-                    let lineSpacing: CGFloat = 28
-                    let lineCount = Int(size.height / lineSpacing) + 1
-                    for i in 0..<lineCount {
-                        let y = CGFloat(i) * lineSpacing
-                        var path = Path()
-                        path.move(to: CGPoint(x: 0, y: y))
-                        path.addLine(to: CGPoint(x: size.width, y: y))
-                        context.stroke(
-                            path,
-                            with: .color(.white.opacity(0.035)),
-                            lineWidth: 0.5
-                        )
-                    }
-                }
-            }
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
-        }
-    }
-}
-
-/// App header using the G4_header image asset on dark background.
+/// App header — placeholder for custom header image.
 struct AztecHeader: View {
     let title: String
 
@@ -46,30 +14,29 @@ struct AztecHeader: View {
                 .padding(.vertical, 10)
 
             Rectangle()
-                .fill(AztecTheme.gold)
+                .fill(AztecTheme.hotPink)
                 .frame(height: 2)
+                .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 4)
         }
-        .background(AztecTheme.obsidian)
+        .background(Color.black)
     }
 }
 
-/// Section header with geometric 80s shapes (trapezoids, parallelograms, arrows, pentagons).
-/// Each instance gets a different shape and color based on its position.
+/// Section header with geometric shapes and neon colors.
 struct AztecSectionHeader: View {
     let title: String
-    var color: Color = AztecTheme.gold
+    var color: Color = AztecTheme.neonYellow
     var shapeIndex: Int = 0
 
-    // 80s neon shape colors — cycled per header
     private static let shapeColors: [Color] = [
-        Color(red: 1.0, green: 0.08, blue: 0.58),  // hot pink
-        Color(red: 1.0, green: 0.15, blue: 0.15),  // red
-        Color(red: 0.22, green: 1.0, blue: 0.08),   // lime
-        Color(red: 1.0, green: 0.55, blue: 0.0),    // orange
-        Color(red: 0.0, green: 1.0, blue: 0.85),    // cyan
-        Color(red: 0.70, green: 0.0, blue: 1.0),    // purple
-        Color(red: 1.0, green: 0.95, blue: 0.0),    // yellow
-        Color(red: 0.35, green: 0.55, blue: 1.0),   // blue
+        AztecTheme.hotPink,
+        AztecTheme.neonYellow,
+        AztecTheme.jade,
+        AztecTheme.cosmic,
+        AztecTheme.tennisGreen,
+        AztecTheme.neonOrange,
+        Color(red: 0.70, green: 0.0, blue: 1.0),
+        AztecTheme.bloodRed,
     ]
 
     private var shapeColor: Color {
@@ -89,6 +56,7 @@ struct AztecSectionHeader: View {
                     GeometricHeaderShape(index: shapeIndex)
                         .fill(shapeColor.opacity(0.85))
                 )
+                .shadow(color: shapeColor.opacity(0.3), radius: 4)
 
             Spacer()
         }
