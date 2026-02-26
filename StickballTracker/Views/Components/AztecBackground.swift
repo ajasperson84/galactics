@@ -46,7 +46,7 @@ struct AztecSectionHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             Text(title.uppercased())
-                .font(AztecTheme.jazzFont(size: 9))
+                .font(AztecTheme.hobbsFont(size: 22))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .foregroundColor(.white)

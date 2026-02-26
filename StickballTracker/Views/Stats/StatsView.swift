@@ -62,8 +62,7 @@ struct StatsView: View {
                                 withAnimation { sortBy = sort }
                             } label: {
                                 Text(sort.label)
-                                    .font(AztecTheme.jazzFont(size: 12))
-                                    .tracking(1)
+                                    .font(AztecTheme.hobbsFont(size: 18))
                                     .foregroundColor(
                                         sortBy == sort ? Color.black : sort.highlightColor
                                     )
@@ -187,7 +186,7 @@ struct StatsTableRow: View {
                 .frame(width: 20, alignment: .center)
 
             Text(player.name)
-                .font(AztecTheme.typewriter(size: 12))
+                .font(AztecTheme.hobbsFont(size: 16))
                 .foregroundColor(AztecTheme.lightText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
@@ -270,7 +269,7 @@ struct TeamAggregatedRow: View {
             TeamIconView(team: team, size: 28)
 
             Text(team.name)
-                .font(AztecTheme.typewriterBold(size: 14))
+                .font(AztecTheme.hobbsFont(size: 22))
                 .foregroundColor(AztecTheme.lightText)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
@@ -358,7 +357,7 @@ struct TeamIconView: View {
                     )
 
                 Text(String(team.name.prefix(2)).uppercased())
-                    .font(AztecTheme.impact(size: size * 0.375))
+                    .font(AztecTheme.hobbsFont(size: size * 0.5))
                     .foregroundColor(AztecTheme.neonYellow)
             }
         }

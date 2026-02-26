@@ -92,7 +92,12 @@ enum AztecTheme {
         endPoint: .bottom
     )
 
-    // MARK: - Fonts (PLACEHOLDER — swap for custom handwritten font)
+    // MARK: - Fonts
+
+    /// Custom HobbsFont — section headlines, team names, player names
+    static func hobbsFont(size: CGFloat) -> Font {
+        Font.custom("HobbsFont-Regular", size: size)
+    }
 
     /// Heavy — headers, buttons, labels
     static func jazzFont(size: CGFloat) -> Font {
@@ -113,8 +118,8 @@ enum AztecTheme {
     static func impact(size: CGFloat) -> Font { jazzFont(size: size) }
     static func typewriter(size: CGFloat) -> Font { jazzBody(size: size) }
     static func typewriterBold(size: CGFloat) -> Font { jazzFont(size: size) }
-    static func handwritten(size: CGFloat) -> Font { jazzFont(size: size) }
-    static func chunky(size: CGFloat) -> Font { jazzFont(size: size) }
+    static func handwritten(size: CGFloat) -> Font { hobbsFont(size: size) }
+    static func chunky(size: CGFloat) -> Font { hobbsFont(size: size) }
 
     // MARK: - Decorative Elements
     static var glowingLine: some View {

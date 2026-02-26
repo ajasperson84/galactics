@@ -125,8 +125,7 @@ struct GameEntrySheet: View {
                                             .frame(width: 20, height: 20)
                                     }
                                     Text(team1?.name ?? "Team 1")
-                                        .font(AztecTheme.impact(size: 14))
-                                        .tracking(1)
+                                        .font(AztecTheme.hobbsFont(size: 22))
                                         .foregroundColor(AztecTheme.lightText)
                                         .lineLimit(1)
                                 }
@@ -157,7 +156,7 @@ struct GameEntrySheet: View {
                             .frame(maxWidth: .infinity)
 
                             Text("VS")
-                                .font(AztecTheme.impact(size: 12))
+                                .font(AztecTheme.hobbsFont(size: 22))
                                 .foregroundColor(AztecTheme.neonYellow)
                                 .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 3)
                                 .padding(.horizontal, 8)
@@ -172,8 +171,7 @@ struct GameEntrySheet: View {
                                             .frame(width: 20, height: 20)
                                     }
                                     Text(team2?.name ?? "Team 2")
-                                        .font(AztecTheme.impact(size: 14))
-                                        .tracking(1)
+                                        .font(AztecTheme.hobbsFont(size: 22))
                                         .foregroundColor(AztecTheme.lightText)
                                         .lineLimit(1)
                                 }
@@ -342,7 +340,7 @@ struct QuickStatEntry: View {
             } label: {
                 HStack {
                     Text(playerName)
-                        .font(AztecTheme.typewriterBold(size: 14))
+                        .font(AztecTheme.hobbsFont(size: 22))
                         .foregroundColor(AztecTheme.lightText)
 
                     Spacer()

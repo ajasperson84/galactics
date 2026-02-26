@@ -41,6 +41,18 @@ struct ContentView: View {
                 // Header
                 AztecHeader(title: "G FOUR")
 
+                // Page title
+                HStack {
+                    Text(selectedTab.rawValue.uppercased())
+                        .font(AztecTheme.hobbsFont(size: 36))
+                        .foregroundColor(selectedTab.accentColor)
+                        .shadow(color: selectedTab.accentColor.opacity(0.4), radius: 6)
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
+                .padding(.bottom, 4)
+
                 // Content
                 Group {
                     switch selectedTab {
@@ -75,8 +87,7 @@ struct AztecTabBar: View {
                             .font(.system(size: 20, weight: .black))
                             .italic()
                         Text(tab.rawValue)
-                            .font(AztecTheme.jazzFont(size: 6))
-                            .tracking(0.5)
+                            .font(AztecTheme.hobbsFont(size: 14))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)

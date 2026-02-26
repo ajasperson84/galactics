@@ -90,8 +90,7 @@ struct TournamentView: View {
                         }
 
                         Text("NO ACTIVE TOURNEY")
-                            .font(AztecTheme.impact(size: 16))
-                            .tracking(3)
+                            .font(AztecTheme.hobbsFont(size: 32))
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
                             .foregroundColor(AztecTheme.dimText)
@@ -150,14 +149,12 @@ struct ChampionBanner: View {
                 .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 12)
 
             Text("CHAMPION")
-                .font(AztecTheme.impact(size: 12))
-                .tracking(4)
+                .font(AztecTheme.hobbsFont(size: 24))
                 .foregroundColor(AztecTheme.hotPink)
                 .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
 
             Text(teamName.uppercased())
-                .font(AztecTheme.impact(size: 24))
-                .tracking(2)
+                .font(AztecTheme.hobbsFont(size: 44))
                 .foregroundColor(AztecTheme.neonYellow)
                 .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 6)
         }
@@ -200,14 +197,14 @@ struct MatchupCard: View {
                     if let team = team1 {
                         TeamIconView(team: team, size: 28)
                         Text(team.name.uppercased())
-                            .font(AztecTheme.jazzFont(size: 11))
+                            .font(AztecTheme.hobbsFont(size: 22))
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
                             .foregroundColor(team1IsWinner ? AztecTheme.neonYellow : .white)
                             .shadow(color: team1IsWinner ? AztecTheme.neonYellow.opacity(0.6) : .clear, radius: 4)
                     } else {
                         Text("TBD")
-                            .font(AztecTheme.typewriter(size: 11))
+                            .font(AztecTheme.hobbsFont(size: 22))
                             .foregroundColor(AztecTheme.dimText)
                     }
                 }
@@ -218,7 +215,7 @@ struct MatchupCard: View {
                 HStack(spacing: 8) {
                     if let team = team2 {
                         Text(team.name.uppercased())
-                            .font(AztecTheme.jazzFont(size: 11))
+                            .font(AztecTheme.hobbsFont(size: 22))
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
                             .foregroundColor(team2IsWinner ? AztecTheme.neonYellow : .white)
@@ -226,7 +223,7 @@ struct MatchupCard: View {
                         TeamIconView(team: team, size: 28)
                     } else {
                         Text("TBD")
-                            .font(AztecTheme.typewriter(size: 11))
+                            .font(AztecTheme.hobbsFont(size: 22))
                             .foregroundColor(AztecTheme.dimText)
                     }
                 }
@@ -237,7 +234,7 @@ struct MatchupCard: View {
 
             // VS with neon glow
             Text("VS")
-                .font(AztecTheme.jazzFont(size: 16))
+                .font(AztecTheme.hobbsFont(size: 28))
                 .foregroundColor(AztecTheme.neonYellow)
                 .shadow(color: AztecTheme.neonYellow.opacity(0.8), radius: 4)
                 .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 8)
@@ -453,7 +450,7 @@ struct CreateTournamentSheet: View {
                                 } label: {
                                     HStack {
                                         Text(team.name)
-                                            .font(AztecTheme.impact(size: 16))
+                                            .font(AztecTheme.hobbsFont(size: 28))
                                             .foregroundColor(AztecTheme.lightText)
 
                                         Spacer()
@@ -621,7 +618,7 @@ struct MatchupPairCard: View {
                             TeamIconView(team: team, size: 22)
                         }
                         Text(cloudService.team(for: setup.team1Id)?.name ?? "Select")
-                            .font(AztecTheme.jazzFont(size: 8))
+                            .font(AztecTheme.hobbsFont(size: 18))
                             .foregroundColor(AztecTheme.lightText)
                         Spacer()
                         Image(systemName: "chevron.down")
@@ -640,7 +637,7 @@ struct MatchupPairCard: View {
                 }
 
                 Text("VS")
-                    .font(AztecTheme.jazzFont(size: 11))
+                    .font(AztecTheme.hobbsFont(size: 22))
                     .foregroundColor(AztecTheme.neonYellow)
                     .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 3)
                     .padding(.horizontal, 6)
@@ -655,7 +652,7 @@ struct MatchupPairCard: View {
                             TeamIconView(team: team, size: 22)
                         }
                         Text(cloudService.team(for: setup.team2Id)?.name ?? "Select")
-                            .font(AztecTheme.jazzFont(size: 8))
+                            .font(AztecTheme.hobbsFont(size: 18))
                             .foregroundColor(AztecTheme.lightText)
                         Spacer()
                         Image(systemName: "chevron.down")

@@ -108,13 +108,13 @@ struct PlayerRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(player.name)
-                    .font(AztecTheme.typewriterBold(size: 16))
+                    .font(AztecTheme.hobbsFont(size: 24))
                     .foregroundColor(AztecTheme.lightText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
 
                 Text(teamName)
-                    .font(AztecTheme.typewriter(size: 12))
+                    .font(AztecTheme.hobbsFont(size: 16))
                     .foregroundColor(AztecTheme.dimText)
                     .lineLimit(1)
             }
@@ -285,7 +285,7 @@ struct PlayerDetailSheet: View {
                                 .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 8)
 
                             Text(String(player.name.prefix(1)).uppercased())
-                                .font(AztecTheme.impact(size: 32))
+                                .font(AztecTheme.hobbsFont(size: 40))
                                 .foregroundColor(AztecTheme.neonYellow)
                         }
 

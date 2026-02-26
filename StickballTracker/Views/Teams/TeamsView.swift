@@ -82,7 +82,7 @@ struct TeamCard: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(team.name)
-                        .font(AztecTheme.typewriterBold(size: 18))
+                        .font(AztecTheme.hobbsFont(size: 30))
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                         .foregroundColor(AztecTheme.neonYellow)
@@ -117,7 +117,7 @@ struct TeamCard: View {
                     HStack(spacing: 6) {
                         ForEach(teamPlayers) { player in
                             Text(player.name)
-                                .font(AztecTheme.typewriterBold(size: 11))
+                                .font(AztecTheme.hobbsFont(size: 18))
                                 .foregroundColor(AztecTheme.lightText)
                         }
                     }
@@ -137,7 +137,7 @@ struct FreeAgentRow: View {
     var body: some View {
         HStack {
             Text(player.name)
-                .font(AztecTheme.typewriter(size: 14))
+                .font(AztecTheme.hobbsFont(size: 22))
                 .foregroundColor(AztecTheme.lightText)
 
             Spacer()
@@ -186,7 +186,7 @@ struct TeamPickerSheet: View {
                             } label: {
                                 HStack {
                                     Text(team.name)
-                                        .font(AztecTheme.impact(size: 16))
+                                        .font(AztecTheme.hobbsFont(size: 28))
                                         .foregroundColor(AztecTheme.lightText)
 
                                     Spacer()
@@ -335,7 +335,7 @@ struct TeamDetailSheet: View {
                         ForEach(teamPlayers) { player in
                             HStack {
                                 Text(player.name)
-                                    .font(AztecTheme.typewriter(size: 14))
+                                    .font(AztecTheme.hobbsFont(size: 22))
                                     .foregroundColor(AztecTheme.lightText)
 
                                 Spacer()
@@ -451,7 +451,7 @@ struct AddPlayerToTeamSheet: View {
                             } label: {
                                 HStack {
                                     Text(player.name)
-                                        .font(AztecTheme.typewriter(size: 16))
+                                        .font(AztecTheme.hobbsFont(size: 24))
                                         .foregroundColor(AztecTheme.lightText)
 
                                     Spacer()
