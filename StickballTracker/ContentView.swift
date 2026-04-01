@@ -14,7 +14,7 @@ struct ContentView: View {
             switch self {
             case .tournament: return "trophy.fill"
             case .teams: return "person.3.fill"
-            case .players: return "dumbbell.fill"
+            case .players: return "person.fill"
             case .stats: return "chart.bar.fill"
             }
         }
@@ -32,7 +32,7 @@ struct ContentView: View {
                 // Header
                 AztecHeader(title: "G FOUR")
 
-                // Menu bar under header
+                // Menu bar under header — text 2.5x larger
                 HStack(spacing: 0) {
                     ForEach(AppTab.allCases, id: \.self) { tab in
                         Button {
@@ -41,7 +41,7 @@ struct ContentView: View {
                             }
                         } label: {
                             Text(tab.rawValue)
-                                .font(AztecTheme.hobbsFont(size: 18))
+                                .font(AztecTheme.hobbsFont(size: 45))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(
                                     selectedTab == tab
@@ -52,6 +52,8 @@ struct ContentView: View {
                                         ? AztecTheme.hotPink.opacity(0.4) : .clear, radius: 3)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.4)
                         }
                     }
                 }
@@ -110,8 +112,7 @@ struct AztecTabBar: View {
                         }
 
                         Text(tab.rawValue)
-                            .font(AztecTheme.hobbsFont(size: 12))
-                            .tracking(AztecTheme.hobbsKerning)
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(
                                 selectedTab == tab
                                     ? AztecTheme.neonYellow

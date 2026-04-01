@@ -127,14 +127,14 @@ struct TeamCard: View {
                 }
             }
 
-            // Player names — SF Pro, yellow
+            // Player names — SF Pro, pink
             if !teamPlayers.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(teamPlayers) { player in
                             Text(player.name)
                                 .font(AztecTheme.sfProBold(size: 16))
-                                .foregroundColor(AztecTheme.neonYellow)
+                                .foregroundColor(AztecTheme.hotPink)
                         }
                     }
                 }

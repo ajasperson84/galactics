@@ -4,8 +4,16 @@ struct TournamentView: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @State private var showCreateTournament = false
     @State private var selectedMatchup: MatchupSelection?
+    @State private var scheduleMatchup: ScheduleSelection?
 
     struct MatchupSelection: Identifiable {
+        let id = UUID()
+        let roundIndex: Int
+        let matchupIndex: Int
+        let matchup: Matchup
+    }
+
+    struct ScheduleSelection: Identifiable {
         let id = UUID()
         let roundIndex: Int
         let matchupIndex: Int
@@ -42,7 +50,7 @@ struct TournamentView: View {
 
                     // Bracket rounds
                     ForEach(Array(tournament.bracket.enumerated()), id: \.element.id) { roundIndex, round in
-                        VStack(spacing: 8) {
+                        VStack(spacing: 16) {
                             // Round header — 2x large, yellow, with glow
                             HStack {
                                 Text(round.roundName.uppercased())
@@ -69,6 +77,19 @@ struct TournamentView: View {
                                             matchupIndex: matchupIndex,
                                             matchup: matchup
                                         )
+                                    }
+                                }
+                                .contextMenu {
+                                    if matchup.status != .completed {
+                                        Button {
+                                            scheduleMatchup = ScheduleSelection(
+                                                roundIndex: roundIndex,
+                                                matchupIndex: matchupIndex,
+                                                matchup: matchup
+                                            )
+                                        } label: {
+                                            Label("Set Time & Location", systemImage: "calendar.badge.clock")
+                                        }
                                     }
                                 }
                             }
@@ -130,6 +151,134 @@ struct TournamentView: View {
                 matchup: selection.matchup
             )
         }
+        .sheet(item: $scheduleMatchup) { selection in
+            ScheduleMatchupSheet(
+                roundIndex: selection.roundIndex,
+                matchupIndex: selection.matchupIndex,
+                matchup: selection.matchup
+            )
+        }
+    }
+}
+
+// MARK: - Schedule Matchup Sheet
+
+struct ScheduleMatchupSheet: View {
+    @EnvironmentObject var cloudService: CloudSyncService
+    @Environment(\.dismiss) var dismiss
+    let roundIndex: Int
+    let matchupIndex: Int
+    let matchup: Matchup
+
+    @State private var selectedDate: Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 25, hour: 10))!
+    @State private var selectedField: StickballField?
+    @State private var hasDate: Bool = false
+
+    private var tournamentDateRange: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let start = calendar.date(from: DateComponents(year: 2026, month: 4, day: 25))!
+        let end = calendar.date(from: DateComponents(year: 2026, month: 4, day: 27, hour: 23, minute: 59))!
+        return start...end
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                VStack(spacing: 24) {
+                    AztecSectionHeader(title: "Schedule Game")
+
+                    // Date & Time
+                    Toggle(isOn: $hasDate) {
+                        Text("SET DATE & TIME")
+                            .font(AztecTheme.sfProBold(size: 14))
+                            .foregroundColor(AztecTheme.hotPink)
+                    }
+                    .tint(AztecTheme.hotPink)
+
+                    if hasDate {
+                        DatePicker(
+                            "Date & Time",
+                            selection: $selectedDate,
+                            in: tournamentDateRange,
+                            displayedComponents: [.date, .hourAndMinute]
+                        )
+                        .datePickerStyle(.compact)
+                        .labelsHidden()
+                        .tint(AztecTheme.neonYellow)
+                        .colorScheme(.dark)
+                    }
+
+                    // Field picker
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("FIELD")
+                            .font(AztecTheme.sfProBold(size: 11))
+                            .tracking(2)
+                            .foregroundColor(AztecTheme.hotPink)
+
+                        Menu {
+                            Button("None") { selectedField = nil }
+                            ForEach(StickballField.allCases, id: \.self) { field in
+                                Button(field.rawValue) { selectedField = field }
+                            }
+                        } label: {
+                            HStack {
+                                Text(selectedField?.rawValue ?? "Select Field")
+                                    .font(AztecTheme.sfProBold(size: 14))
+                                    .foregroundColor(
+                                        selectedField != nil
+                                            ? AztecTheme.neonYellow
+                                            : AztecTheme.hotPink.opacity(0.6)
+                                    )
+                                Spacer()
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(AztecTheme.hotPink)
+                            }
+                            .padding(12)
+                            .background(Color.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(AztecTheme.hotPink.opacity(0.5), lineWidth: 2.25)
+                            )
+                        }
+                    }
+
+                    Button("SAVE SCHEDULE") {
+                        Task {
+                            guard var tournament = cloudService.tournament else { return }
+                            tournament.bracket[roundIndex].matchups[matchupIndex].scheduledDate = hasDate ? selectedDate : nil
+                            tournament.bracket[roundIndex].matchups[matchupIndex].scheduledField = selectedField?.rawValue
+                            await cloudService.updateTournament(tournament)
+                            dismiss()
+                        }
+                    }
+                    .buttonStyle(AztecButtonStyle())
+
+                    Spacer()
+                }
+                .padding()
+            }
+            .navigationTitle("Schedule")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .dismissButtonStyle()
+                }
+            }
+            .onAppear {
+                if let date = matchup.scheduledDate {
+                    selectedDate = date
+                    hasDate = true
+                }
+                if let field = matchup.scheduledField {
+                    selectedField = StickballField(rawValue: field)
+                }
+            }
+        }
     }
 }
 
@@ -144,6 +293,7 @@ struct ChampionBanner: View {
         VStack(spacing: 8) {
             if let winnerId, let team = cloudService.team(for: winnerId) {
                 TeamIconView(team: team, size: 64)
+                    .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 10)
             }
 
             Image(systemName: "trophy.fill")
@@ -207,6 +357,7 @@ struct MatchupCard: View {
                         .minimumScaleFactor(0.3)
                         .foregroundColor(AztecTheme.neonYellow)
                         .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
+                        .shadow(color: team1IsWinner ? AztecTheme.hotPink.opacity(0.8) : .clear, radius: 8)
                 } else {
                     Text("TBD")
                         .font(AztecTheme.hobbsFont(size: 44))
@@ -214,13 +365,19 @@ struct MatchupCard: View {
                         .foregroundColor(AztecTheme.dimText)
                 }
 
-                // VS inline
+                // VS inline — 20% bigger, gradient yellow→pink
                 Text("VS")
-                    .font(AztecTheme.hobbsFont(size: 28))
+                    .font(AztecTheme.hobbsFont(size: 34))
                     .tracking(AztecTheme.hobbsKerning)
-                    .foregroundColor(AztecTheme.hotPink)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [AztecTheme.neonYellow, AztecTheme.hotPink],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 4)
-                    .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 8)
+                    .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 8)
                     .padding(.horizontal, 4)
 
                 // Team 2 — pink
@@ -232,6 +389,7 @@ struct MatchupCard: View {
                         .minimumScaleFactor(0.3)
                         .foregroundColor(AztecTheme.hotPink)
                         .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
+                        .shadow(color: team2IsWinner ? AztecTheme.neonYellow.opacity(0.8) : .clear, radius: 8)
                 } else {
                     Text("TBD")
                         .font(AztecTheme.hobbsFont(size: 44))
@@ -242,12 +400,17 @@ struct MatchupCard: View {
             .padding(.horizontal, 12)
             .padding(.top, 10)
 
-            // Yellow divider
+            // Gradient divider yellow→pink
             Rectangle()
-                .fill(AztecTheme.neonYellow.opacity(0.5))
+                .fill(
+                    LinearGradient(
+                        colors: [AztecTheme.neonYellow.opacity(0.5), AztecTheme.hotPink.opacity(0.5)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
                 .frame(height: 1)
                 .padding(.horizontal, 12)
-                .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 2)
 
             // Series wins row
             HStack {
@@ -296,22 +459,38 @@ struct MatchupCard: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 4)
 
-            // Field name (replaces date)
-            if let field = matchup.scheduledField {
-                HStack(spacing: 6) {
-                    Image(systemName: "mappin.and.ellipse")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(AztecTheme.hotPink)
-                    Text(field)
-                        .font(AztecTheme.sfProBold(size: 14))
-                        .foregroundColor(AztecTheme.neonYellow)
-                        .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 2)
-
-                    Spacer()
+            // Day, time, and field info
+            VStack(spacing: 2) {
+                if let date = matchup.scheduledDate {
+                    HStack(spacing: 6) {
+                        Image(systemName: "calendar.badge.clock")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(AztecTheme.neonYellow)
+                        Text(date.formatted(.dateTime.weekday(.wide).hour().minute()))
+                            .font(AztecTheme.sfProBold(size: 14))
+                            .foregroundColor(AztecTheme.neonYellow)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 2)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 4)
+
+                if let field = matchup.scheduledField {
+                    HStack(spacing: 6) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(AztecTheme.hotPink)
+                        Text(field)
+                            .font(AztecTheme.sfProBold(size: 14))
+                            .foregroundColor(AztecTheme.neonYellow)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 2)
+
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                }
             }
+            .padding(.bottom, 2)
 
             // Series status
             if matchup.status == .completed {
@@ -330,7 +509,20 @@ struct MatchupCard: View {
                 Spacer().frame(height: 4)
             }
         }
-        .neonCard()
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(
+                    LinearGradient(
+                        colors: [AztecTheme.neonYellow, AztecTheme.hotPink],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    lineWidth: 2.25
+                )
+        )
+        .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 6)
     }
 }
 
@@ -554,9 +746,15 @@ struct MatchupPairCard: View {
                 }
 
                 Text("VS")
-                    .font(AztecTheme.hobbsFont(size: 22))
+                    .font(AztecTheme.hobbsFont(size: 26))
                     .tracking(AztecTheme.hobbsKerning)
-                    .foregroundColor(AztecTheme.hotPink)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [AztecTheme.neonYellow, AztecTheme.hotPink],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
                     .padding(.horizontal, 6)
 

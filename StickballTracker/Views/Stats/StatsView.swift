@@ -61,33 +61,33 @@ struct StatsView: View {
                 }
                 .padding(.horizontal)
 
-                // Sort options — rounded rect (no parallelogram shapes)
+                // Sort options — SF Pro, alternating yellow/pink
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(StatSort.allCases, id: \.self) { sort in
+                        ForEach(Array(StatSort.allCases.enumerated()), id: \.element) { index, sort in
                             Button {
                                 withAnimation { sortBy = sort }
                             } label: {
+                                let altColor = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
                                 Text(sort.label)
-                                    .font(AztecTheme.hobbsFont(size: 18))
-                                    .tracking(AztecTheme.hobbsKerning)
+                                    .font(AztecTheme.sfProBold(size: 16))
                                     .foregroundColor(
-                                        sortBy == sort ? Color.black : sort.highlightColor
+                                        sortBy == sort ? Color.black : altColor
                                     )
                                     .padding(.horizontal, 18)
                                     .padding(.vertical, 7)
                                     .background(
                                         sortBy == sort
-                                            ? sort.highlightColor
+                                            ? altColor
                                             : Color.black
                                     )
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 8)
-                                            .stroke(sort.highlightColor, lineWidth: 2.25)
+                                            .stroke(altColor, lineWidth: 2.25)
                                     )
                                     .shadow(color: sortBy == sort
-                                            ? sort.highlightColor.opacity(0.4) : .clear, radius: 4)
+                                            ? altColor.opacity(0.4) : .clear, radius: 4)
                             }
                         }
                     }
@@ -154,8 +154,6 @@ struct StatsTableHeader: View {
                 .frame(width: 20, alignment: .center)
             Text("BALLER")
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text("GP")
-                .frame(width: 26, alignment: .trailing)
             Text("DNG")
                 .frame(width: 32, alignment: .trailing)
             Text("SAL")
@@ -201,16 +199,11 @@ struct StatsTableRow: View {
                 .frame(width: 20, alignment: .center)
 
             Text(player.name)
-                .font(AztecTheme.hobbsFont(size: 16))
+                .font(AztecTheme.hobbsFont(size: 20))
                 .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(AztecTheme.neonYellow)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
-
-            Text("\(player.stats.gamesPlayed)")
-                .font(.system(size: 11, weight: .bold))
-                .foregroundColor(AztecTheme.hotPink)
-                .frame(width: 26, alignment: .trailing)
 
             Text("\(player.stats.dongs)")
                 .font(.system(size: 11, weight: highlightStat == .dongs ? .black : .bold))
@@ -278,8 +271,7 @@ struct TeamAggregatedRow: View {
             TeamIconView(team: team, size: 28)
 
             Text(team.name)
-                .font(AztecTheme.hobbsFont(size: 22))
-                .tracking(AztecTheme.hobbsKerning)
+                .font(AztecTheme.sfProBold(size: 20))
                 .foregroundColor(AztecTheme.neonYellow)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
@@ -351,6 +343,7 @@ struct TeamIconView: View {
                 .scaledToFit()
                 .frame(width: size, height: size)
                 .clipShape(RoundedRectangle(cornerRadius: size * 0.125))
+                .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 6)
         } else {
             ZStack {
                 RoundedRectangle(cornerRadius: size * 0.125)
