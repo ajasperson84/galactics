@@ -67,31 +67,25 @@ struct TournamentView: View {
                                 MatchupCard(
                                     matchup: matchup,
                                     roundIndex: roundIndex,
-                                    matchupIndex: matchupIndex
-                                )
-                                .onTapGesture {
-                                    if matchup.team1Id != nil && matchup.team2Id != nil
-                                        && matchup.status != .completed {
-                                        selectedMatchup = MatchupSelection(
+                                    matchupIndex: matchupIndex,
+                                    onTapPlay: {
+                                        if matchup.team1Id != nil && matchup.team2Id != nil
+                                            && matchup.status != .completed {
+                                            selectedMatchup = MatchupSelection(
+                                                roundIndex: roundIndex,
+                                                matchupIndex: matchupIndex,
+                                                matchup: matchup
+                                            )
+                                        }
+                                    },
+                                    onTapSchedule: {
+                                        scheduleMatchup = ScheduleSelection(
                                             roundIndex: roundIndex,
                                             matchupIndex: matchupIndex,
                                             matchup: matchup
                                         )
                                     }
-                                }
-                                .contextMenu {
-                                    if matchup.status != .completed {
-                                        Button {
-                                            scheduleMatchup = ScheduleSelection(
-                                                roundIndex: roundIndex,
-                                                matchupIndex: matchupIndex,
-                                                matchup: matchup
-                                            )
-                                        } label: {
-                                            Label("Set Time & Location", systemImage: "calendar.badge.clock")
-                                        }
-                                    }
-                                }
+                                )
                             }
                             .padding(.horizontal)
                         }
@@ -327,6 +321,8 @@ struct MatchupCard: View {
     let matchup: Matchup
     let roundIndex: Int
     let matchupIndex: Int
+    var onTapPlay: (() -> Void)?
+    var onTapSchedule: (() -> Void)?
 
     private var team1: Team? {
         matchup.team1Id.flatMap { cloudService.team(for: $0) }
@@ -492,21 +488,68 @@ struct MatchupCard: View {
             }
             .padding(.bottom, 2)
 
-            // Series status
+            // Series status + action buttons
             if matchup.status == .completed {
                 Text("FINAL")
                     .font(AztecTheme.sfProBold(size: 18))
                     .foregroundColor(AztecTheme.neonYellow)
                     .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
                     .padding(.bottom, 8)
-            } else if matchup.status == .inProgress {
-                Text("SERIES: \(matchup.seriesDescription)")
-                    .font(AztecTheme.sfProBold(size: 16))
-                    .foregroundColor(AztecTheme.hotPink)
-                    .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
-                    .padding(.bottom, 8)
             } else {
-                Spacer().frame(height: 4)
+                HStack(spacing: 12) {
+                    if matchup.status == .inProgress {
+                        Text("SERIES: \(matchup.seriesDescription)")
+                            .font(AztecTheme.sfProBold(size: 16))
+                            .foregroundColor(AztecTheme.hotPink)
+                            .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
+                    }
+
+                    Spacer()
+
+                    // Schedule button — always visible for non-completed matchups
+                    Button {
+                        onTapSchedule?()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "calendar.badge.clock")
+                                .font(.system(size: 12, weight: .bold))
+                            Text(matchup.scheduledDate != nil ? "EDIT" : "SCHEDULE")
+                                .font(AztecTheme.sfProBold(size: 11))
+                        }
+                        .foregroundColor(AztecTheme.neonYellow)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.black)
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule().stroke(AztecTheme.neonYellow.opacity(0.6), lineWidth: 1.5)
+                        )
+                    }
+
+                    // Play game button — only when both teams assigned
+                    if matchup.team1Id != nil && matchup.team2Id != nil {
+                        Button {
+                            onTapPlay?()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "play.fill")
+                                    .font(.system(size: 11, weight: .bold))
+                                Text("PLAY")
+                                    .font(AztecTheme.sfProBold(size: 11))
+                            }
+                            .foregroundColor(AztecTheme.hotPink)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(Color.black)
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule().stroke(AztecTheme.hotPink, lineWidth: 1.5)
+                            )
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
             }
         }
         .background(Color.black)
