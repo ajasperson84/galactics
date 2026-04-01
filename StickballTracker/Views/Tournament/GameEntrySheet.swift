@@ -208,7 +208,14 @@ struct GameEntrySheet: View {
 
                         // Player stats - Team 1
                         if let team = team1 {
-                            AztecSectionHeader(title: "\(team.name) Players", shapeIndex: 0)
+                            HStack {
+                                Text("\(team.name) Players".uppercased())
+                                    .font(AztecTheme.hobbsFont(size: 33))
+                                    .tracking(AztecTheme.hobbsKerning)
+                                    .foregroundColor(AztecTheme.neonYellow)
+                                    .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
+                                Spacer()
+                            }
                             ForEach(team1Players) { player in
                                 QuickStatEntry(
                                     playerName: player.name,
@@ -221,7 +228,14 @@ struct GameEntrySheet: View {
 
                         // Player stats - Team 2
                         if let team = team2 {
-                            AztecSectionHeader(title: "\(team.name) Players", shapeIndex: 1)
+                            HStack {
+                                Text("\(team.name) Players".uppercased())
+                                    .font(AztecTheme.hobbsFont(size: 33))
+                                    .tracking(AztecTheme.hobbsKerning)
+                                    .foregroundColor(AztecTheme.hotPink)
+                                    .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 4)
+                                Spacer()
+                            }
                             ForEach(team2Players) { player in
                                 QuickStatEntry(
                                     playerName: player.name,
@@ -242,7 +256,6 @@ struct GameEntrySheet: View {
                     .padding()
                 }
             }
-            .navigationTitle("Enter Game")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -343,8 +356,7 @@ struct QuickStatEntry: View {
             } label: {
                 HStack {
                     Text(playerName)
-                        .font(AztecTheme.hobbsFont(size: 22))
-                        .tracking(AztecTheme.hobbsKerning)
+                        .font(AztecTheme.sfProBold(size: 22))
                         .foregroundColor(AztecTheme.neonYellow)
 
                     Spacer()

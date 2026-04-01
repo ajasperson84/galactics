@@ -336,7 +336,7 @@ struct TeamDetailSheet: View {
                         // Roster — 20% larger, pink with gold glow
                         HStack {
                             Text("ROSTER")
-                                .font(AztecTheme.hobbsFont(size: 28))
+                                .font(AztecTheme.hobbsFont(size: 35))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)

@@ -257,9 +257,15 @@ struct PlayerDetailSheet: View {
     @State private var selectedTeamId: String?
     @State private var showDeleteConfirm = false
 
+    private var playerTeam: Team? {
+        if let teamId = player.teamId {
+            return cloudService.team(for: teamId)
+        }
+        return nil
+    }
+
     private var statItems: [(label: String, value: Int)] {
         [
-            ("GP", player.stats.gamesPlayed),
             ("Dongs", player.stats.dongs),
             ("Salamies", player.stats.salamies),
             ("Dbl Plays", player.stats.doublePlays),
@@ -276,27 +282,41 @@ struct PlayerDetailSheet: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Player avatar
-                        ZStack {
-                            Circle()
-                                .fill(Color.black)
-                                .frame(width: 80, height: 80)
-                                .overlay(
-                                    Circle()
-                                        .stroke(AztecTheme.hotPink, lineWidth: 2.25)
-                                )
-                                .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 8)
+                        // Player icon — use team icon if assigned
+                        if let team = playerTeam {
+                            TeamIconView(team: team, size: 80)
+                                .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 10)
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.black)
+                                    .frame(width: 80, height: 80)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(AztecTheme.hotPink, lineWidth: 2.25)
+                                    )
+                                    .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 8)
 
-                            Text(String(player.name.prefix(1)).uppercased())
-                                .font(AztecTheme.hobbsFont(size: 40))
-                                .tracking(AztecTheme.hobbsKerning)
-                                .foregroundColor(AztecTheme.neonYellow)
+                                Text(String(player.name.prefix(1)).uppercased())
+                                    .font(AztecTheme.hobbsFont(size: 40))
+                                    .tracking(AztecTheme.hobbsKerning)
+                                    .foregroundColor(AztecTheme.neonYellow)
+                            }
                         }
 
-                        // Name edit
+                        // Name edit — Hobbs font
                         TextField("Name", text: $editedName)
-                            .aztecTextField()
+                            .font(AztecTheme.hobbsFont(size: 36))
+                            .tracking(AztecTheme.hobbsKerning)
+                            .foregroundColor(AztecTheme.neonYellow)
                             .multilineTextAlignment(.center)
+                            .padding(12)
+                            .background(Color.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(AztecTheme.hotPink.opacity(0.5), lineWidth: 2.25)
+                            )
 
                         // Tourney Stats — each on its own line, 2x large, yellow with pink glow
                         Text("TOURNEY STATS")
@@ -309,7 +329,8 @@ struct PlayerDetailSheet: View {
                             ForEach(statItems, id: \.label) { item in
                                 HStack {
                                     Text(item.label)
-                                        .font(AztecTheme.sfProBold(size: 20))
+                                        .font(AztecTheme.hobbsFont(size: 20))
+                                        .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.hotPink)
 
                                     Spacer()

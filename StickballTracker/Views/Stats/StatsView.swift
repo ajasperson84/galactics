@@ -271,7 +271,8 @@ struct TeamAggregatedRow: View {
             TeamIconView(team: team, size: 28)
 
             Text(team.name)
-                .font(AztecTheme.sfProBold(size: 20))
+                .font(AztecTheme.hobbsFont(size: 22))
+                .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(AztecTheme.neonYellow)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)

@@ -54,7 +54,7 @@ struct TournamentView: View {
                             // Round header — 2x large, yellow, with glow
                             HStack {
                                 Text(round.roundName.uppercased())
-                                    .font(AztecTheme.hobbsFont(size: 44))
+                                    .font(AztecTheme.hobbsFont(size: 48))
                                     .tracking(AztecTheme.hobbsKerning)
                                     .foregroundColor(AztecTheme.neonYellow)
                                     .shadow(color: AztecTheme.neonYellow.opacity(0.6), radius: 6)
@@ -347,8 +347,7 @@ struct MatchupCard: View {
                 // Team 1 — yellow
                 if let team = team1 {
                     Text(team.name.uppercased())
-                        .font(AztecTheme.hobbsFont(size: 44))
-                        .tracking(AztecTheme.hobbsKerning)
+                        .font(AztecTheme.sfProBold(size: 44))
                         .lineLimit(1)
                         .minimumScaleFactor(0.3)
                         .foregroundColor(AztecTheme.neonYellow)
@@ -356,14 +355,13 @@ struct MatchupCard: View {
                         .shadow(color: team1IsWinner ? AztecTheme.hotPink.opacity(0.8) : .clear, radius: 8)
                 } else {
                     Text("TBD")
-                        .font(AztecTheme.hobbsFont(size: 44))
-                        .tracking(AztecTheme.hobbsKerning)
+                        .font(AztecTheme.sfProBold(size: 44))
                         .foregroundColor(AztecTheme.dimText)
                 }
 
-                // VS inline — 20% bigger, gradient yellow→pink
+                // VS inline — 30% larger, Hobbs font, gradient yellow→pink
                 Text("VS")
-                    .font(AztecTheme.hobbsFont(size: 34))
+                    .font(AztecTheme.hobbsFont(size: 44))
                     .tracking(AztecTheme.hobbsKerning)
                     .foregroundStyle(
                         LinearGradient(
@@ -379,8 +377,7 @@ struct MatchupCard: View {
                 // Team 2 — pink
                 if let team = team2 {
                     Text(team.name.uppercased())
-                        .font(AztecTheme.hobbsFont(size: 44))
-                        .tracking(AztecTheme.hobbsKerning)
+                        .font(AztecTheme.sfProBold(size: 44))
                         .lineLimit(1)
                         .minimumScaleFactor(0.3)
                         .foregroundColor(AztecTheme.hotPink)
@@ -388,8 +385,7 @@ struct MatchupCard: View {
                         .shadow(color: team2IsWinner ? AztecTheme.neonYellow.opacity(0.8) : .clear, radius: 8)
                 } else {
                     Text("TBD")
-                        .font(AztecTheme.hobbsFont(size: 44))
-                        .tracking(AztecTheme.hobbsKerning)
+                        .font(AztecTheme.sfProBold(size: 44))
                         .foregroundColor(AztecTheme.dimText)
                 }
             }
