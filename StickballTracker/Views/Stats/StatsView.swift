@@ -271,7 +271,7 @@ struct TeamAggregatedRow: View {
             TeamIconView(team: team, size: 28)
 
             Text(team.name)
-                .font(AztecTheme.hobbsFont(size: 22))
+                .font(AztecTheme.hobbsFont(size: 23))
                 .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(AztecTheme.neonYellow)
                 .lineLimit(1)
@@ -336,6 +336,7 @@ struct TeamAggregatedRow: View {
 struct TeamIconView: View {
     let team: Team
     var size: CGFloat = 48
+    var glowRadius: CGFloat = 7.2
 
     var body: some View {
         if let iconName = team.iconName {
@@ -344,7 +345,7 @@ struct TeamIconView: View {
                 .scaledToFit()
                 .frame(width: size, height: size)
                 .clipShape(RoundedRectangle(cornerRadius: size * 0.125))
-                .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 6)
+                .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: glowRadius)
         } else {
             ZStack {
                 RoundedRectangle(cornerRadius: size * 0.125)
@@ -354,6 +355,7 @@ struct TeamIconView: View {
                         RoundedRectangle(cornerRadius: size * 0.125)
                             .stroke(AztecTheme.hotPink.opacity(0.6), lineWidth: 2.25)
                     )
+                    .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: glowRadius)
 
                 Text(String(team.name.prefix(2)).uppercased())
                     .font(AztecTheme.hobbsFont(size: size * 0.5))

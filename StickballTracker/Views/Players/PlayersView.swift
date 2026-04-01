@@ -284,8 +284,7 @@ struct PlayerDetailSheet: View {
                     VStack(spacing: 20) {
                         // Player icon — use team icon if assigned
                         if let team = playerTeam {
-                            TeamIconView(team: team, size: 80)
-                                .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 10)
+                            TeamIconView(team: team, size: 80, glowRadius: 6)
                         } else {
                             ZStack {
                                 Circle()
@@ -329,19 +328,19 @@ struct PlayerDetailSheet: View {
                             ForEach(statItems, id: \.label) { item in
                                 HStack {
                                     Text(item.label)
-                                        .font(AztecTheme.hobbsFont(size: 20))
+                                        .font(AztecTheme.hobbsFont(size: 23))
                                         .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.hotPink)
 
                                     Spacer()
 
                                     Text("\(item.value)")
-                                        .font(AztecTheme.sfProBold(size: 20))
+                                        .font(AztecTheme.sfProBold(size: 23))
                                         .foregroundColor(AztecTheme.neonYellow)
                                         .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
                                 }
                                 .padding(.horizontal, 16)
-                                .padding(.vertical, 6)
+                                .padding(.vertical, 4)
                             }
                         }
                         .padding(.vertical, 8)

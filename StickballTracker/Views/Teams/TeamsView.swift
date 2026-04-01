@@ -336,7 +336,7 @@ struct TeamDetailSheet: View {
                         // Roster — 20% larger, pink with gold glow
                         HStack {
                             Text("ROSTER")
-                                .font(AztecTheme.hobbsFont(size: 35))
+                                .font(AztecTheme.hobbsFont(size: 44))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
@@ -530,7 +530,8 @@ struct StatBubble: View {
     var body: some View {
         VStack(spacing: 2) {
             Text("\(value)")
-                .font(AztecTheme.sfProBold(size: 24))
+                .font(AztecTheme.hobbsFont(size: 24))
+                .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(AztecTheme.neonYellow)
                 .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
             Text(label)

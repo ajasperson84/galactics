@@ -342,24 +342,27 @@ struct MatchupCard: View {
 
     var body: some View {
         VStack(spacing: 4) {
-            // Team names + VS on same line — doubled size
-            HStack(alignment: .center) {
+            // Team names + VS — equal width sides, VS centered
+            HStack(alignment: .center, spacing: 0) {
                 // Team 1 — yellow
-                if let team = team1 {
-                    Text(team.name.uppercased())
-                        .font(AztecTheme.sfProBold(size: 44))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.3)
-                        .foregroundColor(AztecTheme.neonYellow)
-                        .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
-                        .shadow(color: team1IsWinner ? AztecTheme.hotPink.opacity(0.8) : .clear, radius: 8)
-                } else {
-                    Text("TBD")
-                        .font(AztecTheme.sfProBold(size: 44))
-                        .foregroundColor(AztecTheme.dimText)
+                Group {
+                    if let team = team1 {
+                        Text(team.name.uppercased())
+                            .font(AztecTheme.sfProBold(size: 28))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.3)
+                            .foregroundColor(AztecTheme.neonYellow)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
+                            .shadow(color: team1IsWinner ? AztecTheme.hotPink.opacity(0.8) : .clear, radius: 8)
+                    } else {
+                        Text("TBD")
+                            .font(AztecTheme.sfProBold(size: 28))
+                            .foregroundColor(AztecTheme.dimText)
+                    }
                 }
+                .frame(maxWidth: .infinity)
 
-                // VS inline — 30% larger, Hobbs font, gradient yellow→pink
+                // VS — centered, Hobbs font, gradient yellow→pink
                 Text("VS")
                     .font(AztecTheme.hobbsFont(size: 44))
                     .tracking(AztecTheme.hobbsKerning)
@@ -372,22 +375,26 @@ struct MatchupCard: View {
                     )
                     .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 4)
                     .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 8)
+                    .fixedSize()
                     .padding(.horizontal, 4)
 
                 // Team 2 — pink
-                if let team = team2 {
-                    Text(team.name.uppercased())
-                        .font(AztecTheme.sfProBold(size: 44))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.3)
-                        .foregroundColor(AztecTheme.hotPink)
-                        .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
-                        .shadow(color: team2IsWinner ? AztecTheme.neonYellow.opacity(0.8) : .clear, radius: 8)
-                } else {
-                    Text("TBD")
-                        .font(AztecTheme.sfProBold(size: 44))
-                        .foregroundColor(AztecTheme.dimText)
+                Group {
+                    if let team = team2 {
+                        Text(team.name.uppercased())
+                            .font(AztecTheme.sfProBold(size: 28))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.3)
+                            .foregroundColor(AztecTheme.hotPink)
+                            .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
+                            .shadow(color: team2IsWinner ? AztecTheme.neonYellow.opacity(0.8) : .clear, radius: 8)
+                    } else {
+                        Text("TBD")
+                            .font(AztecTheme.sfProBold(size: 28))
+                            .foregroundColor(AztecTheme.dimText)
+                    }
                 }
+                .frame(maxWidth: .infinity)
             }
             .padding(.horizontal, 12)
             .padding(.top, 10)

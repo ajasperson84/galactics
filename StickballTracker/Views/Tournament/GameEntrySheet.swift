@@ -122,10 +122,10 @@ struct GameEntrySheet: View {
                                         Image(icon)
                                             .resizable()
                                             .scaledToFit()
-                                            .frame(width: 20, height: 20)
+                                            .frame(width: 25, height: 25)
                                     }
                                     Text(team1?.name ?? "Team 1")
-                                        .font(AztecTheme.hobbsFont(size: 22))
+                                        .font(AztecTheme.hobbsFont(size: 28))
                                         .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.neonYellow)
                                         .lineLimit(1)
@@ -170,10 +170,10 @@ struct GameEntrySheet: View {
                                         Image(icon)
                                             .resizable()
                                             .scaledToFit()
-                                            .frame(width: 20, height: 20)
+                                            .frame(width: 25, height: 25)
                                     }
                                     Text(team2?.name ?? "Team 2")
-                                        .font(AztecTheme.hobbsFont(size: 22))
+                                        .font(AztecTheme.hobbsFont(size: 28))
                                         .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.hotPink)
                                         .lineLimit(1)
@@ -210,7 +210,7 @@ struct GameEntrySheet: View {
                         if let team = team1 {
                             HStack {
                                 Text("\(team.name) Players".uppercased())
-                                    .font(AztecTheme.hobbsFont(size: 33))
+                                    .font(AztecTheme.hobbsFont(size: 38))
                                     .tracking(AztecTheme.hobbsKerning)
                                     .foregroundColor(AztecTheme.neonYellow)
                                     .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
@@ -230,7 +230,7 @@ struct GameEntrySheet: View {
                         if let team = team2 {
                             HStack {
                                 Text("\(team.name) Players".uppercased())
-                                    .font(AztecTheme.hobbsFont(size: 33))
+                                    .font(AztecTheme.hobbsFont(size: 38))
                                     .tracking(AztecTheme.hobbsKerning)
                                     .foregroundColor(AztecTheme.hotPink)
                                     .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 4)

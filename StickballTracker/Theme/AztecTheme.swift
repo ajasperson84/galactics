@@ -100,19 +100,19 @@ enum AztecTheme {
         Font.custom("HobbsFont-Regular", size: size * 1.15)
     }
 
-    /// SF Pro Bold — game info, player stats, body text (replaces Avenir)
+    /// Futura Bold — game info, player stats, body text
     static func sfProBold(size: CGFloat) -> Font {
-        Font.system(size: size, weight: .bold)
+        Font.custom("Futura-Bold", size: size)
     }
 
-    /// SF Pro Medium — secondary body text
+    /// Futura Medium — secondary body text
     static func sfProMedium(size: CGFloat) -> Font {
-        Font.system(size: size, weight: .medium)
+        Font.custom("Futura-Medium", size: size)
     }
 
-    /// SF Pro Regular — lighter text
+    /// Futura Regular — lighter text
     static func sfProRegular(size: CGFloat) -> Font {
-        Font.system(size: size, weight: .regular)
+        Font.custom("Futura-Medium", size: size)
     }
 
     // Font aliases — all now use SF Pro Bold (no italics)
