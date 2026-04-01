@@ -14,22 +14,13 @@ struct ContentView: View {
             switch self {
             case .tournament: return "trophy.fill"
             case .teams: return "person.3.fill"
-            case .players: return "tennisball.fill"
+            case .players: return "dumbbell.fill"
             case .stats: return "chart.bar.fill"
             }
         }
 
         var backgroundColor: Color {
             return Color.black
-        }
-
-        var accentColor: Color {
-            switch self {
-            case .tournament: return AztecTheme.neonYellow
-            case .teams: return AztecTheme.hotPink
-            case .players: return AztecTheme.jade
-            case .stats: return AztecTheme.cosmic
-            }
         }
     }
 
@@ -41,17 +32,35 @@ struct ContentView: View {
                 // Header
                 AztecHeader(title: "G FOUR")
 
-                // Page title
-                HStack {
-                    Text(selectedTab.rawValue.uppercased())
-                        .font(AztecTheme.hobbsFont(size: 36))
-                        .foregroundColor(selectedTab.accentColor)
-                        .shadow(color: selectedTab.accentColor.opacity(0.4), radius: 6)
-                    Spacer()
+                // Menu bar under header
+                HStack(spacing: 0) {
+                    ForEach(AppTab.allCases, id: \.self) { tab in
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                selectedTab = tab
+                            }
+                        } label: {
+                            Text(tab.rawValue)
+                                .font(AztecTheme.hobbsFont(size: 18))
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundColor(
+                                    selectedTab == tab
+                                        ? AztecTheme.hotPink
+                                        : AztecTheme.neonYellow
+                                )
+                                .shadow(color: selectedTab == tab
+                                        ? AztecTheme.hotPink.opacity(0.4) : .clear, radius: 3)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                        }
+                    }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
-                .padding(.bottom, 4)
+                .background(Color.black)
+                .overlay(alignment: .bottom) {
+                    Rectangle()
+                        .fill(AztecTheme.hotPink.opacity(0.4))
+                        .frame(height: 1)
+                }
 
                 // Content
                 Group {
@@ -64,7 +73,7 @@ struct ContentView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                // Custom tab bar
+                // Bottom tab bar
                 AztecTabBar(selectedTab: $selectedTab)
             }
         }
@@ -83,19 +92,35 @@ struct AztecTabBar: View {
                     }
                 } label: {
                     VStack(spacing: 3) {
-                        Image(systemName: tab.icon)
-                            .font(.system(size: 20, weight: .black))
-                            .italic()
+                        ZStack {
+                            if selectedTab == tab {
+                                Circle()
+                                    .fill(AztecTheme.hotPink)
+                                    .frame(width: 44, height: 44)
+                                    .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 6)
+                            }
+
+                            Image(systemName: tab.icon)
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(
+                                    selectedTab == tab
+                                        ? AztecTheme.neonYellow
+                                        : Color.white.opacity(0.4)
+                                )
+                        }
+
                         Text(tab.rawValue)
-                            .font(AztecTheme.hobbsFont(size: 14))
+                            .font(AztecTheme.hobbsFont(size: 12))
+                            .tracking(AztecTheme.hobbsKerning)
+                            .foregroundColor(
+                                selectedTab == tab
+                                    ? AztecTheme.neonYellow
+                                    : Color.white.opacity(0.4)
+                            )
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 6)
                 }
-                .buttonStyle(TabBarButtonStyle(
-                    isSelected: selectedTab == tab,
-                    accentColor: tab.accentColor
-                ))
             }
         }
         .background(Color(white: 0.06))
@@ -105,27 +130,5 @@ struct AztecTabBar: View {
                 .frame(height: 1)
                 .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 3)
         }
-    }
-}
-
-/// Tab bar button: neon accent when selected, dim when not.
-struct TabBarButtonStyle: ButtonStyle {
-    let isSelected: Bool
-    var accentColor: Color = AztecTheme.hotPink
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundColor(
-                isSelected ? accentColor :
-                configuration.isPressed ? accentColor.opacity(0.7) :
-                Color.white.opacity(0.4)
-            )
-            .background(
-                isSelected ? accentColor.opacity(0.12) :
-                configuration.isPressed ? accentColor.opacity(0.06) :
-                Color.clear
-            )
-            .shadow(color: isSelected ? accentColor.opacity(0.3) : .clear, radius: 4)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }

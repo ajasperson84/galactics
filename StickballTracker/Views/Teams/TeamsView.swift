@@ -18,14 +18,17 @@ struct TeamsView: View {
                             Image(systemName: "plus")
                             Text("NEW SQUAD")
                         }
-                        .font(AztecTheme.jazzFont(size: 10))
-                        .tracking(2)
-                        .foregroundColor(Color.black)
+                        .font(AztecTheme.sfProBold(size: 14))
+                        .foregroundColor(AztecTheme.hotPink)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 14)
-                        .background(AztecTheme.neonYellow)
-                        .clipShape(TrapezoidShape(skew: 0.12))
-                        .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 6)
+                        .background(Color.black)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(AztecTheme.hotPink, lineWidth: 2.25)
+                        )
+                        .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 6)
                     }
                 }
                 .padding(.horizontal)
@@ -44,7 +47,7 @@ struct TeamsView: View {
                 // Unassigned players
                 let unassigned = cloudService.unassignedPlayers()
                 if !unassigned.isEmpty {
-                    AztecSectionHeader(title: "\(unassigned.count) Free Agents", color: AztecTheme.jade, shapeIndex: 1)
+                    AztecSectionHeader(title: "\(unassigned.count) Free Agents", color: AztecTheme.hotPink)
                         .padding(.horizontal)
 
                     LazyVStack(spacing: 8) {
@@ -75,50 +78,63 @@ struct TeamCard: View {
         cloudService.playersForTeam(team.id)
     }
 
+    /// Compute team record (wins-losses) from tournament matchups
+    private var teamRecord: String {
+        guard let tournament = cloudService.tournament else { return "0-0" }
+        var wins = 0
+        var losses = 0
+        for round in tournament.bracket {
+            for matchup in round.matchups {
+                guard matchup.status == .completed, let winnerId = matchup.winnerId else { continue }
+                if matchup.team1Id == team.id || matchup.team2Id == team.id {
+                    if winnerId == team.id {
+                        wins += 1
+                    } else {
+                        losses += 1
+                    }
+                }
+            }
+        }
+        return "\(wins)-\(losses)"
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 TeamIconView(team: team, size: 48)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(team.name)
-                        .font(AztecTheme.hobbsFont(size: 30))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
-                        .foregroundColor(AztecTheme.neonYellow)
-                        .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
-
-                    Text("\(teamPlayers.count) ballers")
-                        .font(AztecTheme.typewriter(size: 12))
-                        .lineLimit(1)
-                        .foregroundColor(AztecTheme.dimText)
-                }
+                // Team name — 2x large
+                Text(team.name)
+                    .font(AztecTheme.hobbsFont(size: 56))
+                    .tracking(AztecTheme.hobbsKerning)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.4)
+                    .foregroundColor(AztecTheme.neonYellow)
+                    .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
 
                 Spacer()
 
-                // Aggregated team dongs
+                // Team record (replaces dongs)
                 VStack(spacing: 2) {
-                    let totalDongs = teamPlayers.reduce(0) { $0 + $1.stats.dongs }
-                    Text("\(totalDongs)")
-                        .font(AztecTheme.typewriterBold(size: 22))
+                    Text(teamRecord)
+                        .font(AztecTheme.sfProBold(size: 22))
                         .foregroundColor(AztecTheme.neonYellow)
                         .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
 
-                    Text("DONGS")
-                        .font(AztecTheme.impact(size: 10))
-                        .tracking(1)
-                        .foregroundColor(AztecTheme.neonYellow.opacity(0.7))
+                    Text("RECORD")
+                        .font(AztecTheme.sfProBold(size: 10))
+                        .foregroundColor(AztecTheme.hotPink)
                 }
             }
 
-            // Player names
+            // Player names — SF Pro, yellow
             if !teamPlayers.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 8) {
                         ForEach(teamPlayers) { player in
                             Text(player.name)
-                                .font(AztecTheme.hobbsFont(size: 18))
-                                .foregroundColor(AztecTheme.lightText)
+                                .font(AztecTheme.sfProBold(size: 16))
+                                .foregroundColor(AztecTheme.neonYellow)
                         }
                     }
                 }
@@ -137,22 +153,23 @@ struct FreeAgentRow: View {
     var body: some View {
         HStack {
             Text(player.name)
-                .font(AztecTheme.hobbsFont(size: 22))
-                .foregroundColor(AztecTheme.lightText)
+                .font(AztecTheme.hobbsFont(size: 26))
+                .tracking(AztecTheme.hobbsKerning)
+                .foregroundColor(AztecTheme.neonYellow)
 
             Spacer()
 
             Button("ASSIGN") {
                 showTeamPicker = true
             }
-            .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.jade))
+            .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.hotPink))
         }
         .padding(12)
-        .background(AztecTheme.darkStone)
+        .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 1)
+                .stroke(AztecTheme.hotPink.opacity(0.5), lineWidth: 2.25)
         )
         .sheet(isPresented: $showTeamPicker) {
             TeamPickerSheet(player: player)
@@ -187,20 +204,17 @@ struct TeamPickerSheet: View {
                                 HStack {
                                     Text(team.name)
                                         .font(AztecTheme.hobbsFont(size: 28))
-                                        .foregroundColor(AztecTheme.lightText)
+                                        .tracking(AztecTheme.hobbsKerning)
+                                        .foregroundColor(AztecTheme.neonYellow)
 
                                     Spacer()
-
-                                    Text("\(cloudService.playersForTeam(team.id).count) ballers")
-                                        .font(AztecTheme.typewriter(size: 12))
-                                        .foregroundColor(AztecTheme.dimText)
                                 }
                                 .padding(14)
-                                .background(AztecTheme.darkStone)
+                                .background(Color.black)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8)
-                                        .stroke(AztecTheme.hotPink.opacity(0.2), lineWidth: 1)
+                                        .stroke(AztecTheme.hotPink.opacity(0.4), lineWidth: 2.25)
                                 )
                             }
                         }
@@ -213,7 +227,7 @@ struct TeamPickerSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(AztecTheme.neonYellow)
+                        .dismissButtonStyle()
                 }
             }
         }
@@ -257,7 +271,7 @@ struct AddTeamSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(AztecTheme.neonYellow)
+                        .dismissButtonStyle()
                 }
             }
         }
@@ -296,14 +310,13 @@ struct TeamDetailSheet: View {
                         // Icon name edit
                         VStack(alignment: .leading, spacing: 4) {
                             Text("ICON NAME")
-                                .font(AztecTheme.impact(size: 10))
-                                .tracking(2)
-                                .foregroundColor(AztecTheme.dimText)
+                                .font(AztecTheme.sfProBold(size: 12))
+                                .foregroundColor(AztecTheme.hotPink)
                             TextField("Asset name (e.g. team-rosecity)", text: $editedIconName)
                                 .aztecTextField()
                         }
 
-                        // Squad stats summary
+                        // Squad stats summary — all yellow numbers, pink labels
                         let totalDongs = teamPlayers.reduce(0) { $0 + $1.stats.dongs }
                         let totalSalamies = teamPlayers.reduce(0) { $0 + $1.stats.salamies }
                         let totalDP = teamPlayers.reduce(0) { $0 + $1.stats.doublePlays }
@@ -312,16 +325,21 @@ struct TeamDetailSheet: View {
 
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
                             StatBubble(value: totalDongs, label: "DONGS", color: AztecTheme.neonYellow)
-                            StatBubble(value: totalSalamies, label: "SALAMIES", color: AztecTheme.jade)
-                            StatBubble(value: totalDP, label: "DBL PLAYS", color: AztecTheme.hotPink)
-                            StatBubble(value: totalSuds, label: "SUDS", color: AztecTheme.cosmic)
-                            StatBubble(value: totalTacos, label: "TACOS", color: AztecTheme.tennisGreen)
+                            StatBubble(value: totalSalamies, label: "SALAMIES", color: AztecTheme.neonYellow)
+                            StatBubble(value: totalDP, label: "DBL PLAYS", color: AztecTheme.neonYellow)
+                            StatBubble(value: totalSuds, label: "SUDS", color: AztecTheme.neonYellow)
+                            StatBubble(value: totalTacos, label: "TACOS", color: AztecTheme.neonYellow)
                         }
-                        .aztecCard(highlight: AztecTheme.hotPink)
+                        .padding(16)
+                        .neonCard()
 
-                        // Roster
+                        // Roster — 20% larger, pink with gold glow
                         HStack {
-                            AztecSectionHeader(title: "Roster")
+                            Text("ROSTER")
+                                .font(AztecTheme.hobbsFont(size: 28))
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundColor(AztecTheme.hotPink)
+                                .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
                             Spacer()
                             Button {
                                 showAddPlayerPicker = true
@@ -335,14 +353,23 @@ struct TeamDetailSheet: View {
                         ForEach(teamPlayers) { player in
                             HStack {
                                 Text(player.name)
-                                    .font(AztecTheme.hobbsFont(size: 22))
-                                    .foregroundColor(AztecTheme.lightText)
+                                    .font(AztecTheme.sfProBold(size: 18))
+                                    .foregroundColor(AztecTheme.neonYellow)
 
                                 Spacer()
 
-                                Text("\(player.stats.dongs) D")
-                                    .font(AztecTheme.typewriterBold(size: 14))
-                                    .foregroundColor(AztecTheme.neonYellow)
+                                // Show Dongs, Tacos, Suds for each player
+                                HStack(spacing: 10) {
+                                    Text("\(player.stats.dongs)D")
+                                        .font(AztecTheme.sfProBold(size: 14))
+                                        .foregroundColor(AztecTheme.neonYellow)
+                                    Text("\(player.stats.tacos)T")
+                                        .font(AztecTheme.sfProBold(size: 14))
+                                        .foregroundColor(AztecTheme.neonYellow)
+                                    Text("\(player.stats.suds)S")
+                                        .font(AztecTheme.sfProBold(size: 14))
+                                        .foregroundColor(AztecTheme.neonYellow)
+                                }
 
                                 Button {
                                     Task {
@@ -357,15 +384,15 @@ struct TeamDetailSheet: View {
                                 }
                             }
                             .padding(10)
-                            .background(AztecTheme.darkStone)
+                            .background(Color.black)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(AztecTheme.hotPink.opacity(0.15), lineWidth: 1)
+                                    .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 2.25)
                             )
                         }
 
-                        // Save
+                        // Save — pink outline, black bg, pink text
                         Button("SAVE CHANGES") {
                             Task {
                                 var updated = team
@@ -376,7 +403,7 @@ struct TeamDetailSheet: View {
                                 dismiss()
                             }
                         }
-                        .buttonStyle(AztecButtonStyle())
+                        .buttonStyle(AztecButtonStyle(color: AztecTheme.hotPink))
 
                         Button("DELETE SQUAD") {
                             showDeleteConfirm = true
@@ -391,7 +418,7 @@ struct TeamDetailSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
-                        .foregroundColor(AztecTheme.neonYellow)
+                        .dismissButtonStyle()
                 }
             }
             .alert("Delete Squad?", isPresented: $showDeleteConfirm) {
@@ -436,7 +463,7 @@ struct AddPlayerToTeamSheet: View {
 
                         if availablePlayers.isEmpty {
                             Text("No available players")
-                                .foregroundColor(AztecTheme.dimText)
+                                .foregroundColor(AztecTheme.hotPink)
                                 .padding(.top, 40)
                         }
 
@@ -451,31 +478,31 @@ struct AddPlayerToTeamSheet: View {
                             } label: {
                                 HStack {
                                     Text(player.name)
-                                        .font(AztecTheme.hobbsFont(size: 24))
-                                        .foregroundColor(AztecTheme.lightText)
+                                        .font(AztecTheme.sfProBold(size: 18))
+                                        .foregroundColor(AztecTheme.neonYellow)
 
                                     Spacer()
 
                                     if player.teamId == team.id {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(AztecTheme.jade)
+                                            .foregroundColor(AztecTheme.neonYellow)
                                     } else if let currentTeamId = player.teamId,
                                        let currentTeam = cloudService.team(for: currentTeamId) {
                                         Text(currentTeam.name)
-                                            .font(AztecTheme.typewriter(size: 12))
-                                            .foregroundColor(AztecTheme.dimText)
+                                            .font(AztecTheme.sfProMedium(size: 12))
+                                            .foregroundColor(AztecTheme.hotPink)
                                     } else {
                                         Text("Free Agent")
-                                            .font(AztecTheme.typewriter(size: 12))
-                                            .foregroundColor(AztecTheme.jade)
+                                            .font(AztecTheme.sfProMedium(size: 12))
+                                            .foregroundColor(AztecTheme.hotPink)
                                     }
                                 }
                                 .padding(14)
-                                .background(AztecTheme.darkStone)
+                                .background(Color.black)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8)
-                                        .stroke(AztecTheme.hotPink.opacity(0.15), lineWidth: 1)
+                                        .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 2.25)
                                 )
                             }
                         }
@@ -488,7 +515,7 @@ struct AddPlayerToTeamSheet: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
-                        .foregroundColor(AztecTheme.neonYellow)
+                        .dismissButtonStyle()
                 }
             }
         }
@@ -503,13 +530,12 @@ struct StatBubble: View {
     var body: some View {
         VStack(spacing: 2) {
             Text("\(value)")
-                .font(AztecTheme.typewriterBold(size: 22))
-                .foregroundColor(color)
-                .shadow(color: color.opacity(0.3), radius: 3)
+                .font(AztecTheme.sfProBold(size: 24))
+                .foregroundColor(AztecTheme.neonYellow)
+                .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
             Text(label)
-                .font(AztecTheme.impact(size: 8))
-                .tracking(1)
-                .foregroundColor(AztecTheme.dimText)
+                .font(AztecTheme.sfProBold(size: 10))
+                .foregroundColor(AztecTheme.hotPink)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 6)

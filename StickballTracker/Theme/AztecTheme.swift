@@ -2,20 +2,20 @@ import SwiftUI
 
 /// Design system: Dark neon aesthetic.
 /// Black backgrounds, hot pink card borders with neon glow,
-/// yellow/gold accent text. Placeholder font until custom handwritten font is provided.
+/// yellow/gold accent text. Custom HobbsFont for headlines.
 enum AztecTheme {
     // MARK: - Primary Colors
 
-    /// Hot pink — borders, glows, primary accent (#f229c5)
-    static let hotPink = Color(red: 242/255, green: 41/255, blue: 197/255)
+    /// Hot pink — borders, glows, primary accent (#FF00AE)
+    static let hotPink = Color(red: 255/255, green: 0/255, blue: 174/255)
 
-    /// Neon yellow/gold — text, scores, highlights (#fefd9c)
-    static let neonYellow = Color(red: 254/255, green: 253/255, blue: 156/255)
+    /// Neon yellow — text, scores, highlights (#FFF200)
+    static let neonYellow = Color(red: 255/255, green: 242/255, blue: 0/255)
 
     // MARK: - Backgrounds
     static let background = Color.black
-    static let cardBg = Color.white.opacity(0.05)
-    static let sheetBg = Color(white: 0.04)
+    static let cardBg = Color.black
+    static let sheetBg = Color.black
 
     // Section backgrounds — all black
     static let tourneyBg = Color.black
@@ -24,8 +24,8 @@ enum AztecTheme {
     static let statsBg = Color.black
 
     // MARK: - Semantic Color Aliases
-    static let obsidian = sheetBg
-    static let darkStone = Color.white.opacity(0.08)
+    static let obsidian = Color.black
+    static let darkStone = Color.black
     static let stone = Color.white.opacity(0.35)
 
     // Primary accents map to new palette
@@ -87,7 +87,7 @@ enum AztecTheme {
     )
 
     static let cardGradient = LinearGradient(
-        colors: [Color.white.opacity(0.08), Color.white.opacity(0.03)],
+        colors: [Color.black, Color.black],
         startPoint: .top,
         endPoint: .bottom
     )
@@ -95,31 +95,38 @@ enum AztecTheme {
     // MARK: - Fonts
 
     /// Custom HobbsFont — section headlines, team names, player names
+    /// 15% bigger and 30% tighter kerning applied at call sites
     static func hobbsFont(size: CGFloat) -> Font {
-        Font.custom("HobbsFont-Regular", size: size)
+        Font.custom("HobbsFont-Regular", size: size * 1.15)
     }
 
-    /// Heavy — headers, buttons, labels
-    static func jazzFont(size: CGFloat) -> Font {
-        Font.custom("Avenir-BlackOblique", size: size * 2)
+    /// SF Pro Bold — game info, player stats, body text (replaces Avenir)
+    static func sfProBold(size: CGFloat) -> Font {
+        Font.system(size: size, weight: .bold)
     }
 
-    /// Medium-heavy — body text
-    static func jazzBody(size: CGFloat) -> Font {
-        Font.custom("Avenir-HeavyOblique", size: size * 2)
+    /// SF Pro Medium — secondary body text
+    static func sfProMedium(size: CGFloat) -> Font {
+        Font.system(size: size, weight: .medium)
     }
 
-    /// Lighter — secondary body
-    static func jazzLight(size: CGFloat) -> Font {
-        Font.custom("Avenir-MediumOblique", size: size * 2)
+    /// SF Pro Regular — lighter text
+    static func sfProRegular(size: CGFloat) -> Font {
+        Font.system(size: size, weight: .regular)
     }
 
-    // Font aliases
-    static func impact(size: CGFloat) -> Font { jazzFont(size: size) }
-    static func typewriter(size: CGFloat) -> Font { jazzBody(size: size) }
-    static func typewriterBold(size: CGFloat) -> Font { jazzFont(size: size) }
+    // Font aliases — all now use SF Pro Bold (no italics)
+    static func jazzFont(size: CGFloat) -> Font { sfProBold(size: size * 2) }
+    static func jazzBody(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
+    static func jazzLight(size: CGFloat) -> Font { sfProRegular(size: size * 2) }
+    static func impact(size: CGFloat) -> Font { sfProBold(size: size * 2) }
+    static func typewriter(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
+    static func typewriterBold(size: CGFloat) -> Font { sfProBold(size: size * 2) }
     static func handwritten(size: CGFloat) -> Font { hobbsFont(size: size) }
     static func chunky(size: CGFloat) -> Font { hobbsFont(size: size) }
+
+    /// Hobbs kerning — 30% tighter (negative tracking)
+    static let hobbsKerning: CGFloat = -1.5
 
     // MARK: - Decorative Elements
     static var glowingLine: some View {
@@ -139,69 +146,10 @@ enum AztecTheme {
     }
 }
 
-// MARK: - Geometric Shapes
-
-/// Trapezoid shape — wider at bottom
-struct TrapezoidShape: Shape {
-    var skew: CGFloat = 0.15
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.width * skew, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * (1 - skew * 0.5), y: 0))
-        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
-        path.addLine(to: CGPoint(x: 0, y: rect.height))
-        path.closeSubpath()
-        return path
-    }
-}
-
-/// Parallelogram shape — slanted right
-struct ParallelogramShape: Shape {
-    var slant: CGFloat = 0.18
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.width * slant, y: 0))
-        path.addLine(to: CGPoint(x: rect.width, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * (1 - slant), y: rect.height))
-        path.addLine(to: CGPoint(x: 0, y: rect.height))
-        path.closeSubpath()
-        return path
-    }
-}
-
-/// Arrow/chevron shape — points right
-struct ArrowShape: Shape {
-    var indent: CGFloat = 0.12
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: 0, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * (1 - indent), y: 0))
-        path.addLine(to: CGPoint(x: rect.width, y: rect.height * 0.5))
-        path.addLine(to: CGPoint(x: rect.width * (1 - indent), y: rect.height))
-        path.addLine(to: CGPoint(x: 0, y: rect.height))
-        path.addLine(to: CGPoint(x: rect.width * indent, y: rect.height * 0.5))
-        path.closeSubpath()
-        return path
-    }
-}
-
-/// Pentagon shape
-struct PentagonShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.width * 0.08, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * 0.92, y: 0))
-        path.addLine(to: CGPoint(x: rect.width, y: rect.height * 0.6))
-        path.addLine(to: CGPoint(x: rect.width * 0.5, y: rect.height))
-        path.addLine(to: CGPoint(x: 0, y: rect.height * 0.6))
-        path.closeSubpath()
-        return path
-    }
-}
-
 // MARK: - Neon Card Modifier
 
 /// Dark card with neon border glow — the core visual building block.
+/// Black background, 50% thicker outlines.
 struct NeonCardModifier: ViewModifier {
     var borderColor: Color = AztecTheme.hotPink
     var cornerRadius: CGFloat = 12
@@ -211,12 +159,12 @@ struct NeonCardModifier: ViewModifier {
         content
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(AztecTheme.cardBg)
+                    .fill(Color.black)
             )
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(borderColor, lineWidth: 1.5)
+                    .stroke(borderColor, lineWidth: 2.25)
             )
             .shadow(color: borderColor.opacity(0.5 * glowIntensity), radius: 4)
             .shadow(color: borderColor.opacity(0.25 * glowIntensity), radius: 10)
@@ -255,41 +203,70 @@ extension View {
 
 // MARK: - Button Styles
 
+/// Primary action button — pink outline, black background, pink text
 struct AztecButtonStyle: ButtonStyle {
-    var color: Color = AztecTheme.neonYellow
+    var color: Color = AztecTheme.hotPink
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(AztecTheme.jazzFont(size: 10))
-            .tracking(2)
-            .foregroundColor(Color.black)
+            .font(AztecTheme.sfProBold(size: 16))
+            .foregroundColor(color)
             .padding(.horizontal, 24)
             .padding(.vertical, 14)
-            .background(color)
+            .background(Color.black)
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .shadow(color: color.opacity(0.5), radius: configuration.isPressed ? 2 : 8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(color, lineWidth: 2.25)
+            )
+            .shadow(color: color.opacity(0.3), radius: configuration.isPressed ? 2 : 6)
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
 struct AztecSecondaryButtonStyle: ButtonStyle {
-    var color: Color = AztecTheme.neonYellow
+    var color: Color = AztecTheme.hotPink
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(AztecTheme.jazzFont(size: 8))
-            .tracking(1)
+            .font(AztecTheme.sfProBold(size: 14))
             .foregroundColor(color)
             .padding(.horizontal, 18)
             .padding(.vertical, 12)
-            .background(
+            .background(Color.black)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(color, lineWidth: 1.5)
+                    .stroke(color, lineWidth: 2.25)
             )
             .shadow(color: color.opacity(0.3), radius: configuration.isPressed ? 1 : 4)
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Dismiss Button Style (pink outline, black bg)
+
+struct AztecDismissButtonStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(AztecTheme.sfProBold(size: 14))
+            .foregroundColor(AztecTheme.hotPink)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(Color.black)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(AztecTheme.hotPink, lineWidth: 1.5)
+            )
+    }
+}
+
+extension View {
+    func dismissButtonStyle() -> some View {
+        modifier(AztecDismissButtonStyle())
     }
 }
 
@@ -298,15 +275,15 @@ struct AztecSecondaryButtonStyle: ButtonStyle {
 struct AztecTextField: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(AztecTheme.jazzBody(size: 16))
+            .font(AztecTheme.sfProBold(size: 16))
             .foregroundColor(.white)
             .accentColor(AztecTheme.neonYellow)
             .padding(12)
-            .background(Color.white.opacity(0.08))
+            .background(Color.black)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(AztecTheme.hotPink.opacity(0.4), lineWidth: 1)
+                    .stroke(AztecTheme.hotPink.opacity(0.6), lineWidth: 2.25)
             )
     }
 }

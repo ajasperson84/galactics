@@ -22,62 +22,25 @@ struct AztecHeader: View {
     }
 }
 
-/// Section header with geometric shapes and neon colors.
+/// Section header — simple text over black, no shapes.
+/// Yellow by default, uses HobbsFont with tight kerning.
 struct AztecSectionHeader: View {
     let title: String
     var color: Color = AztecTheme.neonYellow
     var shapeIndex: Int = 0
 
-    private static let shapeColors: [Color] = [
-        AztecTheme.hotPink,
-        AztecTheme.neonYellow,
-        AztecTheme.jade,
-        AztecTheme.cosmic,
-        AztecTheme.tennisGreen,
-        AztecTheme.neonOrange,
-        Color(red: 0.70, green: 0.0, blue: 1.0),
-        AztecTheme.bloodRed,
-    ]
-
-    private var shapeColor: Color {
-        Self.shapeColors[abs(shapeIndex) % Self.shapeColors.count]
-    }
-
     var body: some View {
         HStack(spacing: 0) {
             Text(title.uppercased())
                 .font(AztecTheme.hobbsFont(size: 22))
+                .tracking(AztecTheme.hobbsKerning)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 6)
-                .background(
-                    GeometricHeaderShape(index: shapeIndex)
-                        .fill(shapeColor.opacity(0.85))
-                )
-                .shadow(color: shapeColor.opacity(0.3), radius: 4)
+                .foregroundColor(color)
+                .shadow(color: color.opacity(0.4), radius: 4)
 
             Spacer()
         }
         .padding(.vertical, 2)
-    }
-}
-
-/// Returns a different geometric shape based on index.
-struct GeometricHeaderShape: Shape {
-    let index: Int
-
-    func path(in rect: CGRect) -> Path {
-        switch abs(index) % 4 {
-        case 0:
-            return TrapezoidShape().path(in: rect)
-        case 1:
-            return ParallelogramShape().path(in: rect)
-        case 2:
-            return ArrowShape().path(in: rect)
-        default:
-            return PentagonShape().path(in: rect)
-        }
     }
 }

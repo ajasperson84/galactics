@@ -48,22 +48,22 @@ struct GameEntrySheet: View {
                         // Game header
                         VStack(spacing: 4) {
                             Text("GAME \(nextGameNumber) OF 3")
-                                .font(AztecTheme.impact(size: 12))
+                                .font(AztecTheme.sfProBold(size: 12))
                                 .tracking(3)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
 
                             Text("Series: \(matchup.seriesDescription)")
-                                .font(AztecTheme.typewriter(size: 14))
-                                .foregroundColor(AztecTheme.dimText)
+                                .font(AztecTheme.sfProBold(size: 14))
+                                .foregroundColor(AztecTheme.neonYellow)
                         }
 
                         // Field picker
                         VStack(spacing: 6) {
                             Text("FIELD")
-                                .font(AztecTheme.impact(size: 11))
+                                .font(AztecTheme.sfProBold(size: 11))
                                 .tracking(2)
-                                .foregroundColor(AztecTheme.dimText)
+                                .foregroundColor(AztecTheme.hotPink)
 
                             Menu {
                                 Button("None") { selectedField = nil }
@@ -73,23 +73,23 @@ struct GameEntrySheet: View {
                             } label: {
                                 HStack {
                                     Text(selectedField?.rawValue ?? "Select Field")
-                                        .font(AztecTheme.typewriterBold(size: 14))
+                                        .font(AztecTheme.sfProBold(size: 14))
                                         .foregroundColor(
                                             selectedField != nil
-                                                ? AztecTheme.lightText
-                                                : AztecTheme.stone
+                                                ? AztecTheme.neonYellow
+                                                : AztecTheme.hotPink.opacity(0.6)
                                         )
                                     Spacer()
                                     Image(systemName: "chevron.down")
                                         .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(AztecTheme.stone)
+                                        .foregroundColor(AztecTheme.hotPink)
                                 }
                                 .padding(12)
-                                .background(AztecTheme.darkStone)
+                                .background(Color.black)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8)
-                                        .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 1)
+                                        .stroke(AztecTheme.hotPink.opacity(0.5), lineWidth: 2.25)
                                 )
                             }
                         }
@@ -97,9 +97,9 @@ struct GameEntrySheet: View {
                         // Date & time picker
                         VStack(spacing: 6) {
                             Text("DATE & TIME")
-                                .font(AztecTheme.impact(size: 11))
+                                .font(AztecTheme.sfProBold(size: 11))
                                 .tracking(2)
-                                .foregroundColor(AztecTheme.dimText)
+                                .foregroundColor(AztecTheme.hotPink)
 
                             DatePicker(
                                 "Game Date",
@@ -126,7 +126,8 @@ struct GameEntrySheet: View {
                                     }
                                     Text(team1?.name ?? "Team 1")
                                         .font(AztecTheme.hobbsFont(size: 22))
-                                        .foregroundColor(AztecTheme.lightText)
+                                        .tracking(AztecTheme.hobbsKerning)
+                                        .foregroundColor(AztecTheme.neonYellow)
                                         .lineLimit(1)
                                 }
 
@@ -141,7 +142,7 @@ struct GameEntrySheet: View {
                                     } label: {
                                         Image(systemName: "minus.circle.fill")
                                             .font(.system(size: 28))
-                                            .foregroundColor(AztecTheme.stone)
+                                            .foregroundColor(AztecTheme.hotPink)
                                     }
 
                                     Button {
@@ -149,7 +150,7 @@ struct GameEntrySheet: View {
                                     } label: {
                                         Image(systemName: "plus.circle.fill")
                                             .font(.system(size: 28))
-                                            .foregroundColor(AztecTheme.jade)
+                                            .foregroundColor(AztecTheme.neonYellow)
                                     }
                                 }
                             }
@@ -157,8 +158,9 @@ struct GameEntrySheet: View {
 
                             Text("VS")
                                 .font(AztecTheme.hobbsFont(size: 22))
-                                .foregroundColor(AztecTheme.neonYellow)
-                                .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 3)
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundColor(AztecTheme.hotPink)
+                                .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
                                 .padding(.horizontal, 8)
 
                             // Team 2 score
@@ -172,7 +174,8 @@ struct GameEntrySheet: View {
                                     }
                                     Text(team2?.name ?? "Team 2")
                                         .font(AztecTheme.hobbsFont(size: 22))
-                                        .foregroundColor(AztecTheme.lightText)
+                                        .tracking(AztecTheme.hobbsKerning)
+                                        .foregroundColor(AztecTheme.hotPink)
                                         .lineLimit(1)
                                 }
 
@@ -187,7 +190,7 @@ struct GameEntrySheet: View {
                                     } label: {
                                         Image(systemName: "minus.circle.fill")
                                             .font(.system(size: 28))
-                                            .foregroundColor(AztecTheme.stone)
+                                            .foregroundColor(AztecTheme.hotPink)
                                     }
 
                                     Button {
@@ -195,7 +198,7 @@ struct GameEntrySheet: View {
                                     } label: {
                                         Image(systemName: "plus.circle.fill")
                                             .font(.system(size: 28))
-                                            .foregroundColor(AztecTheme.jade)
+                                            .foregroundColor(AztecTheme.neonYellow)
                                     }
                                 }
                             }
@@ -244,7 +247,7 @@ struct GameEntrySheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(AztecTheme.neonYellow)
+                        .dismissButtonStyle()
                 }
             }
             .alert("Record Game?", isPresented: $showConfirm) {
@@ -341,7 +344,8 @@ struct QuickStatEntry: View {
                 HStack {
                     Text(playerName)
                         .font(AztecTheme.hobbsFont(size: 22))
-                        .foregroundColor(AztecTheme.lightText)
+                        .tracking(AztecTheme.hobbsKerning)
+                        .foregroundColor(AztecTheme.neonYellow)
 
                     Spacer()
 
@@ -354,7 +358,7 @@ struct QuickStatEntry: View {
                         if stats.salamies > 0 {
                             Text("\(stats.salamies)S")
                                 .font(.system(size: 12, weight: .heavy, design: .monospaced))
-                                .foregroundColor(AztecTheme.jade)
+                                .foregroundColor(AztecTheme.neonYellow)
                         }
                         if stats.doublePlays > 0 {
                             Text("\(stats.doublePlays)DP")
@@ -364,23 +368,23 @@ struct QuickStatEntry: View {
                         if stats.drops > 0 {
                             Text("\(stats.drops)Dr")
                                 .font(.system(size: 12, weight: .heavy, design: .monospaced))
-                                .foregroundColor(AztecTheme.bloodRed)
+                                .foregroundColor(AztecTheme.hotPink)
                         }
                         if stats.suds > 0 {
                             Text("\(stats.suds)Su")
                                 .font(.system(size: 12, weight: .heavy, design: .monospaced))
-                                .foregroundColor(AztecTheme.cosmic)
+                                .foregroundColor(AztecTheme.neonYellow)
                         }
                         if stats.tacos > 0 {
                             Text("\(stats.tacos)T")
                                 .font(.system(size: 12, weight: .heavy, design: .monospaced))
-                                .foregroundColor(AztecTheme.tennisGreen)
+                                .foregroundColor(AztecTheme.neonYellow)
                         }
                     }
 
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(AztecTheme.stone)
+                        .foregroundColor(AztecTheme.hotPink)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
@@ -391,24 +395,24 @@ struct QuickStatEntry: View {
                     StatStepperRow(label: "Dongs", value: $stats.dongs, color: AztecTheme.neonYellow) { delta in
                         onDongChanged(delta)
                     }
-                    StatStepperRow(label: "Salamies", value: $stats.salamies, color: AztecTheme.jade) { delta in
+                    StatStepperRow(label: "Salamies", value: $stats.salamies, color: AztecTheme.neonYellow) { delta in
                         onSalamiChanged(delta)
                     }
                     StatStepperRow(label: "Dbl Plays", value: $stats.doublePlays, color: AztecTheme.hotPink)
-                    StatStepperRow(label: "Drops", value: $stats.drops, color: AztecTheme.bloodRed)
-                    StatStepperRow(label: "Suds", value: $stats.suds, color: AztecTheme.cosmic)
-                    StatStepperRow(label: "Tacos", value: $stats.tacos, color: AztecTheme.tennisGreen)
+                    StatStepperRow(label: "Drops", value: $stats.drops, color: AztecTheme.hotPink)
+                    StatStepperRow(label: "Suds", value: $stats.suds, color: AztecTheme.neonYellow)
+                    StatStepperRow(label: "Tacos", value: $stats.tacos, color: AztecTheme.neonYellow)
                 }
                 .padding(.horizontal, 12)
                 .padding(.bottom, 10)
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .background(AztecTheme.darkStone)
+        .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(AztecTheme.hotPink.opacity(0.2), lineWidth: 1)
+                .stroke(AztecTheme.hotPink.opacity(0.4), lineWidth: 2.25)
         )
     }
 }
@@ -417,15 +421,15 @@ struct QuickStatEntry: View {
 struct StatStepperRow: View {
     let label: String
     @Binding var value: Int
-    var color: Color = AztecTheme.lightText
+    var color: Color = AztecTheme.neonYellow
     var onChanged: ((Int) -> Void)?
 
     var body: some View {
         HStack {
             Text(label)
-                .font(AztecTheme.impact(size: 12))
+                .font(AztecTheme.sfProBold(size: 12))
                 .tracking(0.5)
-                .foregroundColor(AztecTheme.dimText)
+                .foregroundColor(AztecTheme.hotPink)
                 .frame(width: 72, alignment: .leading)
 
             Spacer()
@@ -438,10 +442,14 @@ struct StatStepperRow: View {
             } label: {
                 Image(systemName: "minus")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(AztecTheme.stone)
+                    .foregroundColor(AztecTheme.hotPink)
                     .frame(width: 32, height: 28)
-                    .background(Color.white.opacity(0.06))
+                    .background(Color.black)
                     .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 1)
+                    )
             }
 
             Text("\(value)")
@@ -455,10 +463,14 @@ struct StatStepperRow: View {
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(AztecTheme.jade)
+                    .foregroundColor(AztecTheme.neonYellow)
                     .frame(width: 32, height: 28)
-                    .background(Color.white.opacity(0.06))
+                    .background(Color.black)
                     .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(AztecTheme.neonYellow.opacity(0.3), lineWidth: 1)
+                    )
             }
         }
     }
