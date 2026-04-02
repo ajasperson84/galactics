@@ -305,7 +305,7 @@ struct PlayerDetailSheet: View {
 
                         // Name edit — Hobbs font
                         TextField("Name", text: $editedName)
-                            .font(AztecTheme.hobbsFont(size: 36))
+                            .font(AztecTheme.hobbsFont(size: 50))
                             .tracking(AztecTheme.hobbsKerning)
                             .foregroundColor(AztecTheme.neonYellow)
                             .multilineTextAlignment(.center)
@@ -328,14 +328,14 @@ struct PlayerDetailSheet: View {
                             ForEach(statItems, id: \.label) { item in
                                 HStack {
                                     Text(item.label)
-                                        .font(AztecTheme.hobbsFont(size: 23))
+                                        .font(AztecTheme.hobbsFont(size: 30))
                                         .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.hotPink)
 
                                     Spacer()
 
                                     Text("\(item.value)")
-                                        .font(AztecTheme.sfProBold(size: 23))
+                                        .font(AztecTheme.sfProBold(size: 30))
                                         .foregroundColor(AztecTheme.neonYellow)
                                         .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
                                 }

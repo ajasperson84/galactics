@@ -13,6 +13,8 @@ struct SplashView: View {
                 .scaledToFit()
                 .frame(maxWidth: 280)
                 .scaleEffect(logoScale)
+                .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 20)
+                .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 40)
         }
         .onAppear {
             withAnimation(.easeOut(duration: 5.0)) {

@@ -122,13 +122,15 @@ struct GameEntrySheet: View {
                                         Image(icon)
                                             .resizable()
                                             .scaledToFit()
-                                            .frame(width: 25, height: 25)
+                                            .frame(width: 38, height: 38)
+                                            .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
                                     }
                                     Text(team1?.name ?? "Team 1")
-                                        .font(AztecTheme.hobbsFont(size: 28))
+                                        .font(AztecTheme.hobbsFont(size: 42))
                                         .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.neonYellow)
                                         .lineLimit(1)
+                                        .minimumScaleFactor(0.4)
                                 }
 
                                 Text("\(team1Score)")
@@ -157,7 +159,7 @@ struct GameEntrySheet: View {
                             .frame(maxWidth: .infinity)
 
                             Text("VS")
-                                .font(AztecTheme.hobbsFont(size: 22))
+                                .font(AztecTheme.hobbsFont(size: 44))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
@@ -170,13 +172,15 @@ struct GameEntrySheet: View {
                                         Image(icon)
                                             .resizable()
                                             .scaledToFit()
-                                            .frame(width: 25, height: 25)
+                                            .frame(width: 38, height: 38)
+                                            .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
                                     }
                                     Text(team2?.name ?? "Team 2")
-                                        .font(AztecTheme.hobbsFont(size: 28))
+                                        .font(AztecTheme.hobbsFont(size: 42))
                                         .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.hotPink)
                                         .lineLimit(1)
+                                        .minimumScaleFactor(0.4)
                                 }
 
                                 Text("\(team2Score)")
@@ -356,7 +360,7 @@ struct QuickStatEntry: View {
             } label: {
                 HStack {
                     Text(playerName)
-                        .font(AztecTheme.sfProBold(size: 22))
+                        .font(AztecTheme.sfProBold(size: 19))
                         .foregroundColor(AztecTheme.neonYellow)
 
                     Spacer()

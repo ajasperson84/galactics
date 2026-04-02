@@ -344,7 +344,7 @@ struct MatchupCard: View {
         VStack(spacing: 4) {
             // Team names + VS — equal width sides, VS centered
             HStack(alignment: .center, spacing: 0) {
-                // Team 1 — yellow
+                // Team 1 — yellow with yellow glow
                 Group {
                     if let team = team1 {
                         Text(team.name.uppercased())
@@ -352,7 +352,8 @@ struct MatchupCard: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.3)
                             .foregroundColor(AztecTheme.neonYellow)
-                            .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.6), radius: 6)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 12)
                             .shadow(color: team1IsWinner ? AztecTheme.hotPink.opacity(0.8) : .clear, radius: 8)
                     } else {
                         Text("TBD")
@@ -362,9 +363,9 @@ struct MatchupCard: View {
                 }
                 .frame(maxWidth: .infinity)
 
-                // VS — centered, Hobbs font, gradient yellow→pink
+                // VS — centered, Hobbs font, 15% larger, gradient yellow→pink
                 Text("VS")
-                    .font(AztecTheme.hobbsFont(size: 44))
+                    .font(AztecTheme.hobbsFont(size: 51))
                     .tracking(AztecTheme.hobbsKerning)
                     .foregroundStyle(
                         LinearGradient(
@@ -378,7 +379,7 @@ struct MatchupCard: View {
                     .fixedSize()
                     .padding(.horizontal, 4)
 
-                // Team 2 — pink
+                // Team 2 — pink with pink glow
                 Group {
                     if let team = team2 {
                         Text(team.name.uppercased())
@@ -386,7 +387,8 @@ struct MatchupCard: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.3)
                             .foregroundColor(AztecTheme.hotPink)
-                            .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
+                            .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 6)
+                            .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 12)
                             .shadow(color: team2IsWinner ? AztecTheme.neonYellow.opacity(0.8) : .clear, radius: 8)
                     } else {
                         Text("TBD")

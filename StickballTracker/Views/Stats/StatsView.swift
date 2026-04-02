@@ -199,7 +199,7 @@ struct StatsTableRow: View {
                 .frame(width: 20, alignment: .center)
 
             Text(player.name)
-                .font(AztecTheme.hobbsFont(size: 20))
+                .font(AztecTheme.hobbsFont(size: 23))
                 .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(AztecTheme.neonYellow)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -336,7 +336,7 @@ struct TeamAggregatedRow: View {
 struct TeamIconView: View {
     let team: Team
     var size: CGFloat = 48
-    var glowRadius: CGFloat = 7.2
+    var glowRadius: CGFloat = 10.8
 
     var body: some View {
         if let iconName = team.iconName {
