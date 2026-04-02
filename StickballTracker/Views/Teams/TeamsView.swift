@@ -5,6 +5,35 @@ struct TeamsView: View {
     @State private var showingAddTeam = false
     @State private var selectedTeam: Team?
 
+    /// Teams sorted by record (best first), then by total dongs
+    private var sortedTeams: [Team] {
+        cloudService.teams.sorted { t1, t2 in
+            let r1 = teamRecord(for: t1)
+            let r2 = teamRecord(for: t2)
+            if r1.wins != r2.wins { return r1.wins > r2.wins }
+            if r1.losses != r2.losses { return r1.losses < r2.losses }
+            return teamDongs(for: t1) > teamDongs(for: t2)
+        }
+    }
+
+    private func teamRecord(for team: Team) -> (wins: Int, losses: Int) {
+        guard let tournament = cloudService.tournament else { return (0, 0) }
+        var wins = 0, losses = 0
+        for round in tournament.bracket {
+            for matchup in round.matchups {
+                guard matchup.status == .completed, let winnerId = matchup.winnerId else { continue }
+                if matchup.team1Id == team.id || matchup.team2Id == team.id {
+                    if winnerId == team.id { wins += 1 } else { losses += 1 }
+                }
+            }
+        }
+        return (wins, losses)
+    }
+
+    private func teamDongs(for team: Team) -> Int {
+        cloudService.playersForTeam(team.id).reduce(0) { $0 + $1.stats.dongs }
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -33,9 +62,9 @@ struct TeamsView: View {
                 }
                 .padding(.horizontal)
 
-                // Teams
+                // Teams — sorted by record, then dongs
                 LazyVStack(spacing: 12) {
-                    ForEach(Array(cloudService.teams.enumerated()), id: \.element.id) { index, team in
+                    ForEach(Array(sortedTeams.enumerated()), id: \.element.id) { index, team in
                         TeamCard(team: team, colorIndex: index)
                             .onTapGesture {
                                 selectedTeam = team
@@ -238,6 +267,7 @@ struct AddTeamSheet: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @Environment(\.dismiss) var dismiss
     @State private var teamName = ""
+    @State private var iconName = ""
 
     var body: some View {
         NavigationStack {
@@ -250,12 +280,27 @@ struct AddTeamSheet: View {
                     TextField("Squad Name", text: $teamName)
                         .aztecTextField()
 
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("TEAM ICON")
+                            .font(AztecTheme.sfProBold(size: 12))
+                            .foregroundColor(AztecTheme.hotPink)
+                        TextField("Asset name (e.g. team-rosecity)", text: $iconName)
+                            .aztecTextField()
+                    }
+
                     Button("CREATE SQUAD") {
                         guard !teamName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
                         Task {
-                            await cloudService.addTeam(
-                                name: teamName.trimmingCharacters(in: .whitespaces)
-                            )
+                            let trimmedName = teamName.trimmingCharacters(in: .whitespaces)
+                            let trimmedIcon = iconName.trimmingCharacters(in: .whitespaces)
+                            await cloudService.addTeam(name: trimmedName)
+                            // Set icon if provided
+                            if !trimmedIcon.isEmpty,
+                               let team = cloudService.teams.first(where: { $0.name == trimmedName }) {
+                                var updated = team
+                                updated.iconName = trimmedIcon
+                                await cloudService.updateTeam(updated)
+                            }
                             dismiss()
                         }
                     }
@@ -282,13 +327,25 @@ struct TeamDetailSheet: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @Environment(\.dismiss) var dismiss
     let team: Team
-    @State private var editedName: String = ""
-    @State private var editedIconName: String = ""
     @State private var showDeleteConfirm = false
     @State private var showAddPlayerPicker = false
 
     var teamPlayers: [Player] {
         cloudService.playersForTeam(team.id)
+    }
+
+    private var teamRecord: String {
+        guard let tournament = cloudService.tournament else { return "0-0" }
+        var wins = 0, losses = 0
+        for round in tournament.bracket {
+            for matchup in round.matchups {
+                guard matchup.status == .completed, let winnerId = matchup.winnerId else { continue }
+                if matchup.team1Id == team.id || matchup.team2Id == team.id {
+                    if winnerId == team.id { wins += 1 } else { losses += 1 }
+                }
+            }
+        }
+        return "\(wins)-\(losses)"
     }
 
     var body: some View {
@@ -302,18 +359,23 @@ struct TeamDetailSheet: View {
                         TeamIconView(team: team, size: 90)
                             .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 12)
 
-                        // Name edit
-                        TextField("Team Name", text: $editedName)
-                            .aztecTextField()
-                            .multilineTextAlignment(.center)
+                        // Team name
+                        Text(team.name)
+                            .font(AztecTheme.hobbsFont(size: 44))
+                            .tracking(AztecTheme.hobbsKerning)
+                            .foregroundColor(AztecTheme.neonYellow)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 4)
 
-                        // Icon name edit
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("ICON NAME")
+                        // Team record below icon
+                        VStack(spacing: 2) {
+                            Text(teamRecord)
+                                .font(AztecTheme.hobbsFont(size: 36))
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundColor(AztecTheme.neonYellow)
+                                .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
+                            Text("RECORD")
                                 .font(AztecTheme.sfProBold(size: 12))
                                 .foregroundColor(AztecTheme.hotPink)
-                            TextField("Asset name (e.g. team-rosecity)", text: $editedIconName)
-                                .aztecTextField()
                         }
 
                         // Squad stats summary — all yellow numbers, pink labels
@@ -392,19 +454,6 @@ struct TeamDetailSheet: View {
                             )
                         }
 
-                        // Save — pink outline, black bg, pink text
-                        Button("SAVE CHANGES") {
-                            Task {
-                                var updated = team
-                                updated.name = editedName
-                                let trimmedIcon = editedIconName.trimmingCharacters(in: .whitespaces)
-                                updated.iconName = trimmedIcon.isEmpty ? nil : trimmedIcon
-                                await cloudService.updateTeam(updated)
-                                dismiss()
-                            }
-                        }
-                        .buttonStyle(AztecButtonStyle(color: AztecTheme.hotPink))
-
                         Button("DELETE SQUAD") {
                             showDeleteConfirm = true
                         }
@@ -434,10 +483,6 @@ struct TeamDetailSheet: View {
             }
             .sheet(isPresented: $showAddPlayerPicker) {
                 AddPlayerToTeamSheet(team: team)
-            }
-            .onAppear {
-                editedName = team.name
-                editedIconName = team.iconName ?? ""
             }
         }
     }

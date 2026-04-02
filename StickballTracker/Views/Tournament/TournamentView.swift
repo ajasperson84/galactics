@@ -365,7 +365,7 @@ struct MatchupCard: View {
 
                 // VS — centered, Hobbs font, 15% larger, gradient yellow→pink
                 Text("VS")
-                    .font(AztecTheme.hobbsFont(size: 51))
+                    .font(AztecTheme.hobbsFont(size: 59))
                     .tracking(AztecTheme.hobbsKerning)
                     .foregroundStyle(
                         LinearGradient(
@@ -401,7 +401,7 @@ struct MatchupCard: View {
             .padding(.horizontal, 12)
             .padding(.top, 10)
 
-            // Gradient divider yellow→pink
+            // Gradient divider yellow→pink — 25% thicker
             Rectangle()
                 .fill(
                     LinearGradient(
@@ -410,11 +410,11 @@ struct MatchupCard: View {
                         endPoint: .trailing
                     )
                 )
-                .frame(height: 1)
+                .frame(height: 1.25)
                 .padding(.horizontal, 12)
 
-            // Series wins row
-            HStack {
+            // Series wins row — centered under team names
+            HStack(spacing: 0) {
                 let t1Wins = matchup.games.filter { $0.status == .completed && $0.team1Score > $0.team2Score }.count
                 let t2Wins = matchup.games.filter { $0.status == .completed && $0.team2Score > $0.team1Score }.count
 
@@ -423,10 +423,9 @@ struct MatchupCard: View {
                     .tracking(AztecTheme.hobbsKerning)
                     .foregroundColor(AztecTheme.neonYellow)
                     .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
+                    .frame(maxWidth: .infinity)
 
-                Spacer()
-
-                // Game score pills
+                // Game score pills in center
                 HStack(spacing: 8) {
                     ForEach(0..<matchup.games.count, id: \.self) { gameIdx in
                         let game = matchup.games[gameIdx]
@@ -448,14 +447,14 @@ struct MatchupCard: View {
                         )
                     }
                 }
-
-                Spacer()
+                .fixedSize()
 
                 Text("\(t2Wins)")
                     .font(AztecTheme.hobbsFont(size: 48))
                     .tracking(AztecTheme.hobbsKerning)
                     .foregroundColor(AztecTheme.hotPink)
                     .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
+                    .frame(maxWidth: .infinity)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 4)
@@ -502,13 +501,6 @@ struct MatchupCard: View {
                     .padding(.bottom, 8)
             } else {
                 HStack(spacing: 12) {
-                    if matchup.status == .inProgress {
-                        Text("SERIES: \(matchup.seriesDescription)")
-                            .font(AztecTheme.sfProBold(size: 16))
-                            .foregroundColor(AztecTheme.hotPink)
-                            .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
-                    }
-
                     Spacer()
 
                     // Schedule button — always visible for non-completed matchups
