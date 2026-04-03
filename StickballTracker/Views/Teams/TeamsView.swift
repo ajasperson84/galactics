@@ -268,48 +268,95 @@ struct AddTeamSheet: View {
     @Environment(\.dismiss) var dismiss
     @State private var teamName = ""
     @State private var iconName = ""
+    @State private var playerNames: [String] = [""]
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.black.ignoresSafeArea()
 
-                VStack(spacing: 24) {
-                    AztecSectionHeader(title: "Create Squad")
+                ScrollView {
+                    VStack(spacing: 24) {
+                        AztecSectionHeader(title: "Create Squad")
 
-                    TextField("Squad Name", text: $teamName)
-                        .aztecTextField()
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("TEAM ICON")
-                            .font(AztecTheme.sfProBold(size: 12))
-                            .foregroundColor(AztecTheme.hotPink)
-                        TextField("Asset name (e.g. team-rosecity)", text: $iconName)
+                        TextField("Squad Name", text: $teamName)
                             .aztecTextField()
-                    }
 
-                    Button("CREATE SQUAD") {
-                        guard !teamName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                        Task {
-                            let trimmedName = teamName.trimmingCharacters(in: .whitespaces)
-                            let trimmedIcon = iconName.trimmingCharacters(in: .whitespaces)
-                            await cloudService.addTeam(name: trimmedName)
-                            // Set icon if provided
-                            if !trimmedIcon.isEmpty,
-                               let team = cloudService.teams.first(where: { $0.name == trimmedName }) {
-                                var updated = team
-                                updated.iconName = trimmedIcon
-                                await cloudService.updateTeam(updated)
-                            }
-                            dismiss()
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("TEAM ICON")
+                                .font(AztecTheme.sfProBold(size: 12))
+                                .foregroundColor(AztecTheme.hotPink)
+                            TextField("Asset name (e.g. team-rosecity)", text: $iconName)
+                                .aztecTextField()
                         }
-                    }
-                    .buttonStyle(AztecButtonStyle())
-                    .disabled(teamName.trimmingCharacters(in: .whitespaces).isEmpty)
 
-                    Spacer()
+                        // Player names section
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("BALLERS")
+                                .font(AztecTheme.sfProBold(size: 12))
+                                .foregroundColor(AztecTheme.hotPink)
+
+                            ForEach(playerNames.indices, id: \.self) { index in
+                                HStack(spacing: 8) {
+                                    TextField("Baller Name", text: $playerNames[index])
+                                        .aztecTextField()
+
+                                    if playerNames.count > 1 {
+                                        Button {
+                                            playerNames.remove(at: index)
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(AztecTheme.bloodRed.opacity(0.6))
+                                                .font(.system(size: 20))
+                                        }
+                                    }
+                                }
+                            }
+
+                            Button {
+                                playerNames.append("")
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "plus.circle.fill")
+                                    Text("ADD BALLER")
+                                }
+                                .font(AztecTheme.sfProBold(size: 14))
+                                .foregroundColor(AztecTheme.neonYellow)
+                            }
+                        }
+
+                        Button("CREATE SQUAD") {
+                            guard !teamName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+                            Task {
+                                let trimmedName = teamName.trimmingCharacters(in: .whitespaces)
+                                let trimmedIcon = iconName.trimmingCharacters(in: .whitespaces)
+                                await cloudService.addTeam(name: trimmedName)
+                                // Set icon if provided
+                                if !trimmedIcon.isEmpty,
+                                   let team = cloudService.teams.first(where: { $0.name == trimmedName }) {
+                                    var updated = team
+                                    updated.iconName = trimmedIcon
+                                    await cloudService.updateTeam(updated)
+                                }
+                                // Add players to the new team
+                                if let team = cloudService.teams.first(where: { $0.name == trimmedName }) {
+                                    for name in playerNames {
+                                        let trimmed = name.trimmingCharacters(in: .whitespaces)
+                                        if !trimmed.isEmpty {
+                                            await cloudService.addPlayer(name: trimmed, teamId: team.id)
+                                        }
+                                    }
+                                }
+                                dismiss()
+                            }
+                        }
+                        .buttonStyle(AztecButtonStyle())
+                        .disabled(teamName.trimmingCharacters(in: .whitespaces).isEmpty)
+
+                        Spacer()
+                    }
+                    .padding()
                 }
-                .padding()
             }
             .navigationTitle("New Squad")
             .navigationBarTitleDisplayMode(.inline)
@@ -413,39 +460,45 @@ struct TeamDetailSheet: View {
                         }
 
                         ForEach(teamPlayers) { player in
-                            HStack {
-                                Text(player.name)
-                                    .font(AztecTheme.sfProBold(size: 18))
-                                    .foregroundColor(AztecTheme.neonYellow)
-
-                                Spacer()
-
-                                // Show Dongs, Tacos, Suds for each player
-                                HStack(spacing: 10) {
-                                    Text("\(player.stats.dongs)D")
-                                        .font(AztecTheme.sfProBold(size: 14))
+                            VStack(spacing: 0) {
+                                HStack {
+                                    Text(player.name)
+                                        .font(AztecTheme.hobbsFont(size: 30))
+                                        .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.neonYellow)
-                                    Text("\(player.stats.tacos)T")
-                                        .font(AztecTheme.sfProBold(size: 14))
-                                        .foregroundColor(AztecTheme.neonYellow)
-                                    Text("\(player.stats.suds)S")
-                                        .font(AztecTheme.sfProBold(size: 14))
-                                        .foregroundColor(AztecTheme.neonYellow)
-                                }
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.5)
 
-                                Button {
-                                    Task {
-                                        await cloudService.assignPlayerToTeam(
-                                            playerId: player.id,
-                                            teamId: nil
-                                        )
+                                    Spacer()
+
+                                    Button {
+                                        Task {
+                                            await cloudService.assignPlayerToTeam(
+                                                playerId: player.id,
+                                                teamId: nil
+                                            )
+                                        }
+                                    } label: {
+                                        Image(systemName: "xmark.circle")
+                                            .foregroundColor(AztecTheme.bloodRed.opacity(0.6))
                                     }
-                                } label: {
-                                    Image(systemName: "xmark.circle")
-                                        .foregroundColor(AztecTheme.bloodRed.opacity(0.6))
                                 }
+                                .padding(.horizontal, 12)
+                                .padding(.top, 10)
+                                .padding(.bottom, 6)
+
+                                // Full stats for each player
+                                VStack(spacing: 4) {
+                                    PlayerStatRow(label: "Dongs", value: player.stats.dongs)
+                                    PlayerStatRow(label: "Salamies", value: player.stats.salamies)
+                                    PlayerStatRow(label: "Dbl Plays", value: player.stats.doublePlays)
+                                    PlayerStatRow(label: "Drops", value: player.stats.drops)
+                                    PlayerStatRow(label: "Suds", value: player.stats.suds)
+                                    PlayerStatRow(label: "Tacos", value: player.stats.tacos)
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.bottom, 10)
                             }
-                            .padding(10)
                             .background(Color.black)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                             .overlay(
@@ -564,6 +617,28 @@ struct AddPlayerToTeamSheet: View {
                 }
             }
         }
+    }
+}
+
+struct PlayerStatRow: View {
+    let label: String
+    let value: Int
+
+    var body: some View {
+        HStack {
+            Text(label)
+                .font(AztecTheme.hobbsFont(size: 20))
+                .tracking(AztecTheme.hobbsKerning)
+                .foregroundColor(AztecTheme.hotPink)
+
+            Spacer()
+
+            Text("\(value)")
+                .font(AztecTheme.sfProBold(size: 18))
+                .foregroundColor(AztecTheme.neonYellow)
+                .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 2)
+        }
+        .padding(.horizontal, 4)
     }
 }
 

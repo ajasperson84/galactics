@@ -7,14 +7,12 @@ struct ContentView: View {
     enum AppTab: String, CaseIterable {
         case tournament = "Tourney"
         case teams = "Squads"
-        case players = "Ballers"
         case stats = "Stats"
 
         var icon: String {
             switch self {
             case .tournament: return "trophy.fill"
             case .teams: return "person.3.fill"
-            case .players: return "person.fill"
             case .stats: return "chart.bar.fill"
             }
         }
@@ -69,7 +67,6 @@ struct ContentView: View {
                     switch selectedTab {
                     case .tournament: TournamentView()
                     case .teams: TeamsView()
-                    case .players: PlayersView()
                     case .stats: StatsView()
                     }
                 }

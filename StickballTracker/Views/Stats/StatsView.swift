@@ -3,6 +3,7 @@ import SwiftUI
 struct StatsView: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @State private var sortBy: StatSort = .dongs
+    @State private var teamSortBy: StatSort = .dongs
 
     enum StatSort: String, CaseIterable {
         case dongs = "Dongs"
@@ -44,7 +45,28 @@ struct StatsView: View {
                 return p1.stats.tacos > p2.stats.tacos
             }
         }
-        return Array(sorted.prefix(10))
+        return sorted
+    }
+
+    var sortedTeams: [Team] {
+        cloudService.teams.sorted { t1, t2 in
+            let p1 = cloudService.playersForTeam(t1.id)
+            let p2 = cloudService.playersForTeam(t2.id)
+            switch teamSortBy {
+            case .dongs:
+                return p1.reduce(0) { $0 + $1.stats.dongs } > p2.reduce(0) { $0 + $1.stats.dongs }
+            case .salamies:
+                return p1.reduce(0) { $0 + $1.stats.salamies } > p2.reduce(0) { $0 + $1.stats.salamies }
+            case .doublePlays:
+                return p1.reduce(0) { $0 + $1.stats.doublePlays } > p2.reduce(0) { $0 + $1.stats.doublePlays }
+            case .drops:
+                return p1.reduce(0) { $0 + $1.stats.drops } > p2.reduce(0) { $0 + $1.stats.drops }
+            case .suds:
+                return p1.reduce(0) { $0 + $1.stats.suds } > p2.reduce(0) { $0 + $1.stats.suds }
+            case .tacos:
+                return p1.reduce(0) { $0 + $1.stats.tacos } > p2.reduce(0) { $0 + $1.stats.tacos }
+            }
+        }
     }
 
     var body: some View {
@@ -134,9 +156,42 @@ struct StatsView: View {
                 .padding(.horizontal)
                 .padding(.top, 8)
 
+                // Team sort options
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(Array(StatSort.allCases.enumerated()), id: \.element) { index, sort in
+                            Button {
+                                withAnimation { teamSortBy = sort }
+                            } label: {
+                                let altColor = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
+                                Text(sort.label)
+                                    .font(AztecTheme.sfProBold(size: 16))
+                                    .foregroundColor(
+                                        teamSortBy == sort ? Color.black : altColor
+                                    )
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 7)
+                                    .background(
+                                        teamSortBy == sort
+                                            ? altColor
+                                            : Color.black
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(altColor, lineWidth: 2.25)
+                                    )
+                                    .shadow(color: teamSortBy == sort
+                                            ? altColor.opacity(0.4) : .clear, radius: 4)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+
                 LazyVStack(spacing: 6) {
-                    ForEach(cloudService.teams) { team in
-                        TeamAggregatedRow(team: team)
+                    ForEach(sortedTeams) { team in
+                        TeamAggregatedRow(team: team, highlightStat: teamSortBy)
                     }
                 }
                 .padding(.horizontal)
@@ -255,6 +310,7 @@ struct StatsTableRow: View {
 struct TeamAggregatedRow: View {
     @EnvironmentObject var cloudService: CloudSyncService
     let team: Team
+    var highlightStat: StatsView.StatSort = .dongs
 
     var teamPlayers: [Player] {
         cloudService.playersForTeam(team.id)
@@ -263,8 +319,17 @@ struct TeamAggregatedRow: View {
     var totalDongs: Int { teamPlayers.reduce(0) { $0 + $1.stats.dongs } }
     var totalSalamies: Int { teamPlayers.reduce(0) { $0 + $1.stats.salamies } }
     var totalDoublePlays: Int { teamPlayers.reduce(0) { $0 + $1.stats.doublePlays } }
+    var totalDrops: Int { teamPlayers.reduce(0) { $0 + $1.stats.drops } }
     var totalSuds: Int { teamPlayers.reduce(0) { $0 + $1.stats.suds } }
     var totalTacos: Int { teamPlayers.reduce(0) { $0 + $1.stats.tacos } }
+
+    private func statColor(_ stat: StatsView.StatSort) -> Color {
+        highlightStat == stat ? AztecTheme.neonYellow : AztecTheme.neonYellow.opacity(0.7)
+    }
+
+    private func statWeight(_ stat: StatsView.StatSort) -> Font {
+        AztecTheme.sfProBold(size: highlightStat == stat ? 16 : 14)
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -282,8 +347,9 @@ struct TeamAggregatedRow: View {
             HStack(spacing: 12) {
                 VStack(spacing: 1) {
                     Text("\(totalDongs)")
-                        .font(AztecTheme.sfProBold(size: 14))
-                        .foregroundColor(AztecTheme.neonYellow)
+                        .font(statWeight(.dongs))
+                        .foregroundColor(statColor(.dongs))
+                        .shadow(color: highlightStat == .dongs ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
                     Text("D")
                         .font(AztecTheme.sfProBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
@@ -291,8 +357,9 @@ struct TeamAggregatedRow: View {
 
                 VStack(spacing: 1) {
                     Text("\(totalSalamies)")
-                        .font(AztecTheme.sfProBold(size: 14))
-                        .foregroundColor(AztecTheme.neonYellow)
+                        .font(statWeight(.salamies))
+                        .foregroundColor(statColor(.salamies))
+                        .shadow(color: highlightStat == .salamies ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
                     Text("S")
                         .font(AztecTheme.sfProBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
@@ -300,17 +367,29 @@ struct TeamAggregatedRow: View {
 
                 VStack(spacing: 1) {
                     Text("\(totalDoublePlays)")
-                        .font(AztecTheme.sfProBold(size: 14))
-                        .foregroundColor(AztecTheme.neonYellow)
+                        .font(statWeight(.doublePlays))
+                        .foregroundColor(statColor(.doublePlays))
+                        .shadow(color: highlightStat == .doublePlays ? AztecTheme.hotPink.opacity(0.3) : .clear, radius: 2)
                     Text("DP")
                         .font(AztecTheme.sfProBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
                 }
 
                 VStack(spacing: 1) {
+                    Text("\(totalDrops)")
+                        .font(statWeight(.drops))
+                        .foregroundColor(statColor(.drops))
+                        .shadow(color: highlightStat == .drops ? AztecTheme.hotPink.opacity(0.3) : .clear, radius: 2)
+                    Text("Dr")
+                        .font(AztecTheme.sfProBold(size: 9))
+                        .foregroundColor(AztecTheme.hotPink)
+                }
+
+                VStack(spacing: 1) {
                     Text("\(totalSuds)")
-                        .font(AztecTheme.sfProBold(size: 14))
-                        .foregroundColor(AztecTheme.neonYellow)
+                        .font(statWeight(.suds))
+                        .foregroundColor(statColor(.suds))
+                        .shadow(color: highlightStat == .suds ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
                     Text("Su")
                         .font(AztecTheme.sfProBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
@@ -318,8 +397,9 @@ struct TeamAggregatedRow: View {
 
                 VStack(spacing: 1) {
                     Text("\(totalTacos)")
-                        .font(AztecTheme.sfProBold(size: 14))
-                        .foregroundColor(AztecTheme.neonYellow)
+                        .font(statWeight(.tacos))
+                        .foregroundColor(statColor(.tacos))
+                        .shadow(color: highlightStat == .tacos ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
                     Text("T")
                         .font(AztecTheme.sfProBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
