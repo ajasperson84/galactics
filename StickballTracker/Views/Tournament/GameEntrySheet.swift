@@ -122,11 +122,11 @@ struct GameEntrySheet: View {
                                         Image(icon)
                                             .resizable()
                                             .scaledToFit()
-                                            .frame(width: 38, height: 38)
+                                            .frame(width: 48, height: 48)
                                             .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
                                     }
                                     Text(team1?.name ?? "Team 1")
-                                        .font(AztecTheme.hobbsFont(size: 42))
+                                        .font(AztecTheme.hobbsFont(size: 53))
                                         .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.neonYellow)
                                         .lineLimit(1)
@@ -159,7 +159,7 @@ struct GameEntrySheet: View {
                             .frame(maxWidth: .infinity)
 
                             Text("VS")
-                                .font(AztecTheme.hobbsFont(size: 44))
+                                .font(AztecTheme.hobbsFont(size: 55))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
@@ -172,11 +172,11 @@ struct GameEntrySheet: View {
                                         Image(icon)
                                             .resizable()
                                             .scaledToFit()
-                                            .frame(width: 38, height: 38)
+                                            .frame(width: 48, height: 48)
                                             .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
                                     }
                                     Text(team2?.name ?? "Team 2")
-                                        .font(AztecTheme.hobbsFont(size: 42))
+                                        .font(AztecTheme.hobbsFont(size: 53))
                                         .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.hotPink)
                                         .lineLimit(1)
@@ -214,7 +214,7 @@ struct GameEntrySheet: View {
                         if let team = team1 {
                             HStack {
                                 Text("\(team.name) Players".uppercased())
-                                    .font(AztecTheme.hobbsFont(size: 38))
+                                    .font(AztecTheme.hobbsFont(size: 48))
                                     .tracking(AztecTheme.hobbsKerning)
                                     .foregroundColor(AztecTheme.neonYellow)
                                     .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
@@ -234,7 +234,7 @@ struct GameEntrySheet: View {
                         if let team = team2 {
                             HStack {
                                 Text("\(team.name) Players".uppercased())
-                                    .font(AztecTheme.hobbsFont(size: 38))
+                                    .font(AztecTheme.hobbsFont(size: 48))
                                     .tracking(AztecTheme.hobbsKerning)
                                     .foregroundColor(AztecTheme.hotPink)
                                     .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 4)

@@ -75,7 +75,7 @@ struct StatsView: View {
                 // Leaderboard header — 50% larger, just "Leaderboard"
                 HStack {
                     Text("LEADERBOARD")
-                        .font(AztecTheme.hobbsFont(size: 36))
+                        .font(AztecTheme.hobbsFont(size: 43))
                         .tracking(AztecTheme.hobbsKerning)
                         .foregroundColor(AztecTheme.neonYellow)
                         .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
@@ -147,7 +147,7 @@ struct StatsView: View {
                 // Team aggregated stats
                 HStack {
                     Text("SQUAD STATS")
-                        .font(AztecTheme.hobbsFont(size: 26))
+                        .font(AztecTheme.hobbsFont(size: 39))
                         .tracking(AztecTheme.hobbsKerning)
                         .foregroundColor(AztecTheme.hotPink)
                         .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 4)

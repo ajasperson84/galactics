@@ -378,7 +378,7 @@ class CloudSyncService: ObservableObject {
     private func generateRoundNames(totalRounds: Int) -> [String] {
         (0..<totalRounds).map { i in
             switch totalRounds - i {
-            case 1: return "Finals"
+            case 1: return "Championship"
             case 2: return "Semifinals"
             case 3: return "Quarterfinals"
             default: return "Round \(i + 1)"
