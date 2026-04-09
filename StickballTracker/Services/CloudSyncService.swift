@@ -230,14 +230,48 @@ class CloudSyncService: ObservableObject {
         await updatePlayer(player)
     }
 
+    // MARK: - Seed Tournament Teams
+
+    func seedTournamentTeams() async {
+        let allTeamNames = [
+            // Day 1 teams (9)
+            "Banditos", "No Mamas Wey Jovenes",
+            "Mothership JV Reds", "Mothership JV Blacks",
+            "Tinseltown JV", "Rose City JV",
+            "DSS", "Steel City", "Gold Coast",
+            // Day 2 teams (5)
+            "Mothership Champs", "Tinseltown Champs",
+            "Rose City Champs", "Jet City Champs",
+            "No Mamas Wey Viejos"
+        ]
+        let existingNames = Set(teams.map { $0.name })
+        for name in allTeamNames where !existingNames.contains(name) {
+            await addTeam(name: name)
+        }
+    }
+
     // MARK: - Tournament Operations
+
+    struct TierConfig {
+        var tierNumber: Int          // 1, 2, or 3
+        var tierName: String         // "Round 1", "Round 2", "Championship"
+        var dayLabel: String         // "Friday", "Saturday", "Sunday"
+        var date: Date?
+        var teamIds: [String]        // Seeded order
+    }
 
     func createTournament(name: String, tierConfigs: [TierConfig]) async {
         let allTeamIds = tierConfigs.flatMap { $0.teamIds }
         var tournament = Tournament(name: name, teamIds: Array(Set(allTeamIds)))
 
         for config in tierConfigs {
-            let tier = generateDoubleEliminationTier(config: config)
+            let tier: TournamentTier
+            switch config.tierNumber {
+            case 1: tier = generateDay1Bracket(config: config)
+            case 2: tier = generateDay2Bracket(config: config)
+            case 3: tier = generateDay3Bracket(config: config)
+            default: tier = generateDay1Bracket(config: config)
+            }
             tournament.tiers.append(tier)
         }
 
@@ -265,6 +299,71 @@ class CloudSyncService: ObservableObject {
             errorMessage = "Failed to delete tournament: \(error.localizedDescription)"
         }
     }
+
+    // MARK: - Team Assignment
+
+    func assignTeamToGameSlot(tierIndex: Int, gameId: String, slot: TeamSlot, teamId: String) async {
+        guard var tournament else { return }
+        guard tierIndex < tournament.tiers.count else { return }
+        guard let gameIdx = tournament.tiers[tierIndex].games.firstIndex(where: { $0.id == gameId }) else { return }
+
+        switch slot {
+        case .team1:
+            tournament.tiers[tierIndex].games[gameIdx].team1Id = teamId
+        case .team2:
+            tournament.tiers[tierIndex].games[gameIdx].team2Id = teamId
+        }
+
+        self.tournament = tournament
+        await updateTournament(tournament)
+    }
+
+    /// Teams that lost a game with no auto-routing and aren't placed in any pending game
+    func unplacedLosers(tierIndex: Int) -> [String] {
+        guard let tournament, tierIndex < tournament.tiers.count else { return [] }
+        let tier = tournament.tiers[tierIndex]
+
+        let placedInPending = Set(
+            tier.games
+                .filter { $0.status != .completed }
+                .flatMap { [$0.team1Id, $0.team2Id] }
+                .compactMap { $0 }
+        )
+
+        var unplaced: [String] = []
+        for game in tier.games where game.status == .completed {
+            guard let loserId = game.loserId else { continue }
+            if game.feedsLoserTo == nil && !placedInPending.contains(loserId) {
+                unplaced.append(loserId)
+            }
+        }
+        return unplaced
+    }
+
+    /// Teams in this tier not assigned to any game yet (for initial WB R1 setup)
+    func unassignedTierTeams(tierIndex: Int) -> [String] {
+        guard let tournament, tierIndex < tournament.tiers.count else { return [] }
+        let tier = tournament.tiers[tierIndex]
+
+        let assignedTeamIds = Set(
+            tier.games.flatMap { [$0.team1Id, $0.team2Id] }.compactMap { $0 }
+        )
+
+        return tier.teamIds.filter { !assignedTeamIds.contains($0) }
+    }
+
+    /// Check if a game slot has an automatic feed from another game's winner/loser routing
+    func slotHasAutoFeed(tierIndex: Int, gameId: String, slot: TeamSlot) -> Bool {
+        guard let tournament, tierIndex < tournament.tiers.count else { return false }
+        let tier = tournament.tiers[tierIndex]
+        for game in tier.games {
+            if let link = game.feedsWinnerTo, link.gameId == gameId, link.slot == slot { return true }
+            if let link = game.feedsLoserTo, link.gameId == gameId, link.slot == slot { return true }
+        }
+        return false
+    }
+
+    // MARK: - Record Game Result
 
     func recordGameResult(
         tierIndex: Int,
@@ -334,8 +433,6 @@ class CloudSyncService: ObservableObject {
                     tournament.tiers[tierIndex].games[ifNecIdx].team2Id = game.team2Id
                     tournament.tiers[tierIndex].games[ifNecIdx].status = .pending
                 }
-            } else {
-                // WB champion won — tier is done, no if-necessary needed
             }
         }
 
@@ -343,12 +440,22 @@ class CloudSyncService: ObservableObject {
         let tier = tournament.tiers[tierIndex]
         let allGamesResolved = tier.games.allSatisfy { g in
             g.status == .completed ||
-            (g.team1Id == nil && g.team2Id == nil) ||
-            (g.bracketSide == .ifNecessary && !isIfNecessaryNeeded(tier: tier))
+            (g.bracketSide == .ifNecessary && (tier.ifNecessaryGameId == nil || !isIfNecessaryNeeded(tier: tier)))
         }
         if allGamesResolved {
             tournament.tiers[tierIndex].status = .completed
-            tournament.tiers[tierIndex].advancingTeamIds = computeAdvancingTeams(tier: tier)
+            let advancing = computeAdvancingTeams(tier: tournament.tiers[tierIndex])
+            tournament.tiers[tierIndex].advancingTeamIds = advancing
+
+            // Advance teams to next tier
+            let nextIdx = tierIndex + 1
+            if nextIdx < tournament.tiers.count {
+                for teamId in advancing {
+                    if !tournament.tiers[nextIdx].teamIds.contains(teamId) {
+                        tournament.tiers[nextIdx].teamIds.append(teamId)
+                    }
+                }
+            }
         } else {
             tournament.tiers[tierIndex].status = .inProgress
         }
@@ -357,6 +464,8 @@ class CloudSyncService: ObservableObject {
         if tournament.tiers.allSatisfy({ $0.status == .completed }) {
             tournament.status = .completed
         }
+
+        self.tournament = tournament
 
         // Accumulate player career stats
         for stats in playerStats {
@@ -369,251 +478,317 @@ class CloudSyncService: ObservableObject {
     private func isIfNecessaryNeeded(tier: TournamentTier) -> Bool {
         guard let champId = tier.championshipGameId,
               let champGame = tier.game(byId: champId) else { return false }
-        // If championship completed and LB champion (team2) won, if-necessary is needed
         return champGame.status == .completed && champGame.winnerId == champGame.team2Id
     }
 
     private func computeAdvancingTeams(tier: TournamentTier) -> [String] {
-        // The tier champion + runners-up advance
-        // For now, return teams that won their last game (championship/if-necessary winner + semifinal losers who placed well)
-        // This will be manually managed by the user via advancingTeamIds
-        return tier.advancingTeamIds
+        switch tier.tierNumber {
+        case 1:
+            // Day 1: 2 WB semi winners + 1 LB final winner = 3
+            var advancing: [String] = []
+            // WB semi winners (last WB round)
+            if let wbSF = tier.winnersBracketRounds.last {
+                for gId in wbSF.gameIds {
+                    if let g = tier.game(byId: gId), let w = g.winnerId {
+                        advancing.append(w)
+                    }
+                }
+            }
+            // LB final winner (last LB round)
+            if let lbFinal = tier.losersBracketRounds.last {
+                for gId in lbFinal.gameIds {
+                    if let g = tier.game(byId: gId), let w = g.winnerId {
+                        advancing.append(w)
+                    }
+                }
+            }
+            return advancing
+
+        case 2:
+            // Day 2: 2 WB semi winners + 2 LB final round winners = 4
+            var advancing: [String] = []
+            if let wbSF = tier.winnersBracketRounds.last {
+                for gId in wbSF.gameIds {
+                    if let g = tier.game(byId: gId), let w = g.winnerId { advancing.append(w) }
+                }
+            }
+            if let lbLast = tier.losersBracketRounds.last {
+                for gId in lbLast.gameIds {
+                    if let g = tier.game(byId: gId), let w = g.winnerId { advancing.append(w) }
+                }
+            }
+            return advancing
+
+        case 3:
+            // Day 3: Tournament champion (if-necessary winner or championship winner)
+            if let ifNecId = tier.ifNecessaryGameId,
+               let ifNecGame = tier.game(byId: ifNecId),
+               ifNecGame.status == .completed,
+               let w = ifNecGame.winnerId {
+                return [w]
+            }
+            if let champId = tier.championshipGameId,
+               let champGame = tier.game(byId: champId),
+               let w = champGame.winnerId {
+                return [w]
+            }
+            return []
+
+        default:
+            return tier.advancingTeamIds
+        }
     }
 
-    // MARK: - Double Elimination Bracket Generation
+    // MARK: - Day 1 Bracket (9 teams, 13 games)
+    //
+    // WB R1: G1 (play-in: Banditos vs No Mamas), G2, G3, G4, G5 (G1W + manual)
+    // WB SF: G9 (G2W vs G3W), G10 (G4W vs G5W)
+    // LB R1: G6 (G1L + manual), G7 (2 manual losers)
+    // LB R2: G8 (G6W + manual bye loser)
+    // LB R3: G11 (G7W vs G10L), G12 (G8W vs G9L)
+    // LB Final: G13 (G11W vs G12W)
+    // Advances: G9W, G10W (WB semi winners) + G13W (LB final winner) = 3
 
-    struct TierConfig {
-        var tierNumber: Int          // 1, 2, or 3
-        var tierName: String         // "Round 1", "Round 2", "Championship"
-        var dayLabel: String         // "Friday", "Saturday", "Sunday"
-        var date: Date?
-        var teamIds: [String]        // Seeded order
-    }
-
-    private func generateDoubleEliminationTier(config: TierConfig) -> TournamentTier {
-        let teamCount = config.teamIds.count
+    private func generateDay1Bracket(config: TierConfig) -> TournamentTier {
         var tier = TournamentTier(
-            tierNumber: config.tierNumber,
+            tierNumber: 1,
             tierName: config.tierName,
             dayLabel: config.dayLabel,
             date: config.date,
             teamIds: config.teamIds
         )
 
-        var games: [TournamentGame] = []
-        var gameNumber = 1
+        // Find Banditos and No Mamas for auto-assignment to G1
+        let banditosId = teams.first { $0.name == "Banditos" }?.id
+        let noMamasId = teams.first { $0.name == "No Mamas Wey Jovenes" }?.id
 
-        // --- Winners Bracket ---
-        let wbSize = nextPowerOf2(teamCount)
-        let firstRoundGames = wbSize / 2
+        // WB R1 (5 games)
+        var g1 = TournamentGame(gameNumber: 1, bracketSide: .winners, team1Id: banditosId, team2Id: noMamasId)
+        var g2 = TournamentGame(gameNumber: 2, bracketSide: .winners)
+        var g3 = TournamentGame(gameNumber: 3, bracketSide: .winners)
+        var g4 = TournamentGame(gameNumber: 4, bracketSide: .winners)
+        var g5 = TournamentGame(gameNumber: 5, bracketSide: .winners) // G1W + manual team
 
-        // Build WB rounds
-        var wbRounds: [[String]] = []  // Each round is an array of game IDs
-        var lbRounds: [[String]] = []
+        // LB R1 (2 games)
+        var g6 = TournamentGame(gameNumber: 6, bracketSide: .losers)  // G1L + manual loser
+        var g7 = TournamentGame(gameNumber: 7, bracketSide: .losers)  // 2 manual losers
 
-        // WB Round 1 — some may be byes
-        var wbR1GameIds: [String] = []
-        // WB Round 1 game generation
+        // LB R2 (1 game)
+        var g8 = TournamentGame(gameNumber: 8, bracketSide: .losers)  // G6W + manual bye loser
 
-        for i in 0..<firstRoundGames {
-            let seed1 = i
-            let seed2 = wbSize - 1 - i
-            let team1Id = seed1 < teamCount ? config.teamIds[seed1] : nil
-            let team2Id = seed2 < teamCount ? config.teamIds[seed2] : nil
+        // WB SF (2 games)
+        var g9 = TournamentGame(gameNumber: 9, bracketSide: .winners)  // G2W vs G3W
+        var g10 = TournamentGame(gameNumber: 10, bracketSide: .winners) // G4W vs G5W
 
-            if team1Id != nil && team2Id != nil {
-                // Real game
-                let game = TournamentGame(gameNumber: gameNumber, bracketSide: .winners, team1Id: team1Id, team2Id: team2Id)
-                gameNumber += 1
-                wbR1GameIds.append(game.id)
-                games.append(game)
-            } else if team1Id != nil {
-                // Bye — team1 auto-advances, no game needed
-                // We'll handle byes by directly placing teams in next round
-                // Use a placeholder game marked as completed
-                var game = TournamentGame(gameNumber: gameNumber, bracketSide: .winners, team1Id: team1Id, team2Id: nil)
-                game.winnerId = team1Id
-                game.status = .completed
-                gameNumber += 1
-                wbR1GameIds.append(game.id)
-                games.append(game)
-            }
-        }
-        if !wbR1GameIds.isEmpty {
-            wbRounds.append(wbR1GameIds)
-        }
+        // LB R3 (2 games — WB SF losers drop in)
+        var g11 = TournamentGame(gameNumber: 11, bracketSide: .losers)  // G7W vs G10L
+        var g12 = TournamentGame(gameNumber: 12, bracketSide: .losers)  // G8W vs G9L
 
-        // Subsequent WB rounds
-        var prevRoundCount = firstRoundGames
-        while prevRoundCount > 1 {
-            let thisRoundCount = prevRoundCount / 2
-            var roundGameIds: [String] = []
+        // LB Final (1 game)
+        let g13 = TournamentGame(gameNumber: 13, bracketSide: .losers)  // G11W vs G12W
 
-            for _ in 0..<thisRoundCount {
-                let game = TournamentGame(gameNumber: gameNumber, bracketSide: .winners)
-                gameNumber += 1
-                roundGameIds.append(game.id)
-                games.append(game)
-            }
-            wbRounds.append(roundGameIds)
-            prevRoundCount = thisRoundCount
-        }
+        // === Routing ===
 
-        // --- Losers Bracket ---
-        // LB receives losers from WB. Structure depends on team count.
-        // For N teams in WB with R rounds:
-        //   LB has (R-1)*2 rounds approximately
-        //   Odd LB rounds: receive WB dropdowns
-        //   Even LB rounds: internal matchups
+        // WB R1 winners → WB SF
+        g1.feedsWinnerTo = GameLink(gameId: g5.id, slot: .team1)   // G1W → G5 team1
+        g2.feedsWinnerTo = GameLink(gameId: g9.id, slot: .team1)   // G2W → G9 team1
+        g3.feedsWinnerTo = GameLink(gameId: g9.id, slot: .team2)   // G3W → G9 team2
+        g4.feedsWinnerTo = GameLink(gameId: g10.id, slot: .team1)  // G4W → G10 team1
+        g5.feedsWinnerTo = GameLink(gameId: g10.id, slot: .team2)  // G5W → G10 team2
 
-        let wbRoundCount = wbRounds.count
-        if wbRoundCount > 1 {
-            // LB round 1: losers from WB round 1 play each other
-            let wb1Losers = wbR1GameIds.count
-            let lbR1Games = wb1Losers / 2
-            var lbR1Ids: [String] = []
-            for _ in 0..<max(lbR1Games, 1) {
-                let game = TournamentGame(gameNumber: gameNumber, bracketSide: .losers)
-                gameNumber += 1
-                lbR1Ids.append(game.id)
-                games.append(game)
-            }
-            if !lbR1Ids.isEmpty {
-                lbRounds.append(lbR1Ids)
-            }
+        // WB R1 losers: G1L auto, rest manual
+        g1.feedsLoserTo = GameLink(gameId: g6.id, slot: .team1)    // G1L → G6 team1 (auto)
+        // G2, G3, G4, G5 losers: manual assignment to G6.team2, G7.team1, G7.team2, G8.team2
 
-            // LB subsequent rounds: alternate between receiving WB dropdowns and internal matchups
-            var lbTeamCount = lbR1Ids.count  // number of "slots" coming out of LB round 1
-            for wbRound in 1..<wbRoundCount {
-                // Dropdown round: WB round losers drop into LB
-                let wbDropdowns = wbRounds[wbRound].count
-                let dropdownGames = max(lbTeamCount, wbDropdowns)
-                var dropIds: [String] = []
-                for _ in 0..<dropdownGames {
-                    var game = TournamentGame(gameNumber: gameNumber, bracketSide: .losers)
-                    gameNumber += 1
-                    dropIds.append(game.id)
-                    games.append(game)
-                }
-                lbRounds.append(dropIds)
-                lbTeamCount = dropIds.count
+        // WB SF losers → LB R3
+        g9.feedsLoserTo = GameLink(gameId: g12.id, slot: .team2)   // G9L → G12 team2
+        g10.feedsLoserTo = GameLink(gameId: g11.id, slot: .team2)  // G10L → G11 team2
 
-                // Internal LB round (if more than 1 team remaining)
-                if lbTeamCount > 1 {
-                    let internalGames = lbTeamCount / 2
-                    var intIds: [String] = []
-                    for _ in 0..<internalGames {
-                        var game = TournamentGame(gameNumber: gameNumber, bracketSide: .losers)
-                        gameNumber += 1
-                        intIds.append(game.id)
-                        games.append(game)
-                    }
-                    lbRounds.append(intIds)
-                    lbTeamCount = internalGames
-                }
-            }
-        }
+        // LB R1 winners
+        g6.feedsWinnerTo = GameLink(gameId: g8.id, slot: .team1)   // G6W → G8 team1
+        g7.feedsWinnerTo = GameLink(gameId: g11.id, slot: .team1)  // G7W → G11 team1
 
-        // --- Championship Game ---
-        let champGame = TournamentGame(gameNumber: gameNumber, bracketSide: .championship)
-        gameNumber += 1
-        let champId = champGame.id
-        games.append(champGame)
+        // LB R2 winner
+        g8.feedsWinnerTo = GameLink(gameId: g12.id, slot: .team1)  // G8W → G12 team1
 
-        // --- If Necessary Game ---
-        let ifNecGame = TournamentGame(gameNumber: gameNumber, bracketSide: .ifNecessary)
-        let ifNecId = ifNecGame.id
-        games.append(ifNecGame)
+        // LB R3 winners → LB Final
+        g11.feedsWinnerTo = GameLink(gameId: g13.id, slot: .team1) // G11W → G13 team1
+        g12.feedsWinnerTo = GameLink(gameId: g13.id, slot: .team2) // G12W → G13 team2
 
-        // --- Wire up feedsWinnerTo / feedsLoserTo links ---
-        // WB: winners advance within WB, losers drop to LB
-        for roundIdx in 0..<wbRounds.count {
-            let roundIds = wbRounds[roundIdx]
-            for (i, gId) in roundIds.enumerated() {
-                guard let gIdx = games.firstIndex(where: { $0.id == gId }) else { continue }
+        // G13 winner advances, no further routing
 
-                // Winner goes to next WB round
-                if roundIdx + 1 < wbRounds.count {
-                    let nextRound = wbRounds[roundIdx + 1]
-                    let nextSlotIdx = i / 2
-                    if nextSlotIdx < nextRound.count {
-                        let slot: TeamSlot = (i % 2 == 0) ? .team1 : .team2
-                        games[gIdx].feedsWinnerTo = GameLink(gameId: nextRound[nextSlotIdx], slot: slot)
-                    }
-                } else {
-                    // WB final winner goes to championship as team1
-                    games[gIdx].feedsWinnerTo = GameLink(gameId: champId, slot: .team1)
-                }
+        tier.games = [g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13]
 
-                // Loser drops to LB
-                if !lbRounds.isEmpty {
-                    // Map WB round losers to appropriate LB round
-                    let lbTargetRound: Int
-                    if roundIdx == 0 {
-                        lbTargetRound = 0
-                    } else {
-                        // WB round R losers go to LB dropdown round
-                        lbTargetRound = min(roundIdx * 2 - 1, lbRounds.count - 1)
-                    }
+        tier.winnersBracketRounds = [
+            BracketRoundGroup(gameIds: [g1.id, g2.id, g3.id, g4.id, g5.id]),
+            BracketRoundGroup(gameIds: [g9.id, g10.id])
+        ]
 
-                    if lbTargetRound < lbRounds.count {
-                        let lbRound = lbRounds[lbTargetRound]
-                        let lbSlotIdx = i / 2
-                        if lbSlotIdx < lbRound.count {
-                            let slot: TeamSlot
-                            if roundIdx == 0 {
-                                slot = (i % 2 == 0) ? .team1 : .team2
-                            } else {
-                                slot = .team2  // WB dropdowns always go to team2 slot
-                            }
-                            games[gIdx].feedsLoserTo = GameLink(gameId: lbRound[lbSlotIdx], slot: slot)
-                        }
-                    }
-                }
-            }
-        }
+        tier.losersBracketRounds = [
+            BracketRoundGroup(gameIds: [g6.id, g7.id]),
+            BracketRoundGroup(gameIds: [g8.id]),
+            BracketRoundGroup(gameIds: [g11.id, g12.id]),
+            BracketRoundGroup(gameIds: [g13.id])
+        ]
 
-        // LB: winners advance within LB, losers eliminated
-        for roundIdx in 0..<lbRounds.count {
-            let roundIds = lbRounds[roundIdx]
-            for (i, gId) in roundIds.enumerated() {
-                guard let gIdx = games.firstIndex(where: { $0.id == gId }) else { continue }
-
-                if roundIdx + 1 < lbRounds.count {
-                    let nextRound = lbRounds[roundIdx + 1]
-                    let nextSlotIdx = i / 2
-                    if nextSlotIdx < nextRound.count {
-                        let slot: TeamSlot = (i % 2 == 0) ? .team1 : .team2
-                        games[gIdx].feedsWinnerTo = GameLink(gameId: nextRound[nextSlotIdx], slot: slot)
-                    }
-                } else {
-                    // LB final winner goes to championship as team2
-                    games[gIdx].feedsWinnerTo = GameLink(gameId: champId, slot: .team2)
-                }
-                // LB losers: feedsLoserTo = nil (eliminated)
-            }
-        }
-
-        // Championship winner: if WB champ wins, they're the tier champion
-        // If LB champ wins, if-necessary is activated (wired in recordGameResult)
-        if let champIdx = games.firstIndex(where: { $0.id == champId }) {
-            games[champIdx].feedsWinnerTo = nil // handled specially
-        }
-
-        tier.games = games
-        tier.winnersBracketRounds = wbRounds.map { BracketRoundGroup(gameIds: $0) }
-        tier.losersBracketRounds = lbRounds.map { BracketRoundGroup(gameIds: $0) }
-        tier.championshipGameId = champId
-        tier.ifNecessaryGameId = ifNecId
+        tier.championshipGameId = nil
+        tier.ifNecessaryGameId = nil
         tier.status = .upcoming
 
         return tier
     }
 
-    private func nextPowerOf2(_ n: Int) -> Int {
-        var v = 1
-        while v < n { v *= 2 }
-        return v
+    // MARK: - Day 2 Bracket (8 teams, 10 games)
+    //
+    // 5 preset teams + 3 advancing from Day 1. All manually assigned to WB R1.
+    // WB R1: G1-G4 (4 games)
+    // WB SF: G5, G6 (2 games)
+    // LB R1: G7, G8 (4 WB R1 losers, auto-routed)
+    // LB R2: G9, G10 (LB R1 winners vs WB SF losers, auto-routed)
+    // Advances: G5W, G6W (WB semi winners) + G9W, G10W (LB R2 winners) = 4
+
+    private func generateDay2Bracket(config: TierConfig) -> TournamentTier {
+        var tier = TournamentTier(
+            tierNumber: 2,
+            tierName: config.tierName,
+            dayLabel: config.dayLabel,
+            date: config.date,
+            teamIds: config.teamIds
+        )
+
+        // WB R1 (4 games, all manual assignment)
+        var g1 = TournamentGame(gameNumber: 1, bracketSide: .winners)
+        var g2 = TournamentGame(gameNumber: 2, bracketSide: .winners)
+        var g3 = TournamentGame(gameNumber: 3, bracketSide: .winners)
+        var g4 = TournamentGame(gameNumber: 4, bracketSide: .winners)
+
+        // WB SF (2 games)
+        var g5 = TournamentGame(gameNumber: 5, bracketSide: .winners)
+        var g6 = TournamentGame(gameNumber: 6, bracketSide: .winners)
+
+        // LB R1 (2 games)
+        var g7 = TournamentGame(gameNumber: 7, bracketSide: .losers)
+        var g8 = TournamentGame(gameNumber: 8, bracketSide: .losers)
+
+        // LB R2 (2 games)
+        let g9 = TournamentGame(gameNumber: 9, bracketSide: .losers)
+        let g10 = TournamentGame(gameNumber: 10, bracketSide: .losers)
+
+        // WB R1 winners → WB SF
+        g1.feedsWinnerTo = GameLink(gameId: g5.id, slot: .team1)
+        g2.feedsWinnerTo = GameLink(gameId: g5.id, slot: .team2)
+        g3.feedsWinnerTo = GameLink(gameId: g6.id, slot: .team1)
+        g4.feedsWinnerTo = GameLink(gameId: g6.id, slot: .team2)
+
+        // WB R1 losers → LB R1 (all auto-routed)
+        g1.feedsLoserTo = GameLink(gameId: g7.id, slot: .team1)
+        g2.feedsLoserTo = GameLink(gameId: g7.id, slot: .team2)
+        g3.feedsLoserTo = GameLink(gameId: g8.id, slot: .team1)
+        g4.feedsLoserTo = GameLink(gameId: g8.id, slot: .team2)
+
+        // WB SF losers → LB R2
+        g5.feedsLoserTo = GameLink(gameId: g10.id, slot: .team1)
+        g6.feedsLoserTo = GameLink(gameId: g9.id, slot: .team2)
+
+        // LB R1 winners → LB R2
+        g7.feedsWinnerTo = GameLink(gameId: g9.id, slot: .team1)
+        g8.feedsWinnerTo = GameLink(gameId: g10.id, slot: .team2)
+
+        // WB SF winners advance, LB R2 winners advance — no further routing
+
+        tier.games = [g1, g2, g3, g4, g5, g6, g7, g8, g9, g10]
+
+        tier.winnersBracketRounds = [
+            BracketRoundGroup(gameIds: [g1.id, g2.id, g3.id, g4.id]),
+            BracketRoundGroup(gameIds: [g5.id, g6.id])
+        ]
+
+        tier.losersBracketRounds = [
+            BracketRoundGroup(gameIds: [g7.id, g8.id]),
+            BracketRoundGroup(gameIds: [g9.id, g10.id])
+        ]
+
+        tier.championshipGameId = nil
+        tier.ifNecessaryGameId = nil
+        tier.status = .upcoming
+
+        return tier
+    }
+
+    // MARK: - Day 3 Bracket (4 teams, up to 7 games)
+    //
+    // Standard 4-team double elimination with championship + if-necessary.
+    // WB SF: G1, G2
+    // WB Final: G3
+    // LB R1: G4 (WB SF losers)
+    // LB R2: G5 (G4W vs G3L)
+    // Championship: G6 (G3W vs G5W)
+    // If Necessary: G7 (if LB champion wins G6)
+
+    private func generateDay3Bracket(config: TierConfig) -> TournamentTier {
+        var tier = TournamentTier(
+            tierNumber: 3,
+            tierName: config.tierName,
+            dayLabel: config.dayLabel,
+            date: config.date,
+            teamIds: config.teamIds
+        )
+
+        // WB SF (2 games, manual assignment)
+        var g1 = TournamentGame(gameNumber: 1, bracketSide: .winners)
+        var g2 = TournamentGame(gameNumber: 2, bracketSide: .winners)
+
+        // WB Final
+        var g3 = TournamentGame(gameNumber: 3, bracketSide: .winners)
+
+        // LB R1
+        var g4 = TournamentGame(gameNumber: 4, bracketSide: .losers)
+
+        // LB R2 (LB Final)
+        var g5 = TournamentGame(gameNumber: 5, bracketSide: .losers)
+
+        // Championship
+        let g6 = TournamentGame(gameNumber: 6, bracketSide: .championship)
+
+        // If Necessary
+        let g7 = TournamentGame(gameNumber: 7, bracketSide: .ifNecessary)
+
+        // WB SF
+        g1.feedsWinnerTo = GameLink(gameId: g3.id, slot: .team1)
+        g1.feedsLoserTo = GameLink(gameId: g4.id, slot: .team1)
+
+        g2.feedsWinnerTo = GameLink(gameId: g3.id, slot: .team2)
+        g2.feedsLoserTo = GameLink(gameId: g4.id, slot: .team2)
+
+        // WB Final
+        g3.feedsWinnerTo = GameLink(gameId: g6.id, slot: .team1)  // WB champ → championship team1
+        g3.feedsLoserTo = GameLink(gameId: g5.id, slot: .team1)   // WB final loser → LB R2
+
+        // LB R1
+        g4.feedsWinnerTo = GameLink(gameId: g5.id, slot: .team2)  // LB R1 winner → LB R2
+
+        // LB R2 (LB Final)
+        g5.feedsWinnerTo = GameLink(gameId: g6.id, slot: .team2)  // LB champ → championship team2
+
+        // Championship: winner is champion (or if LB wins, if-necessary is activated via recordGameResult)
+
+        tier.games = [g1, g2, g3, g4, g5, g6, g7]
+
+        tier.winnersBracketRounds = [
+            BracketRoundGroup(gameIds: [g1.id, g2.id]),
+            BracketRoundGroup(gameIds: [g3.id])
+        ]
+
+        tier.losersBracketRounds = [
+            BracketRoundGroup(gameIds: [g4.id]),
+            BracketRoundGroup(gameIds: [g5.id])
+        ]
+
+        tier.championshipGameId = g6.id
+        tier.ifNecessaryGameId = g7.id
+        tier.status = .upcoming
+
+        return tier
     }
 
     // MARK: - Utility

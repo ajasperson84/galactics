@@ -15,6 +15,7 @@ struct TournamentView: View {
     struct GameSelection: Identifiable {
         let id = UUID()
         let tierIndex: Int
+        let gameId: String
         let game: TournamentGame
     }
 
@@ -96,14 +97,41 @@ struct TournamentView: View {
                     let tierIdx = min(selectedTierIndex, tournament.tiers.count - 1)
                     let tier = tournament.tiers[tierIdx]
 
+                    // Team assignment banner
+                    let needsAssignment = !cloudService.unassignedTierTeams(tierIndex: tierIdx).isEmpty ||
+                        !cloudService.unplacedLosers(tierIndex: tierIdx).isEmpty
+                    if needsAssignment {
+                        HStack(spacing: 8) {
+                            Image(systemName: "person.badge.plus")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(AztecTheme.neonYellow)
+                            Text("TEAMS NEED ASSIGNING")
+                                .font(AztecTheme.sfProBold(size: 12))
+                                .tracking(1)
+                                .foregroundColor(AztecTheme.neonYellow)
+                            Spacer()
+                            Text("Tap a game to assign")
+                                .font(AztecTheme.sfProMedium(size: 11))
+                                .foregroundColor(AztecTheme.hotPink)
+                        }
+                        .padding(12)
+                        .background(AztecTheme.neonYellow.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(AztecTheme.neonYellow.opacity(0.4), lineWidth: 1.5)
+                        )
+                        .padding(.horizontal)
+                    }
+
                     switch viewMode {
                     case .schedule:
                         ScheduleView(tier: tier, tierIndex: tierIdx) { game in
-                            selectedGame = GameSelection(tierIndex: tierIdx, game: game)
+                            selectedGame = GameSelection(tierIndex: tierIdx, gameId: game.id, game: game)
                         }
                     case .bracket:
                         BracketView(tier: tier, tierIndex: tierIdx) { game in
-                            selectedGame = GameSelection(tierIndex: tierIdx, game: game)
+                            selectedGame = GameSelection(tierIndex: tierIdx, gameId: game.id, game: game)
                         }
                     }
                 } else {
@@ -155,7 +183,11 @@ struct TournamentView: View {
             CreateTournamentSheet()
         }
         .sheet(item: $selectedGame) { selection in
-            GameEntrySheet(tierIndex: selection.tierIndex, game: selection.game)
+            if selection.game.team1Id != nil && selection.game.team2Id != nil {
+                GameEntrySheet(tierIndex: selection.tierIndex, game: selection.game)
+            } else {
+                TeamAssignmentSheet(tierIndex: selection.tierIndex, gameId: selection.gameId)
+            }
         }
     }
 }
@@ -340,6 +372,15 @@ struct GameCard: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
                 }
 
+                // Assign teams hint
+                if game.team1Id == nil || game.team2Id == nil {
+                    Text("TAP TO ASSIGN TEAMS")
+                        .font(AztecTheme.sfProBold(size: 10))
+                        .tracking(1)
+                        .foregroundColor(AztecTheme.neonYellow)
+                        .padding(.top, 2)
+                }
+
                 // Field and time info (non-compact only)
                 if !compact {
                     HStack(spacing: 12) {
@@ -414,6 +455,15 @@ struct CreateTournamentSheet: View {
                                 .font(AztecTheme.sfProMedium(size: 14))
                                 .foregroundColor(AztecTheme.hotPink)
                                 .multilineTextAlignment(.center)
+
+                            if cloudService.teams.count < 14 {
+                                Button("SEED ALL G4 TEAMS") {
+                                    Task {
+                                        await cloudService.seedTournamentTeams()
+                                    }
+                                }
+                                .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.hotPink))
+                            }
 
                             AztecSectionHeader(title: "Day 1 Squads (\(tier1TeamIds.count))", color: AztecTheme.hotPink)
 
@@ -598,5 +648,202 @@ struct CreateTournamentSheet: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Team Assignment Sheet
+
+struct TeamAssignmentSheet: View {
+    @EnvironmentObject var cloudService: CloudSyncService
+    @Environment(\.dismiss) var dismiss
+
+    let tierIndex: Int
+    let gameId: String
+
+    private var game: TournamentGame? {
+        guard let tournament = cloudService.tournament,
+              tierIndex < tournament.tiers.count else { return nil }
+        return tournament.tiers[tierIndex].game(byId: gameId)
+    }
+
+    private var availableTeams: [Team] {
+        let unassigned = cloudService.unassignedTierTeams(tierIndex: tierIndex)
+        let losers = cloudService.unplacedLosers(tierIndex: tierIndex)
+        let combined = Set(unassigned + losers)
+        return combined
+            .compactMap { cloudService.team(for: $0) }
+            .sorted { $0.name < $1.name }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                if let game {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            // Header
+                            Text("GAME \(game.gameNumber)")
+                                .font(AztecTheme.hobbsFont(size: 40))
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundColor(AztecTheme.neonYellow)
+                                .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
+
+                            Text("ASSIGN TEAMS")
+                                .font(AztecTheme.sfProBold(size: 14))
+                                .tracking(2)
+                                .foregroundColor(AztecTheme.hotPink)
+                                .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
+
+                            // Team 1 slot
+                            let needsTeam1 = game.team1Id == nil &&
+                                !cloudService.slotHasAutoFeed(tierIndex: tierIndex, gameId: gameId, slot: .team1)
+
+                            if let teamId = game.team1Id, let team = cloudService.team(for: teamId) {
+                                assignedRow(team: team, label: "TEAM 1")
+                            } else if needsTeam1 {
+                                slotPicker(title: "SELECT TEAM 1", slot: .team1)
+                            } else {
+                                pendingRow(label: "TEAM 1 — waiting for result")
+                            }
+
+                            Text("VS")
+                                .font(AztecTheme.hobbsFont(size: 40))
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [AztecTheme.neonYellow, AztecTheme.hotPink],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+
+                            // Team 2 slot
+                            let needsTeam2 = game.team2Id == nil &&
+                                !cloudService.slotHasAutoFeed(tierIndex: tierIndex, gameId: gameId, slot: .team2)
+
+                            if let teamId = game.team2Id, let team = cloudService.team(for: teamId) {
+                                assignedRow(team: team, label: "TEAM 2")
+                            } else if needsTeam2 {
+                                slotPicker(title: "SELECT TEAM 2", slot: .team2)
+                            } else {
+                                pendingRow(label: "TEAM 2 — waiting for result")
+                            }
+
+                            if game.team1Id != nil && game.team2Id != nil {
+                                Text("BOTH TEAMS ASSIGNED")
+                                    .font(AztecTheme.sfProBold(size: 12))
+                                    .tracking(1)
+                                    .foregroundColor(AztecTheme.neonYellow)
+                                    .padding(.top, 8)
+                            }
+                        }
+                        .padding()
+                    }
+                }
+            }
+            .navigationTitle("Assign Teams")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                        .dismissButtonStyle()
+                }
+            }
+        }
+    }
+
+    private func slotPicker(title: String, slot: TeamSlot) -> some View {
+        VStack(spacing: 8) {
+            Text(title)
+                .font(AztecTheme.sfProBold(size: 11))
+                .tracking(2)
+                .foregroundColor(AztecTheme.hotPink)
+
+            if availableTeams.isEmpty {
+                VStack(spacing: 4) {
+                    Image(systemName: "clock")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(AztecTheme.dimText)
+                    Text("Waiting for teams...")
+                        .font(AztecTheme.sfProMedium(size: 14))
+                        .foregroundColor(AztecTheme.dimText)
+                }
+                .padding()
+            } else {
+                ForEach(availableTeams) { team in
+                    Button {
+                        Task {
+                            await cloudService.assignTeamToGameSlot(
+                                tierIndex: tierIndex,
+                                gameId: gameId,
+                                slot: slot,
+                                teamId: team.id
+                            )
+                        }
+                    } label: {
+                        HStack {
+                            TeamIconView(team: team, size: 28)
+                            Text(team.name)
+                                .font(AztecTheme.hobbsFont(size: 28))
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundColor(AztecTheme.neonYellow)
+                            Spacer()
+                            Image(systemName: "plus.circle")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(AztecTheme.hotPink)
+                        }
+                        .padding(14)
+                        .background(Color.black)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(AztecTheme.hotPink.opacity(0.4), lineWidth: 2.25)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private func assignedRow(team: Team, label: String) -> some View {
+        HStack {
+            TeamIconView(team: team, size: 32)
+            Text(team.name)
+                .font(AztecTheme.hobbsFont(size: 32))
+                .tracking(AztecTheme.hobbsKerning)
+                .foregroundColor(AztecTheme.neonYellow)
+            Spacer()
+            Text(label)
+                .font(AztecTheme.sfProBold(size: 10))
+                .foregroundColor(AztecTheme.hotPink)
+        }
+        .padding(14)
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(AztecTheme.neonYellow.opacity(0.6), lineWidth: 2.25)
+        )
+    }
+
+    private func pendingRow(label: String) -> some View {
+        HStack {
+            Image(systemName: "hourglass")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(AztecTheme.dimText)
+            Text(label)
+                .font(AztecTheme.sfProMedium(size: 14))
+                .foregroundColor(AztecTheme.dimText)
+            Spacer()
+        }
+        .padding(14)
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(AztecTheme.hotPink.opacity(0.2), lineWidth: 2.25)
+        )
     }
 }
