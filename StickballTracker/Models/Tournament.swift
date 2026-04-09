@@ -36,8 +36,8 @@ struct TournamentTier: Identifiable, Codable {
     var date: Date?
     var teamIds: [String]            // Teams participating in this tier
     var games: [TournamentGame]      // ALL games flat (for schedule view)
-    var winnersBracketGameIds: [[String]]  // Rounds of game IDs for bracket view
-    var losersBracketGameIds: [[String]]   // Rounds of game IDs for bracket view
+    var winnersBracketRounds: [BracketRoundGroup]  // Rounds of game IDs for bracket view
+    var losersBracketRounds: [BracketRoundGroup]   // Rounds of game IDs for bracket view
     var championshipGameId: String?
     var ifNecessaryGameId: String?
     var status: TierStatus
@@ -58,8 +58,8 @@ struct TournamentTier: Identifiable, Codable {
         self.date = date
         self.teamIds = teamIds
         self.games = []
-        self.winnersBracketGameIds = []
-        self.losersBracketGameIds = []
+        self.winnersBracketRounds = []
+        self.losersBracketRounds = []
         self.championshipGameId = nil
         self.ifNecessaryGameId = nil
         self.status = .upcoming
@@ -73,13 +73,13 @@ struct TournamentTier: Identifiable, Codable {
 
     /// Get games for a specific bracket round
     func gamesForWinnersRound(_ roundIndex: Int) -> [TournamentGame] {
-        guard roundIndex < winnersBracketGameIds.count else { return [] }
-        return winnersBracketGameIds[roundIndex].compactMap { id in game(byId: id) }
+        guard roundIndex < winnersBracketRounds.count else { return [] }
+        return winnersBracketRounds[roundIndex].gameIds.compactMap { id in game(byId: id) }
     }
 
     func gamesForLosersRound(_ roundIndex: Int) -> [TournamentGame] {
-        guard roundIndex < losersBracketGameIds.count else { return [] }
-        return losersBracketGameIds[roundIndex].compactMap { id in game(byId: id) }
+        guard roundIndex < losersBracketRounds.count else { return [] }
+        return losersBracketRounds[roundIndex].gameIds.compactMap { id in game(byId: id) }
     }
 
     /// All games sorted by scheduled time then game number (for schedule view)
@@ -161,6 +161,16 @@ enum BracketSide: String, Codable {
 struct GameLink: Codable {
     var gameId: String
     var slot: TeamSlot
+}
+
+struct BracketRoundGroup: Identifiable, Codable {
+    var id: String
+    var gameIds: [String]
+
+    init(id: String = UUID().uuidString, gameIds: [String]) {
+        self.id = id
+        self.gameIds = gameIds
+    }
 }
 
 enum TeamSlot: String, Codable {

@@ -601,8 +601,8 @@ class CloudSyncService: ObservableObject {
         }
 
         tier.games = games
-        tier.winnersBracketGameIds = wbRounds
-        tier.losersBracketGameIds = lbRounds
+        tier.winnersBracketRounds = wbRounds.map { BracketRoundGroup(gameIds: $0) }
+        tier.losersBracketRounds = lbRounds.map { BracketRoundGroup(gameIds: $0) }
         tier.championshipGameId = champId
         tier.ifNecessaryGameId = ifNecId
         tier.status = .upcoming

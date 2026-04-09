@@ -444,10 +444,16 @@ struct CreateTournamentSheet: View {
                             // Step 2: Select teams entering on Day 2
                             AztecSectionHeader(title: "Day 2 Squads")
 
-                            Text("Select squads that enter on Day 2.\nDay 1 winners will also advance here.")
+                            Text("Select squads waiting for Day 2.\n3 winners from Day 1 will join them.")
                                 .font(AztecTheme.sfProMedium(size: 14))
                                 .foregroundColor(AztecTheme.hotPink)
                                 .multilineTextAlignment(.center)
+
+                            if !tier2TeamIds.isEmpty {
+                                Text("\(tier2TeamIds.count) selected + 3 advancing = \(tier2TeamIds.count + 3) total")
+                                    .font(AztecTheme.sfProBold(size: 13))
+                                    .foregroundColor(AztecTheme.neonYellow)
+                            }
 
                             let availableForDay2 = cloudService.teams.filter { !tier1TeamIds.contains($0.id) }
                             ForEach(availableForDay2) { team in
@@ -481,7 +487,7 @@ struct CreateTournamentSheet: View {
 
                             VStack(alignment: .leading, spacing: 12) {
                                 tierSummary(title: "DAY 1 - ROUND 1", teamIds: tier1TeamIds, color: AztecTheme.neonYellow)
-                                tierSummary(title: "DAY 2 - ROUND 2", teamIds: tier2TeamIds, color: AztecTheme.hotPink)
+                                tierSummary(title: "DAY 2 - ROUND 2 (\(tier2TeamIds.count) + 3 advancing)", teamIds: tier2TeamIds, color: AztecTheme.hotPink)
                                 Text("DAY 3 - CHAMPIONSHIP")
                                     .font(AztecTheme.sfProBold(size: 14))
                                     .foregroundColor(AztecTheme.neonYellow)

@@ -19,20 +19,20 @@ struct BracketView: View {
             .padding(.horizontal)
 
             // Winners Bracket
-            if !tier.winnersBracketGameIds.isEmpty {
+            if !tier.winnersBracketRounds.isEmpty {
                 bracketSection(
                     title: "WINNERS BRACKET",
                     color: AztecTheme.neonYellow,
-                    rounds: tier.winnersBracketGameIds
+                    rounds: tier.winnersBracketRounds
                 )
             }
 
             // Losers Bracket
-            if !tier.losersBracketGameIds.isEmpty {
+            if !tier.losersBracketRounds.isEmpty {
                 bracketSection(
                     title: "LOSERS BRACKET",
                     color: AztecTheme.hotPink,
-                    rounds: tier.losersBracketGameIds
+                    rounds: tier.losersBracketRounds
                 )
             }
 
@@ -85,7 +85,7 @@ struct BracketView: View {
         }
     }
 
-    private func bracketSection(title: String, color: Color, rounds: [[String]]) -> some View {
+    private func bracketSection(title: String, color: Color, rounds: [BracketRoundGroup]) -> some View {
         VStack(spacing: 8) {
             HStack {
                 Text(title)
@@ -102,7 +102,7 @@ struct BracketView: View {
             // Horizontally scrollable bracket rounds
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 4) {
-                    ForEach(Array(rounds.enumerated()), id: \.offset) { roundIdx, gameIds in
+                    ForEach(Array(rounds.enumerated()), id: \.offset) { roundIdx, roundGroup in
                         VStack(spacing: 4) {
                             // Round header
                             Text("RD \(roundIdx + 1)")
@@ -111,7 +111,7 @@ struct BracketView: View {
                                 .padding(.bottom, 4)
 
                             // Games in this round
-                            ForEach(gameIds, id: \.self) { gameId in
+                            ForEach(roundGroup.gameIds, id: \.self) { gameId in
                                 if let game = tier.game(byId: gameId) {
                                     // Skip bye games in bracket view
                                     if !(game.status == .completed && game.team2Id == nil) {
@@ -129,8 +129,8 @@ struct BracketView: View {
                         // Connector column between rounds (except after last)
                         if roundIdx < rounds.count - 1 {
                             BracketConnectors(
-                                fromCount: gameIds.count,
-                                toCount: roundIdx + 1 < rounds.count ? rounds[roundIdx + 1].count : 1,
+                                fromCount: roundGroup.gameIds.count,
+                                toCount: roundIdx + 1 < rounds.count ? rounds[roundIdx + 1].gameIds.count : 1,
                                 color: color
                             )
                             .frame(width: 24)
