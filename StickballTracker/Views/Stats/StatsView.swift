@@ -10,8 +10,6 @@ struct StatsView: View {
         case salamies = "Salamies"
         case doublePlays = "Dbl Plays"
         case drops = "Drops"
-        case suds = "Suds"
-        case tacos = "Tacos"
 
         var label: String { rawValue }
 
@@ -21,8 +19,6 @@ struct StatsView: View {
             case .salamies: return AztecTheme.neonYellow
             case .doublePlays: return AztecTheme.hotPink
             case .drops: return AztecTheme.hotPink
-            case .suds: return AztecTheme.neonYellow
-            case .tacos: return AztecTheme.neonYellow
             }
         }
     }
@@ -39,10 +35,6 @@ struct StatsView: View {
                 return p1.stats.doublePlays > p2.stats.doublePlays
             case .drops:
                 return p1.stats.drops > p2.stats.drops
-            case .suds:
-                return p1.stats.suds > p2.stats.suds
-            case .tacos:
-                return p1.stats.tacos > p2.stats.tacos
             }
         }
         return sorted
@@ -61,10 +53,6 @@ struct StatsView: View {
                 return p1.reduce(0) { $0 + $1.stats.doublePlays } > p2.reduce(0) { $0 + $1.stats.doublePlays }
             case .drops:
                 return p1.reduce(0) { $0 + $1.stats.drops } > p2.reduce(0) { $0 + $1.stats.drops }
-            case .suds:
-                return p1.reduce(0) { $0 + $1.stats.suds } > p2.reduce(0) { $0 + $1.stats.suds }
-            case .tacos:
-                return p1.reduce(0) { $0 + $1.stats.tacos } > p2.reduce(0) { $0 + $1.stats.tacos }
             }
         }
     }
@@ -217,10 +205,6 @@ struct StatsTableHeader: View {
                 .frame(width: 24, alignment: .trailing)
             Text("DRP")
                 .frame(width: 28, alignment: .trailing)
-            Text("SUD")
-                .frame(width: 28, alignment: .trailing)
-            Text("TAC")
-                .frame(width: 28, alignment: .trailing)
         }
         .font(AztecTheme.sfProBold(size: 10))
         .foregroundColor(AztecTheme.hotPink)
@@ -283,18 +267,6 @@ struct StatsTableRow: View {
                 .foregroundColor(highlightStat == .drops ? AztecTheme.hotPink : AztecTheme.hotPink.opacity(0.7))
                 .shadow(color: highlightStat == .drops ? AztecTheme.hotPink.opacity(0.3) : .clear, radius: 2)
                 .frame(width: 28, alignment: .trailing)
-
-            Text("\(player.stats.suds)")
-                .font(.system(size: 11, weight: highlightStat == .suds ? .black : .bold))
-                .foregroundColor(highlightStat == .suds ? AztecTheme.neonYellow : AztecTheme.neonYellow.opacity(0.7))
-                .shadow(color: highlightStat == .suds ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
-                .frame(width: 28, alignment: .trailing)
-
-            Text("\(player.stats.tacos)")
-                .font(.system(size: 11, weight: highlightStat == .tacos ? .black : .bold))
-                .foregroundColor(highlightStat == .tacos ? AztecTheme.neonYellow : AztecTheme.neonYellow.opacity(0.7))
-                .shadow(color: highlightStat == .tacos ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
-                .frame(width: 28, alignment: .trailing)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
@@ -320,8 +292,6 @@ struct TeamAggregatedRow: View {
     var totalSalamies: Int { teamPlayers.reduce(0) { $0 + $1.stats.salamies } }
     var totalDoublePlays: Int { teamPlayers.reduce(0) { $0 + $1.stats.doublePlays } }
     var totalDrops: Int { teamPlayers.reduce(0) { $0 + $1.stats.drops } }
-    var totalSuds: Int { teamPlayers.reduce(0) { $0 + $1.stats.suds } }
-    var totalTacos: Int { teamPlayers.reduce(0) { $0 + $1.stats.tacos } }
 
     private func statColor(_ stat: StatsView.StatSort) -> Color {
         highlightStat == stat ? AztecTheme.neonYellow : AztecTheme.neonYellow.opacity(0.7)
@@ -381,26 +351,6 @@ struct TeamAggregatedRow: View {
                         .foregroundColor(statColor(.drops))
                         .shadow(color: highlightStat == .drops ? AztecTheme.hotPink.opacity(0.3) : .clear, radius: 2)
                     Text("Dr")
-                        .font(AztecTheme.sfProBold(size: 9))
-                        .foregroundColor(AztecTheme.hotPink)
-                }
-
-                VStack(spacing: 1) {
-                    Text("\(totalSuds)")
-                        .font(statWeight(.suds))
-                        .foregroundColor(statColor(.suds))
-                        .shadow(color: highlightStat == .suds ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
-                    Text("Su")
-                        .font(AztecTheme.sfProBold(size: 9))
-                        .foregroundColor(AztecTheme.hotPink)
-                }
-
-                VStack(spacing: 1) {
-                    Text("\(totalTacos)")
-                        .font(statWeight(.tacos))
-                        .foregroundColor(statColor(.tacos))
-                        .shadow(color: highlightStat == .tacos ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
-                    Text("T")
                         .font(AztecTheme.sfProBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
                 }

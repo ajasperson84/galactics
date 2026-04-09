@@ -270,8 +270,6 @@ struct PlayerDetailSheet: View {
             ("Salamies", player.stats.salamies),
             ("Dbl Plays", player.stats.doublePlays),
             ("Drops", player.stats.drops),
-            ("Suds", player.stats.suds),
-            ("Tacos", player.stats.tacos),
         ]
     }
 

@@ -223,9 +223,7 @@ struct GameEntrySheet: View {
                             ForEach(team1Players) { player in
                                 QuickStatEntry(
                                     playerName: player.name,
-                                    stats: binding(for: player.id),
-                                    onDongChanged: { delta in team1Score = max(0, team1Score + delta) },
-                                    onSalamiChanged: { delta in team1Score = max(0, team1Score + (delta * 4)) }
+                                    stats: binding(for: player.id)
                                 )
                             }
                         }
@@ -243,9 +241,7 @@ struct GameEntrySheet: View {
                             ForEach(team2Players) { player in
                                 QuickStatEntry(
                                     playerName: player.name,
-                                    stats: binding(for: player.id),
-                                    onDongChanged: { delta in team2Score = max(0, team2Score + delta) },
-                                    onSalamiChanged: { delta in team2Score = max(0, team2Score + (delta * 4)) }
+                                    stats: binding(for: player.id)
                                 )
                             }
                         }
@@ -312,8 +308,6 @@ struct GameEntrySheet: View {
             gs.drops = stats.drops
             gs.doublePlays = stats.doublePlays
             gs.salamies = stats.salamies
-            gs.suds = stats.suds
-            gs.tacos = stats.tacos
             return gs
         }
 
@@ -338,16 +332,12 @@ struct EditablePlayerStats {
     var drops: Int = 0
     var doublePlays: Int = 0
     var salamies: Int = 0
-    var suds: Int = 0
-    var tacos: Int = 0
 }
 
 /// Quick stat entry row for a single player.
 struct QuickStatEntry: View {
     let playerName: String
     @Binding var stats: EditablePlayerStats
-    var onDongChanged: (Int) -> Void
-    var onSalamiChanged: (Int) -> Void
     @State private var isExpanded = false
 
     var body: some View {
@@ -386,16 +376,6 @@ struct QuickStatEntry: View {
                                 .font(.system(size: 12, weight: .heavy, design: .monospaced))
                                 .foregroundColor(AztecTheme.hotPink)
                         }
-                        if stats.suds > 0 {
-                            Text("\(stats.suds)Su")
-                                .font(.system(size: 12, weight: .heavy, design: .monospaced))
-                                .foregroundColor(AztecTheme.neonYellow)
-                        }
-                        if stats.tacos > 0 {
-                            Text("\(stats.tacos)T")
-                                .font(.system(size: 12, weight: .heavy, design: .monospaced))
-                                .foregroundColor(AztecTheme.neonYellow)
-                        }
                     }
 
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
@@ -408,16 +388,10 @@ struct QuickStatEntry: View {
 
             if isExpanded {
                 VStack(spacing: 6) {
-                    StatStepperRow(label: "Dongs", value: $stats.dongs, color: AztecTheme.neonYellow) { delta in
-                        onDongChanged(delta)
-                    }
-                    StatStepperRow(label: "Salamies", value: $stats.salamies, color: AztecTheme.neonYellow) { delta in
-                        onSalamiChanged(delta)
-                    }
+                    StatStepperRow(label: "Dongs", value: $stats.dongs, color: AztecTheme.neonYellow)
+                    StatStepperRow(label: "Salamies", value: $stats.salamies, color: AztecTheme.neonYellow)
                     StatStepperRow(label: "Dbl Plays", value: $stats.doublePlays, color: AztecTheme.hotPink)
                     StatStepperRow(label: "Drops", value: $stats.drops, color: AztecTheme.hotPink)
-                    StatStepperRow(label: "Suds", value: $stats.suds, color: AztecTheme.neonYellow)
-                    StatStepperRow(label: "Tacos", value: $stats.tacos, color: AztecTheme.neonYellow)
                 }
                 .padding(.horizontal, 12)
                 .padding(.bottom, 10)
