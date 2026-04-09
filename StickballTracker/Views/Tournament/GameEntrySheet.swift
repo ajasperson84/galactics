@@ -284,10 +284,10 @@ struct GameEntrySheet: View {
     }
 
     private var tournamentDateRange: ClosedRange<Date> {
-        let calendar = Calendar.current
-        let start = calendar.date(from: DateComponents(year: 2026, month: 4, day: 25))!
-        let end = calendar.date(from: DateComponents(year: 2026, month: 4, day: 27, hour: 23, minute: 59))!
-        return start...end
+        guard let tournament = cloudService.tournament else {
+            return Date()...Date()
+        }
+        return tournament.dateRange
     }
 
     private func binding(for playerId: String) -> Binding<EditablePlayerStats> {

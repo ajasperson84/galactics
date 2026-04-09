@@ -6,15 +6,23 @@ struct Tournament: Identifiable, Codable {
     var teamIds: [String]
     var bracket: [BracketRound]
     var status: TournamentStatus
+    var startDate: Date
+    var endDate: Date
     var createdAt: Date
 
-    init(id: String = UUID().uuidString, name: String, teamIds: [String] = []) {
+    init(id: String = UUID().uuidString, name: String, teamIds: [String] = [], startDate: Date = Date(), endDate: Date = Date()) {
         self.id = id
         self.name = name
         self.teamIds = teamIds
         self.bracket = []
         self.status = .setup
+        self.startDate = startDate
+        self.endDate = endDate
         self.createdAt = Date()
+    }
+
+    var dateRange: ClosedRange<Date> {
+        startDate...endDate
     }
 }
 

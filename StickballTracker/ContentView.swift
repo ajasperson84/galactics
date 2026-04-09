@@ -3,16 +3,19 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @State private var selectedTab: AppTab = .tournament
+    @State private var showError = false
 
     enum AppTab: String, CaseIterable {
         case tournament = "Tourney"
         case teams = "Squads"
+        case players = "Ballers"
         case stats = "Stats"
 
         var icon: String {
             switch self {
             case .tournament: return "trophy.fill"
             case .teams: return "person.3.fill"
+            case .players: return "figure.run"
             case .stats: return "chart.bar.fill"
             }
         }
@@ -67,6 +70,7 @@ struct ContentView: View {
                     switch selectedTab {
                     case .tournament: TournamentView()
                     case .teams: TeamsView()
+                    case .players: PlayersView()
                     case .stats: StatsView()
                     }
                 }
@@ -75,6 +79,26 @@ struct ContentView: View {
                 // Bottom tab bar
                 AztecTabBar(selectedTab: $selectedTab)
             }
+        }
+        .overlay {
+            if cloudService.isLoading {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                    ProgressView()
+                        .tint(AztecTheme.neonYellow)
+                        .scaleEffect(1.5)
+                }
+            }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {
+                cloudService.errorMessage = nil
+            }
+        } message: {
+            Text(cloudService.errorMessage ?? "An unknown error occurred.")
+        }
+        .onChange(of: cloudService.errorMessage) { _, newValue in
+            showError = newValue != nil
         }
     }
 }

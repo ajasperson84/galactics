@@ -234,9 +234,11 @@ class CloudSyncService: ObservableObject {
 
     // MARK: - Tournament Operations
 
-    func createTournament(name: String, matchups: [(String, String, Date?, String?)]) async {
+    func createTournament(name: String, matchups: [(String, String, Date?, String?)], startDate: Date, endDate: Date) async {
+        isLoading = true
+        defer { isLoading = false }
         let allTeamIds = matchups.flatMap { [$0.0, $0.1] }
-        var tournament = Tournament(name: name, teamIds: allTeamIds)
+        var tournament = Tournament(name: name, teamIds: allTeamIds, startDate: startDate, endDate: endDate)
         tournament.bracket = generateBracketFromMatchups(matchups)
         tournament.status = .inProgress
         do {
@@ -273,6 +275,8 @@ class CloudSyncService: ObservableObject {
         gameDate: Date?,
         playerStats: [PlayerGameStats]
     ) async {
+        isLoading = true
+        defer { isLoading = false }
         guard var tournament else { return }
         guard roundIndex < tournament.bracket.count,
               matchupIndex < tournament.bracket[roundIndex].matchups.count

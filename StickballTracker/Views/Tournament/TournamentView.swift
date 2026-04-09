@@ -164,15 +164,15 @@ struct ScheduleMatchupSheet: View {
     let matchupIndex: Int
     let matchup: Matchup
 
-    @State private var selectedDate: Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 25, hour: 10))!
+    @State private var selectedDate: Date = Date()
     @State private var selectedField: StickballField?
     @State private var hasDate: Bool = false
 
     private var tournamentDateRange: ClosedRange<Date> {
-        let calendar = Calendar.current
-        let start = calendar.date(from: DateComponents(year: 2026, month: 4, day: 25))!
-        let end = calendar.date(from: DateComponents(year: 2026, month: 4, day: 27, hour: 23, minute: 59))!
-        return start...end
+        guard let tournament = cloudService.tournament else {
+            return Date()...Date()
+        }
+        return tournament.dateRange
     }
 
     var body: some View {
@@ -267,6 +267,8 @@ struct ScheduleMatchupSheet: View {
                 if let date = matchup.scheduledDate {
                     selectedDate = date
                     hasDate = true
+                } else if let tournament = cloudService.tournament {
+                    selectedDate = Calendar.current.date(bySettingHour: 10, minute: 0, second: 0, of: tournament.startDate) ?? tournament.startDate
                 }
                 if let field = matchup.scheduledField {
                     selectedField = StickballField(rawValue: field)
@@ -582,6 +584,9 @@ struct CreateTournamentSheet: View {
     @State private var selectedTeamIds: [String] = []
     @State private var matchupSetups: [MatchupSetupData] = []
     @State private var showMatchupSetup = false
+    @State private var tourneyStartDate: Date = Date()
+    @State private var tourneyEndDate: Date = Calendar.current.date(byAdding: .day, value: 2, to: Date())!
+    @State private var hasDuplicateTeams = false
 
     var body: some View {
         NavigationStack {
@@ -591,8 +596,44 @@ struct CreateTournamentSheet: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         if !showMatchupSetup {
-                            // Step 1: Team selection
+                            // Step 1: Team selection & dates
                             AztecSectionHeader(title: "G Four Setup")
+
+                            // Tournament date range
+                            AztecSectionHeader(title: "Tourney Dates", color: AztecTheme.hotPink)
+
+                            VStack(spacing: 12) {
+                                HStack {
+                                    Text("START")
+                                        .font(AztecTheme.sfProBold(size: 11))
+                                        .tracking(2)
+                                        .foregroundColor(AztecTheme.hotPink)
+                                    Spacer()
+                                    DatePicker("", selection: $tourneyStartDate, displayedComponents: [.date])
+                                        .labelsHidden()
+                                        .tint(AztecTheme.neonYellow)
+                                        .colorScheme(.dark)
+                                }
+
+                                HStack {
+                                    Text("END")
+                                        .font(AztecTheme.sfProBold(size: 11))
+                                        .tracking(2)
+                                        .foregroundColor(AztecTheme.hotPink)
+                                    Spacer()
+                                    DatePicker("", selection: $tourneyEndDate, in: tourneyStartDate..., displayedComponents: [.date])
+                                        .labelsHidden()
+                                        .tint(AztecTheme.neonYellow)
+                                        .colorScheme(.dark)
+                                }
+                            }
+                            .padding(14)
+                            .background(Color.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 2.25)
+                            )
 
                             AztecSectionHeader(title: "Select Squads (\(selectedTeamIds.count))", color: AztecTheme.hotPink)
 
@@ -667,8 +708,24 @@ struct CreateTournamentSheet: View {
                                 MatchupPairCard(
                                     index: index,
                                     setup: $matchupSetups[index],
-                                    availableTeamIds: selectedTeamIds
+                                    availableTeamIds: selectedTeamIds,
+                                    tourneyStartDate: tourneyStartDate,
+                                    tourneyEndDate: tourneyEndDate
                                 )
+                            }
+
+                            if matchupsHaveDuplicateTeams {
+                                Text("Each squad can only appear once across all matchups")
+                                    .font(AztecTheme.sfProBold(size: 14))
+                                    .foregroundColor(AztecTheme.bloodRed)
+                                    .multilineTextAlignment(.center)
+                            }
+
+                            if matchupsHaveSameTeam {
+                                Text("A squad can't play against itself")
+                                    .font(AztecTheme.sfProBold(size: 14))
+                                    .foregroundColor(AztecTheme.bloodRed)
+                                    .multilineTextAlignment(.center)
                             }
 
                             Button("START TOURNEY") {
@@ -681,14 +738,19 @@ struct CreateTournamentSheet: View {
                                             $0.scheduledField?.rawValue
                                         )
                                     }
+                                    let endOfDay = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: tourneyEndDate) ?? tourneyEndDate
                                     await cloudService.createTournament(
                                         name: "G Four",
-                                        matchups: matchups
+                                        matchups: matchups,
+                                        startDate: tourneyStartDate,
+                                        endDate: endOfDay
                                     )
                                     dismiss()
                                 }
                             }
                             .buttonStyle(AztecButtonStyle())
+                            .disabled(matchupsHaveDuplicateTeams || matchupsHaveSameTeam)
+                            .opacity(matchupsHaveDuplicateTeams || matchupsHaveSameTeam ? 0.5 : 1)
 
                             Button("BACK") {
                                 showMatchupSetup = false
@@ -710,6 +772,15 @@ struct CreateTournamentSheet: View {
         }
     }
 
+    private var matchupsHaveDuplicateTeams: Bool {
+        let allIds = matchupSetups.flatMap { [$0.team1Id, $0.team2Id] }
+        return Set(allIds).count != allIds.count
+    }
+
+    private var matchupsHaveSameTeam: Bool {
+        matchupSetups.contains { $0.team1Id == $0.team2Id }
+    }
+
     private func initializeMatchups() {
         matchupSetups = []
         var ids = selectedTeamIds
@@ -728,18 +799,18 @@ struct MatchupPairCard: View {
     let index: Int
     @Binding var setup: MatchupSetupData
     let availableTeamIds: [String]
+    var tourneyStartDate: Date = Date()
+    var tourneyEndDate: Date = Date()
 
     @State private var showDatePicker = false
 
     private var tournamentDateRange: ClosedRange<Date> {
-        let calendar = Calendar.current
-        let start = calendar.date(from: DateComponents(year: 2026, month: 4, day: 25))!
-        let end = calendar.date(from: DateComponents(year: 2026, month: 4, day: 27, hour: 23, minute: 59))!
-        return start...end
+        let end = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: tourneyEndDate) ?? tourneyEndDate
+        return tourneyStartDate...end
     }
 
     private var defaultDate: Date {
-        Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 25, hour: 10))!
+        Calendar.current.date(bySettingHour: 10, minute: 0, second: 0, of: tourneyStartDate) ?? tourneyStartDate
     }
 
     private var availableTeams: [Team] {
