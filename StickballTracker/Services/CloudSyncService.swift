@@ -405,7 +405,6 @@ class CloudSyncService: ObservableObject {
 
         // --- Winners Bracket ---
         let wbSize = nextPowerOf2(teamCount)
-        let byeCount = wbSize - teamCount
         let firstRoundGames = wbSize / 2
 
         // Build WB rounds
@@ -414,7 +413,7 @@ class CloudSyncService: ObservableObject {
 
         // WB Round 1 — some may be byes
         var wbR1GameIds: [String] = []
-        var wbR1Winners: [(gameId: String, slot: Int)] = [] // track who advances
+        // WB Round 1 game generation
 
         for i in 0..<firstRoundGames {
             let seed1 = i
@@ -424,7 +423,7 @@ class CloudSyncService: ObservableObject {
 
             if team1Id != nil && team2Id != nil {
                 // Real game
-                var game = TournamentGame(gameNumber: gameNumber, bracketSide: .winners, team1Id: team1Id, team2Id: team2Id)
+                let game = TournamentGame(gameNumber: gameNumber, bracketSide: .winners, team1Id: team1Id, team2Id: team2Id)
                 gameNumber += 1
                 wbR1GameIds.append(game.id)
                 games.append(game)
@@ -451,7 +450,7 @@ class CloudSyncService: ObservableObject {
             var roundGameIds: [String] = []
 
             for _ in 0..<thisRoundCount {
-                var game = TournamentGame(gameNumber: gameNumber, bracketSide: .winners)
+                let game = TournamentGame(gameNumber: gameNumber, bracketSide: .winners)
                 gameNumber += 1
                 roundGameIds.append(game.id)
                 games.append(game)
@@ -474,7 +473,7 @@ class CloudSyncService: ObservableObject {
             let lbR1Games = wb1Losers / 2
             var lbR1Ids: [String] = []
             for _ in 0..<max(lbR1Games, 1) {
-                var game = TournamentGame(gameNumber: gameNumber, bracketSide: .losers)
+                let game = TournamentGame(gameNumber: gameNumber, bracketSide: .losers)
                 gameNumber += 1
                 lbR1Ids.append(game.id)
                 games.append(game)
@@ -516,13 +515,13 @@ class CloudSyncService: ObservableObject {
         }
 
         // --- Championship Game ---
-        var champGame = TournamentGame(gameNumber: gameNumber, bracketSide: .championship)
+        let champGame = TournamentGame(gameNumber: gameNumber, bracketSide: .championship)
         gameNumber += 1
         let champId = champGame.id
         games.append(champGame)
 
         // --- If Necessary Game ---
-        var ifNecGame = TournamentGame(gameNumber: gameNumber, bracketSide: .ifNecessary)
+        let ifNecGame = TournamentGame(gameNumber: gameNumber, bracketSide: .ifNecessary)
         let ifNecId = ifNecGame.id
         games.append(ifNecGame)
 

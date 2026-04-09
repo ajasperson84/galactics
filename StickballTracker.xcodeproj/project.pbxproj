@@ -20,6 +20,8 @@
 		A100000011 /* TournamentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000011; };
 		A100000012 /* GameEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000012; };
 		A100000013 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000013; };
+		A100000019 /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000019; };
+		A100000020 /* BracketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000020; };
 		A100000018 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000018; };
 		A100000014 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000014; };
 		A100000015 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000015; };
@@ -42,6 +44,8 @@
 		B100000012 /* GameEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEntrySheet.swift; sourceTree = "<group>"; };
 		B100000013 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		B100000018 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		B100000019 /* ScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleView.swift; sourceTree = "<group>"; };
+		B100000020 /* BracketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BracketView.swift; sourceTree = "<group>"; };
 		B100000014 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B100000015 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		B100000099 /* StickballTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StickballTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -159,6 +163,8 @@
 			children = (
 				B100000011 /* TournamentView.swift */,
 				B100000012 /* GameEntrySheet.swift */,
+				B100000019 /* ScheduleView.swift */,
+				B100000020 /* BracketView.swift */,
 			);
 			path = Tournament;
 			sourceTree = "<group>";
@@ -270,6 +276,8 @@
 				A100000012 /* GameEntrySheet.swift in Sources */,
 				A100000013 /* StatsView.swift in Sources */,
 				A100000018 /* SplashView.swift in Sources */,
+				A100000019 /* ScheduleView.swift in Sources */,
+				A100000020 /* BracketView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
