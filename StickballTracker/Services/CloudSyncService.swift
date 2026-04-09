@@ -641,11 +641,11 @@ class CloudSyncService: ObservableObject {
     // MARK: - Day 2 Bracket (8 teams, 10 games)
     //
     // 5 preset teams + 3 advancing from Day 1. All manually assigned to WB R1.
-    // WB R1: G1-G4 (4 games)
-    // WB SF: G5, G6 (2 games)
-    // LB R1: G7, G8 (4 WB R1 losers, auto-routed)
-    // LB R2: G9, G10 (LB R1 winners vs WB SF losers, auto-routed)
-    // Advances: G5W, G6W (WB semi winners) + G9W, G10W (LB R2 winners) = 4
+    // WB R1: G1, G2, G3, G4 (4 games, manual)
+    // LB R1: G5, G6 (auto from WB R1 losers)
+    // WB R2: G7, G8 (auto from WB R1 winners) — winners advance to Finals
+    // LB R2: G9, G10 (LB R1 winners vs WB R2 losers) — winners advance to Finals
+    // Advances: G7W, G8W (WB R2 winners) + G9W, G10W (LB R2 winners) = 4
 
     private func generateDay2Bracket(config: TierConfig) -> TournamentTier {
         var tier = TournamentTier(
@@ -662,49 +662,49 @@ class CloudSyncService: ObservableObject {
         var g3 = TournamentGame(gameNumber: 3, bracketSide: .winners)
         var g4 = TournamentGame(gameNumber: 4, bracketSide: .winners)
 
-        // WB SF (2 games)
-        var g5 = TournamentGame(gameNumber: 5, bracketSide: .winners)
-        var g6 = TournamentGame(gameNumber: 6, bracketSide: .winners)
+        // LB R1 (2 games, auto from WB R1 losers)
+        var g5 = TournamentGame(gameNumber: 5, bracketSide: .losers)
+        var g6 = TournamentGame(gameNumber: 6, bracketSide: .losers)
 
-        // LB R1 (2 games)
-        var g7 = TournamentGame(gameNumber: 7, bracketSide: .losers)
-        var g8 = TournamentGame(gameNumber: 8, bracketSide: .losers)
+        // WB R2 (2 games, auto from WB R1 winners)
+        var g7 = TournamentGame(gameNumber: 7, bracketSide: .winners)
+        var g8 = TournamentGame(gameNumber: 8, bracketSide: .winners)
 
-        // LB R2 (2 games)
+        // LB R2 (2 games, LB R1 winners vs WB R2 losers)
         let g9 = TournamentGame(gameNumber: 9, bracketSide: .losers)
         let g10 = TournamentGame(gameNumber: 10, bracketSide: .losers)
 
-        // WB R1 winners → WB SF
-        g1.feedsWinnerTo = GameLink(gameId: g5.id, slot: .team1)
-        g2.feedsWinnerTo = GameLink(gameId: g5.id, slot: .team2)
-        g3.feedsWinnerTo = GameLink(gameId: g6.id, slot: .team1)
-        g4.feedsWinnerTo = GameLink(gameId: g6.id, slot: .team2)
+        // WB R1 winners → WB R2
+        g1.feedsWinnerTo = GameLink(gameId: g7.id, slot: .team1)
+        g2.feedsWinnerTo = GameLink(gameId: g7.id, slot: .team2)
+        g3.feedsWinnerTo = GameLink(gameId: g8.id, slot: .team1)
+        g4.feedsWinnerTo = GameLink(gameId: g8.id, slot: .team2)
 
         // WB R1 losers → LB R1 (all auto-routed)
-        g1.feedsLoserTo = GameLink(gameId: g7.id, slot: .team1)
-        g2.feedsLoserTo = GameLink(gameId: g7.id, slot: .team2)
-        g3.feedsLoserTo = GameLink(gameId: g8.id, slot: .team1)
-        g4.feedsLoserTo = GameLink(gameId: g8.id, slot: .team2)
+        g1.feedsLoserTo = GameLink(gameId: g5.id, slot: .team1)
+        g2.feedsLoserTo = GameLink(gameId: g5.id, slot: .team2)
+        g3.feedsLoserTo = GameLink(gameId: g6.id, slot: .team1)
+        g4.feedsLoserTo = GameLink(gameId: g6.id, slot: .team2)
 
-        // WB SF losers → LB R2
-        g5.feedsLoserTo = GameLink(gameId: g10.id, slot: .team1)
-        g6.feedsLoserTo = GameLink(gameId: g9.id, slot: .team2)
+        // LB R1 winners → LB R2 (crossover to prevent rematches)
+        g5.feedsWinnerTo = GameLink(gameId: g9.id, slot: .team1)
+        g6.feedsWinnerTo = GameLink(gameId: g10.id, slot: .team1)
 
-        // LB R1 winners → LB R2
-        g7.feedsWinnerTo = GameLink(gameId: g9.id, slot: .team1)
-        g8.feedsWinnerTo = GameLink(gameId: g10.id, slot: .team2)
+        // WB R2 losers → LB R2 (crossover to prevent rematches)
+        g7.feedsLoserTo = GameLink(gameId: g10.id, slot: .team2)
+        g8.feedsLoserTo = GameLink(gameId: g9.id, slot: .team2)
 
-        // WB SF winners advance, LB R2 winners advance — no further routing
+        // WB R2 winners advance, LB R2 winners advance — no further routing
 
         tier.games = [g1, g2, g3, g4, g5, g6, g7, g8, g9, g10]
 
         tier.winnersBracketRounds = [
             BracketRoundGroup(gameIds: [g1.id, g2.id, g3.id, g4.id]),
-            BracketRoundGroup(gameIds: [g5.id, g6.id])
+            BracketRoundGroup(gameIds: [g7.id, g8.id])
         ]
 
         tier.losersBracketRounds = [
-            BracketRoundGroup(gameIds: [g7.id, g8.id]),
+            BracketRoundGroup(gameIds: [g5.id, g6.id]),
             BracketRoundGroup(gameIds: [g9.id, g10.id])
         ]
 

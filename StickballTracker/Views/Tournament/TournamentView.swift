@@ -536,12 +536,12 @@ struct CreateTournamentSheet: View {
                             AztecSectionHeader(title: "Confirm Tourney")
 
                             VStack(alignment: .leading, spacing: 12) {
-                                tierSummary(title: "DAY 1 - ROUND 1", teamIds: tier1TeamIds, color: AztecTheme.neonYellow)
-                                tierSummary(title: "DAY 2 - ROUND 2 (\(tier2TeamIds.count) + 3 advancing)", teamIds: tier2TeamIds, color: AztecTheme.hotPink)
-                                Text("DAY 3 - CHAMPIONSHIP")
+                                tierSummary(title: "DAY 1 (FRIDAY)", teamIds: tier1TeamIds, color: AztecTheme.neonYellow)
+                                tierSummary(title: "DAY 2 (SATURDAY) — \(tier2TeamIds.count) + 3 advancing", teamIds: tier2TeamIds, color: AztecTheme.hotPink)
+                                Text("FINALS (SUNDAY)")
                                     .font(AztecTheme.sfProBold(size: 14))
                                     .foregroundColor(AztecTheme.neonYellow)
-                                Text("Top finishers from Day 2")
+                                Text("Top 4 finishers from Day 2")
                                     .font(AztecTheme.sfProMedium(size: 12))
                                     .foregroundColor(AztecTheme.dimText)
                             }
@@ -553,21 +553,21 @@ struct CreateTournamentSheet: View {
                                     let configs = [
                                         CloudSyncService.TierConfig(
                                             tierNumber: 1,
-                                            tierName: "Round 1",
+                                            tierName: "Day 1",
                                             dayLabel: "Friday",
                                             date: day1Date,
                                             teamIds: tier1TeamIds
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 2,
-                                            tierName: "Round 2",
+                                            tierName: "Day 2",
                                             dayLabel: "Saturday",
                                             date: day2Date,
                                             teamIds: tier2TeamIds
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 3,
-                                            tierName: "Championship",
+                                            tierName: "Finals",
                                             dayLabel: "Sunday",
                                             date: day3Date,
                                             teamIds: []
