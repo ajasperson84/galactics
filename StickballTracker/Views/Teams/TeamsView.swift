@@ -19,10 +19,10 @@ struct TeamsView: View {
     private func teamRecord(for team: Team) -> (wins: Int, losses: Int) {
         guard let tournament = cloudService.tournament else { return (0, 0) }
         var wins = 0, losses = 0
-        for round in tournament.bracket {
-            for matchup in round.matchups {
-                guard matchup.status == .completed, let winnerId = matchup.winnerId else { continue }
-                if matchup.team1Id == team.id || matchup.team2Id == team.id {
+        for tier in tournament.tiers {
+            for game in tier.games where game.status == .completed {
+                guard let winnerId = game.winnerId else { continue }
+                if game.team1Id == team.id || game.team2Id == team.id {
                     if winnerId == team.id { wins += 1 } else { losses += 1 }
                 }
             }
@@ -107,20 +107,16 @@ struct TeamCard: View {
         cloudService.playersForTeam(team.id)
     }
 
-    /// Compute team record (wins-losses) from tournament matchups
+    /// Compute team record (wins-losses) from tournament games
     private var teamRecord: String {
         guard let tournament = cloudService.tournament else { return "0-0" }
         var wins = 0
         var losses = 0
-        for round in tournament.bracket {
-            for matchup in round.matchups {
-                guard matchup.status == .completed, let winnerId = matchup.winnerId else { continue }
-                if matchup.team1Id == team.id || matchup.team2Id == team.id {
-                    if winnerId == team.id {
-                        wins += 1
-                    } else {
-                        losses += 1
-                    }
+        for tier in tournament.tiers {
+            for game in tier.games where game.status == .completed {
+                guard let winnerId = game.winnerId else { continue }
+                if game.team1Id == team.id || game.team2Id == team.id {
+                    if winnerId == team.id { wins += 1 } else { losses += 1 }
                 }
             }
         }
@@ -384,10 +380,10 @@ struct TeamDetailSheet: View {
     private var teamRecord: String {
         guard let tournament = cloudService.tournament else { return "0-0" }
         var wins = 0, losses = 0
-        for round in tournament.bracket {
-            for matchup in round.matchups {
-                guard matchup.status == .completed, let winnerId = matchup.winnerId else { continue }
-                if matchup.team1Id == team.id || matchup.team2Id == team.id {
+        for tier in tournament.tiers {
+            for game in tier.games where game.status == .completed {
+                guard let winnerId = game.winnerId else { continue }
+                if game.team1Id == team.id || game.team2Id == team.id {
                     if winnerId == team.id { wins += 1 } else { losses += 1 }
                 }
             }

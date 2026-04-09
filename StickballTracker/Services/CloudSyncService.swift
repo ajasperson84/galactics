@@ -232,10 +232,15 @@ class CloudSyncService: ObservableObject {
 
     // MARK: - Tournament Operations
 
-    func createTournament(name: String, matchups: [(String, String, Date?, String?)]) async {
-        let allTeamIds = matchups.flatMap { [$0.0, $0.1] }
-        var tournament = Tournament(name: name, teamIds: allTeamIds)
-        tournament.bracket = generateBracketFromMatchups(matchups)
+    func createTournament(name: String, tierConfigs: [TierConfig]) async {
+        let allTeamIds = tierConfigs.flatMap { $0.teamIds }
+        var tournament = Tournament(name: name, teamIds: Array(Set(allTeamIds)))
+
+        for config in tierConfigs {
+            let tier = generateDoubleEliminationTier(config: config)
+            tournament.tiers.append(tier)
+        }
+
         tournament.status = .inProgress
         do {
             try db.collection("tournaments").document(tournament.id).setData(from: tournament)
@@ -262,9 +267,8 @@ class CloudSyncService: ObservableObject {
     }
 
     func recordGameResult(
-        roundIndex: Int,
-        matchupIndex: Int,
-        gameIndex: Int,
+        tierIndex: Int,
+        gameId: String,
         team1Score: Int,
         team2Score: Int,
         field: String?,
@@ -272,74 +276,89 @@ class CloudSyncService: ObservableObject {
         playerStats: [PlayerGameStats]
     ) async {
         guard var tournament else { return }
-        guard roundIndex < tournament.bracket.count,
-              matchupIndex < tournament.bracket[roundIndex].matchups.count
-        else { return }
+        guard tierIndex < tournament.tiers.count else { return }
 
-        var matchup = tournament.bracket[roundIndex].matchups[matchupIndex]
+        guard let gameIdx = tournament.tiers[tierIndex].games.firstIndex(where: { $0.id == gameId }) else { return }
 
-        if gameIndex < matchup.games.count {
-            matchup.games[gameIndex].team1Score = team1Score
-            matchup.games[gameIndex].team2Score = team2Score
-            matchup.games[gameIndex].playerGameStats = playerStats
-            matchup.games[gameIndex].field = field
-            matchup.games[gameIndex].gameDate = gameDate
-            matchup.games[gameIndex].status = .completed
-            matchup.games[gameIndex].completedAt = Date()
-            if team1Score > team2Score {
-                matchup.games[gameIndex].winnerId = matchup.team1Id
-            } else if team2Score > team1Score {
-                matchup.games[gameIndex].winnerId = matchup.team2Id
-            }
-        } else {
-            var game = Game(gameNumber: gameIndex + 1)
-            game.team1Score = team1Score
-            game.team2Score = team2Score
-            game.playerGameStats = playerStats
-            game.field = field
-            game.gameDate = gameDate
-            game.status = .completed
-            game.completedAt = Date()
-            if team1Score > team2Score {
-                game.winnerId = matchup.team1Id
-            } else if team2Score > team1Score {
-                game.winnerId = matchup.team2Id
-            }
-            matchup.games.append(game)
+        var game = tournament.tiers[tierIndex].games[gameIdx]
+        game.team1Score = team1Score
+        game.team2Score = team2Score
+        game.playerGameStats = playerStats
+        game.field = field
+        game.scheduledTime = gameDate
+        game.status = .completed
+        game.completedAt = Date()
+
+        if team1Score > team2Score {
+            game.winnerId = game.team1Id
+            game.loserId = game.team2Id
+        } else if team2Score > team1Score {
+            game.winnerId = game.team2Id
+            game.loserId = game.team1Id
         }
 
-        // Check if series is decided (best of 3)
-        if matchup.team1Wins >= 2 {
-            matchup.winnerId = matchup.team1Id
-            matchup.status = .completed
-        } else if matchup.team2Wins >= 2 {
-            matchup.winnerId = matchup.team2Id
-            matchup.status = .completed
-        } else {
-            matchup.status = .inProgress
-        }
+        tournament.tiers[tierIndex].games[gameIdx] = game
 
-        tournament.bracket[roundIndex].matchups[matchupIndex] = matchup
-
-        // Advance winner to next round
-        if let winnerId = matchup.winnerId, roundIndex + 1 < tournament.bracket.count {
-            let nextMatchupIndex = matchupIndex / 2
-            if nextMatchupIndex < tournament.bracket[roundIndex + 1].matchups.count {
-                if matchupIndex % 2 == 0 {
-                    tournament.bracket[roundIndex + 1].matchups[nextMatchupIndex].team1Id = winnerId
-                } else {
-                    tournament.bracket[roundIndex + 1].matchups[nextMatchupIndex].team2Id = winnerId
+        // Route winner to next game
+        if let winnerId = game.winnerId, let link = game.feedsWinnerTo {
+            if let destIdx = tournament.tiers[tierIndex].games.firstIndex(where: { $0.id == link.gameId }) {
+                switch link.slot {
+                case .team1:
+                    tournament.tiers[tierIndex].games[destIdx].team1Id = winnerId
+                case .team2:
+                    tournament.tiers[tierIndex].games[destIdx].team2Id = winnerId
                 }
             }
         }
 
-        // Check if tournament is complete
-        if let lastRound = tournament.bracket.last,
-           lastRound.matchups.allSatisfy({ $0.status == .completed }) {
+        // Route loser to losers bracket (or eliminated if no link)
+        if let loserId = game.loserId, let link = game.feedsLoserTo {
+            if let destIdx = tournament.tiers[tierIndex].games.firstIndex(where: { $0.id == link.gameId }) {
+                switch link.slot {
+                case .team1:
+                    tournament.tiers[tierIndex].games[destIdx].team1Id = loserId
+                case .team2:
+                    tournament.tiers[tierIndex].games[destIdx].team2Id = loserId
+                }
+            }
+        }
+
+        // Championship special: if LB champion beats WB champion, activate if-necessary game
+        if game.bracketSide == .championship,
+           let winnerId = game.winnerId,
+           let ifNecId = tournament.tiers[tierIndex].ifNecessaryGameId {
+            // The WB champion is team1 in championship game; if LB champion (team2) wins, play if-necessary
+            if winnerId == game.team2Id {
+                if let ifNecIdx = tournament.tiers[tierIndex].games.firstIndex(where: { $0.id == ifNecId }) {
+                    tournament.tiers[tierIndex].games[ifNecIdx].team1Id = game.team1Id
+                    tournament.tiers[tierIndex].games[ifNecIdx].team2Id = game.team2Id
+                    tournament.tiers[tierIndex].games[ifNecIdx].status = .pending
+                }
+            } else {
+                // WB champion won — tier is done, no if-necessary needed
+            }
+        }
+
+        // Update tier status
+        let tier = tournament.tiers[tierIndex]
+        let allGamesResolved = tier.games.allSatisfy { g in
+            g.status == .completed ||
+            (g.team1Id == nil && g.team2Id == nil) ||
+            (g.bracketSide == .ifNecessary && !isIfNecessaryNeeded(tier: tier))
+        }
+        if allGamesResolved {
+            tournament.tiers[tierIndex].status = .completed
+            tournament.tiers[tierIndex].advancingTeamIds = computeAdvancingTeams(tier: tier)
+        } else {
+            tournament.tiers[tierIndex].status = .inProgress
+        }
+
+        // Check overall tournament completion
+        if tournament.tiers.allSatisfy({ $0.status == .completed }) {
             tournament.status = .completed
         }
 
-        // Accumulate player stats
+        // Accumulate player career stats
         for stats in playerStats {
             await updatePlayerStats(playerId: stats.playerId, gameStats: stats)
         }
@@ -347,41 +366,255 @@ class CloudSyncService: ObservableObject {
         await updateTournament(tournament)
     }
 
-    // MARK: - Bracket Generation
-
-    private func generateBracketFromMatchups(_ matchups: [(String, String, Date?, String?)]) -> [BracketRound] {
-        let firstRoundMatchups = matchups.map {
-            Matchup(team1Id: $0.0, team2Id: $0.1, scheduledDate: $0.2, scheduledField: $0.3)
-        }
-
-        var rounds: [BracketRound] = []
-        let totalRounds = max(1, Int(ceil(log2(Double(matchups.count)))) + 1)
-        let roundNames = generateRoundNames(totalRounds: totalRounds)
-
-        rounds.append(BracketRound(roundNumber: 1, roundName: roundNames[0], matchups: firstRoundMatchups))
-
-        var numMatchups = matchups.count / 2
-        var roundNum = 2
-        while numMatchups >= 1 {
-            let emptyMatchups = (0..<numMatchups).map { _ in Matchup() }
-            let nameIndex = min(roundNum - 1, roundNames.count - 1)
-            rounds.append(BracketRound(roundNumber: roundNum, roundName: roundNames[nameIndex], matchups: emptyMatchups))
-            numMatchups /= 2
-            roundNum += 1
-        }
-
-        return rounds
+    private func isIfNecessaryNeeded(tier: TournamentTier) -> Bool {
+        guard let champId = tier.championshipGameId,
+              let champGame = tier.game(byId: champId) else { return false }
+        // If championship completed and LB champion (team2) won, if-necessary is needed
+        return champGame.status == .completed && champGame.winnerId == champGame.team2Id
     }
 
-    private func generateRoundNames(totalRounds: Int) -> [String] {
-        (0..<totalRounds).map { i in
-            switch totalRounds - i {
-            case 1: return "Championship"
-            case 2: return "Semifinals"
-            case 3: return "Quarterfinals"
-            default: return "Round \(i + 1)"
+    private func computeAdvancingTeams(tier: TournamentTier) -> [String] {
+        // The tier champion + runners-up advance
+        // For now, return teams that won their last game (championship/if-necessary winner + semifinal losers who placed well)
+        // This will be manually managed by the user via advancingTeamIds
+        return tier.advancingTeamIds
+    }
+
+    // MARK: - Double Elimination Bracket Generation
+
+    struct TierConfig {
+        var tierNumber: Int          // 1, 2, or 3
+        var tierName: String         // "Round 1", "Round 2", "Championship"
+        var dayLabel: String         // "Friday", "Saturday", "Sunday"
+        var date: Date?
+        var teamIds: [String]        // Seeded order
+    }
+
+    private func generateDoubleEliminationTier(config: TierConfig) -> TournamentTier {
+        let teamCount = config.teamIds.count
+        var tier = TournamentTier(
+            tierNumber: config.tierNumber,
+            tierName: config.tierName,
+            dayLabel: config.dayLabel,
+            date: config.date,
+            teamIds: config.teamIds
+        )
+
+        var games: [TournamentGame] = []
+        var gameNumber = 1
+
+        // --- Winners Bracket ---
+        let wbSize = nextPowerOf2(teamCount)
+        let byeCount = wbSize - teamCount
+        let firstRoundGames = wbSize / 2
+
+        // Build WB rounds
+        var wbRounds: [[String]] = []  // Each round is an array of game IDs
+        var lbRounds: [[String]] = []
+
+        // WB Round 1 — some may be byes
+        var wbR1GameIds: [String] = []
+        var wbR1Winners: [(gameId: String, slot: Int)] = [] // track who advances
+
+        for i in 0..<firstRoundGames {
+            let seed1 = i
+            let seed2 = wbSize - 1 - i
+            let team1Id = seed1 < teamCount ? config.teamIds[seed1] : nil
+            let team2Id = seed2 < teamCount ? config.teamIds[seed2] : nil
+
+            if team1Id != nil && team2Id != nil {
+                // Real game
+                var game = TournamentGame(gameNumber: gameNumber, bracketSide: .winners, team1Id: team1Id, team2Id: team2Id)
+                gameNumber += 1
+                wbR1GameIds.append(game.id)
+                games.append(game)
+            } else if team1Id != nil {
+                // Bye — team1 auto-advances, no game needed
+                // We'll handle byes by directly placing teams in next round
+                // Use a placeholder game marked as completed
+                var game = TournamentGame(gameNumber: gameNumber, bracketSide: .winners, team1Id: team1Id, team2Id: nil)
+                game.winnerId = team1Id
+                game.status = .completed
+                gameNumber += 1
+                wbR1GameIds.append(game.id)
+                games.append(game)
             }
         }
+        if !wbR1GameIds.isEmpty {
+            wbRounds.append(wbR1GameIds)
+        }
+
+        // Subsequent WB rounds
+        var prevRoundCount = firstRoundGames
+        while prevRoundCount > 1 {
+            let thisRoundCount = prevRoundCount / 2
+            var roundGameIds: [String] = []
+
+            for _ in 0..<thisRoundCount {
+                var game = TournamentGame(gameNumber: gameNumber, bracketSide: .winners)
+                gameNumber += 1
+                roundGameIds.append(game.id)
+                games.append(game)
+            }
+            wbRounds.append(roundGameIds)
+            prevRoundCount = thisRoundCount
+        }
+
+        // --- Losers Bracket ---
+        // LB receives losers from WB. Structure depends on team count.
+        // For N teams in WB with R rounds:
+        //   LB has (R-1)*2 rounds approximately
+        //   Odd LB rounds: receive WB dropdowns
+        //   Even LB rounds: internal matchups
+
+        let wbRoundCount = wbRounds.count
+        if wbRoundCount > 1 {
+            // LB round 1: losers from WB round 1 play each other
+            let wb1Losers = wbR1GameIds.count
+            let lbR1Games = wb1Losers / 2
+            var lbR1Ids: [String] = []
+            for _ in 0..<max(lbR1Games, 1) {
+                var game = TournamentGame(gameNumber: gameNumber, bracketSide: .losers)
+                gameNumber += 1
+                lbR1Ids.append(game.id)
+                games.append(game)
+            }
+            if !lbR1Ids.isEmpty {
+                lbRounds.append(lbR1Ids)
+            }
+
+            // LB subsequent rounds: alternate between receiving WB dropdowns and internal matchups
+            var lbTeamCount = lbR1Ids.count  // number of "slots" coming out of LB round 1
+            for wbRound in 1..<wbRoundCount {
+                // Dropdown round: WB round losers drop into LB
+                let wbDropdowns = wbRounds[wbRound].count
+                let dropdownGames = max(lbTeamCount, wbDropdowns)
+                var dropIds: [String] = []
+                for _ in 0..<dropdownGames {
+                    var game = TournamentGame(gameNumber: gameNumber, bracketSide: .losers)
+                    gameNumber += 1
+                    dropIds.append(game.id)
+                    games.append(game)
+                }
+                lbRounds.append(dropIds)
+                lbTeamCount = dropIds.count
+
+                // Internal LB round (if more than 1 team remaining)
+                if lbTeamCount > 1 {
+                    let internalGames = lbTeamCount / 2
+                    var intIds: [String] = []
+                    for _ in 0..<internalGames {
+                        var game = TournamentGame(gameNumber: gameNumber, bracketSide: .losers)
+                        gameNumber += 1
+                        intIds.append(game.id)
+                        games.append(game)
+                    }
+                    lbRounds.append(intIds)
+                    lbTeamCount = internalGames
+                }
+            }
+        }
+
+        // --- Championship Game ---
+        var champGame = TournamentGame(gameNumber: gameNumber, bracketSide: .championship)
+        gameNumber += 1
+        let champId = champGame.id
+        games.append(champGame)
+
+        // --- If Necessary Game ---
+        var ifNecGame = TournamentGame(gameNumber: gameNumber, bracketSide: .ifNecessary)
+        let ifNecId = ifNecGame.id
+        games.append(ifNecGame)
+
+        // --- Wire up feedsWinnerTo / feedsLoserTo links ---
+        // WB: winners advance within WB, losers drop to LB
+        for roundIdx in 0..<wbRounds.count {
+            let roundIds = wbRounds[roundIdx]
+            for (i, gId) in roundIds.enumerated() {
+                guard let gIdx = games.firstIndex(where: { $0.id == gId }) else { continue }
+
+                // Winner goes to next WB round
+                if roundIdx + 1 < wbRounds.count {
+                    let nextRound = wbRounds[roundIdx + 1]
+                    let nextSlotIdx = i / 2
+                    if nextSlotIdx < nextRound.count {
+                        let slot: TeamSlot = (i % 2 == 0) ? .team1 : .team2
+                        games[gIdx].feedsWinnerTo = GameLink(gameId: nextRound[nextSlotIdx], slot: slot)
+                    }
+                } else {
+                    // WB final winner goes to championship as team1
+                    games[gIdx].feedsWinnerTo = GameLink(gameId: champId, slot: .team1)
+                }
+
+                // Loser drops to LB
+                if !lbRounds.isEmpty {
+                    // Map WB round losers to appropriate LB round
+                    let lbTargetRound: Int
+                    if roundIdx == 0 {
+                        lbTargetRound = 0
+                    } else {
+                        // WB round R losers go to LB dropdown round
+                        lbTargetRound = min(roundIdx * 2 - 1, lbRounds.count - 1)
+                    }
+
+                    if lbTargetRound < lbRounds.count {
+                        let lbRound = lbRounds[lbTargetRound]
+                        let lbSlotIdx = i / 2
+                        if lbSlotIdx < lbRound.count {
+                            let slot: TeamSlot
+                            if roundIdx == 0 {
+                                slot = (i % 2 == 0) ? .team1 : .team2
+                            } else {
+                                slot = .team2  // WB dropdowns always go to team2 slot
+                            }
+                            games[gIdx].feedsLoserTo = GameLink(gameId: lbRound[lbSlotIdx], slot: slot)
+                        }
+                    }
+                }
+            }
+        }
+
+        // LB: winners advance within LB, losers eliminated
+        for roundIdx in 0..<lbRounds.count {
+            let roundIds = lbRounds[roundIdx]
+            for (i, gId) in roundIds.enumerated() {
+                guard let gIdx = games.firstIndex(where: { $0.id == gId }) else { continue }
+
+                if roundIdx + 1 < lbRounds.count {
+                    let nextRound = lbRounds[roundIdx + 1]
+                    let nextSlotIdx = i / 2
+                    if nextSlotIdx < nextRound.count {
+                        let slot: TeamSlot = (i % 2 == 0) ? .team1 : .team2
+                        games[gIdx].feedsWinnerTo = GameLink(gameId: nextRound[nextSlotIdx], slot: slot)
+                    }
+                } else {
+                    // LB final winner goes to championship as team2
+                    games[gIdx].feedsWinnerTo = GameLink(gameId: champId, slot: .team2)
+                }
+                // LB losers: feedsLoserTo = nil (eliminated)
+            }
+        }
+
+        // Championship winner: if WB champ wins, they're the tier champion
+        // If LB champ wins, if-necessary is activated (wired in recordGameResult)
+        if let champIdx = games.firstIndex(where: { $0.id == champId }) {
+            games[champIdx].feedsWinnerTo = nil // handled specially
+        }
+
+        tier.games = games
+        tier.winnersBracketGameIds = wbRounds
+        tier.losersBracketGameIds = lbRounds
+        tier.championshipGameId = champId
+        tier.ifNecessaryGameId = ifNecId
+        tier.status = .upcoming
+
+        return tier
+    }
+
+    private func nextPowerOf2(_ n: Int) -> Int {
+        var v = 1
+        while v < n { v *= 2 }
+        return v
     }
 
     // MARK: - Utility

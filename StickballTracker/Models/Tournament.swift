@@ -1,10 +1,12 @@
 import Foundation
 
+// MARK: - Tournament (Top Level)
+
 struct Tournament: Identifiable, Codable {
     var id: String
     var name: String
     var teamIds: [String]
-    var bracket: [BracketRound]
+    var tiers: [TournamentTier]
     var status: TournamentStatus
     var createdAt: Date
 
@@ -12,7 +14,7 @@ struct Tournament: Identifiable, Codable {
         self.id = id
         self.name = name
         self.teamIds = teamIds
-        self.bracket = []
+        self.tiers = []
         self.status = .setup
         self.createdAt = Date()
     }
@@ -24,104 +26,149 @@ enum TournamentStatus: String, Codable {
     case completed
 }
 
-struct BracketRound: Identifiable, Codable {
-    var id: String
-    var roundNumber: Int
-    var roundName: String
-    var matchups: [Matchup]
+// MARK: - Tournament Tier (One per day)
 
-    init(id: String = UUID().uuidString, roundNumber: Int, roundName: String, matchups: [Matchup]) {
-        self.id = id
-        self.roundNumber = roundNumber
-        self.roundName = roundName
-        self.matchups = matchups
-    }
-}
-
-struct Matchup: Identifiable, Codable {
+struct TournamentTier: Identifiable, Codable {
     var id: String
-    var team1Id: String?
-    var team2Id: String?
-    var games: [Game]
-    var winnerId: String?
-    var status: MatchupStatus
-    var scheduledDate: Date?
-    var scheduledField: String?
+    var tierNumber: Int              // 1, 2, or 3
+    var tierName: String             // "Round 1", "Round 2", "Championship"
+    var dayLabel: String             // "Friday", "Saturday", "Sunday"
+    var date: Date?
+    var teamIds: [String]            // Teams participating in this tier
+    var games: [TournamentGame]      // ALL games flat (for schedule view)
+    var winnersBracketGameIds: [[String]]  // Rounds of game IDs for bracket view
+    var losersBracketGameIds: [[String]]   // Rounds of game IDs for bracket view
+    var championshipGameId: String?
+    var ifNecessaryGameId: String?
+    var status: TierStatus
+    var advancingTeamIds: [String]
 
     init(
         id: String = UUID().uuidString,
-        team1Id: String? = nil,
-        team2Id: String? = nil,
-        scheduledDate: Date? = nil,
-        scheduledField: String? = nil
+        tierNumber: Int,
+        tierName: String,
+        dayLabel: String,
+        date: Date? = nil,
+        teamIds: [String] = []
     ) {
         self.id = id
-        self.team1Id = team1Id
-        self.team2Id = team2Id
+        self.tierNumber = tierNumber
+        self.tierName = tierName
+        self.dayLabel = dayLabel
+        self.date = date
+        self.teamIds = teamIds
         self.games = []
-        self.winnerId = nil
-        self.status = .pending
-        self.scheduledDate = scheduledDate
-        self.scheduledField = scheduledField
+        self.winnersBracketGameIds = []
+        self.losersBracketGameIds = []
+        self.championshipGameId = nil
+        self.ifNecessaryGameId = nil
+        self.status = .upcoming
+        self.advancingTeamIds = []
     }
 
-    var team1Wins: Int {
-        games.filter { $0.winnerId == team1Id }.count
+    /// Find a game by ID within this tier
+    func game(byId gameId: String) -> TournamentGame? {
+        games.first { $0.id == gameId }
     }
 
-    var team2Wins: Int {
-        games.filter { $0.winnerId == team2Id }.count
+    /// Get games for a specific bracket round
+    func gamesForWinnersRound(_ roundIndex: Int) -> [TournamentGame] {
+        guard roundIndex < winnersBracketGameIds.count else { return [] }
+        return winnersBracketGameIds[roundIndex].compactMap { id in game(byId: id) }
     }
 
-    var seriesDescription: String {
-        "\(team1Wins) - \(team2Wins)"
+    func gamesForLosersRound(_ roundIndex: Int) -> [TournamentGame] {
+        guard roundIndex < losersBracketGameIds.count else { return [] }
+        return losersBracketGameIds[roundIndex].compactMap { id in game(byId: id) }
     }
 
-    var isComplete: Bool {
-        team1Wins >= 2 || team2Wins >= 2
+    /// All games sorted by scheduled time then game number (for schedule view)
+    var sortedGames: [TournamentGame] {
+        games.sorted { a, b in
+            if let d1 = a.scheduledTime, let d2 = b.scheduledTime {
+                if d1 != d2 { return d1 < d2 }
+            }
+            return a.gameNumber < b.gameNumber
+        }
     }
 }
 
-enum MatchupStatus: String, Codable {
+enum TierStatus: String, Codable {
+    case upcoming
+    case inProgress
+    case completed
+}
+
+// MARK: - Tournament Game (Atomic unit — single game, not a series)
+
+struct TournamentGame: Identifiable, Codable {
+    var id: String
+    var gameNumber: Int              // Sequential within the tier (Game 1, 2, ... 13)
+    var team1Id: String?
+    var team2Id: String?
+    var team1Score: Int
+    var team2Score: Int
+    var winnerId: String?
+    var loserId: String?
+    var playerGameStats: [PlayerGameStats]
+    var field: String?
+    var scheduledTime: Date?
+    var status: GameStatus
+    var completedAt: Date?
+    var bracketSide: BracketSide
+    var feedsWinnerTo: GameLink?
+    var feedsLoserTo: GameLink?
+
+    init(
+        id: String = UUID().uuidString,
+        gameNumber: Int,
+        bracketSide: BracketSide = .winners,
+        team1Id: String? = nil,
+        team2Id: String? = nil
+    ) {
+        self.id = id
+        self.gameNumber = gameNumber
+        self.team1Id = team1Id
+        self.team2Id = team2Id
+        self.team1Score = 0
+        self.team2Score = 0
+        self.winnerId = nil
+        self.loserId = nil
+        self.playerGameStats = []
+        self.field = nil
+        self.scheduledTime = nil
+        self.status = .pending
+        self.completedAt = nil
+        self.bracketSide = bracketSide
+        self.feedsWinnerTo = nil
+        self.feedsLoserTo = nil
+    }
+}
+
+enum GameStatus: String, Codable {
     case pending
     case inProgress
     case completed
 }
 
-struct Game: Identifiable, Codable {
-    var id: String
-    var gameNumber: Int
-    var team1Score: Int
-    var team2Score: Int
-    var winnerId: String?
-    var playerGameStats: [PlayerGameStats]
-    var field: String?
-    var gameDate: Date?
-    var status: GameStatus
-    var completedAt: Date?
-
-    init(
-        id: String = UUID().uuidString,
-        gameNumber: Int
-    ) {
-        self.id = id
-        self.gameNumber = gameNumber
-        self.team1Score = 0
-        self.team2Score = 0
-        self.winnerId = nil
-        self.playerGameStats = []
-        self.field = nil
-        self.gameDate = nil
-        self.status = .notStarted
-        self.completedAt = nil
-    }
+enum BracketSide: String, Codable {
+    case winners
+    case losers
+    case championship
+    case ifNecessary
 }
 
-enum GameStatus: String, Codable {
-    case notStarted
-    case inProgress
-    case completed
+struct GameLink: Codable {
+    var gameId: String
+    var slot: TeamSlot
 }
+
+enum TeamSlot: String, Codable {
+    case team1
+    case team2
+}
+
+// MARK: - Player Game Stats
 
 struct PlayerGameStats: Identifiable, Codable {
     var id: String
@@ -141,7 +188,8 @@ struct PlayerGameStats: Identifiable, Codable {
     }
 }
 
-/// Available fields for game location.
+// MARK: - Fields
+
 enum StickballField: String, CaseIterable, Codable {
     case stonewallJackson = "Stonewall Jackson"
     case williamsburg = "Williamsburg"

@@ -1,13 +1,12 @@
 import SwiftUI
 
-/// Game entry sheet for recording scores and individual player stats during a matchup.
+/// Game entry sheet for recording scores and individual player stats during a game.
 struct GameEntrySheet: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @Environment(\.dismiss) var dismiss
 
-    let roundIndex: Int
-    let matchupIndex: Int
-    let matchup: Matchup
+    let tierIndex: Int
+    let game: TournamentGame
 
     @State private var team1Score: Int = 0
     @State private var team2Score: Int = 0
@@ -16,26 +15,33 @@ struct GameEntrySheet: View {
     @State private var gameDate: Date = Date()
     @State private var showConfirm = false
 
+    var isCompleted: Bool { game.status == .completed }
+
     var team1: Team? {
-        matchup.team1Id.flatMap { cloudService.team(for: $0) }
+        game.team1Id.flatMap { cloudService.team(for: $0) }
     }
 
     var team2: Team? {
-        matchup.team2Id.flatMap { cloudService.team(for: $0) }
+        game.team2Id.flatMap { cloudService.team(for: $0) }
     }
 
     var team1Players: [Player] {
-        guard let id = matchup.team1Id else { return [] }
+        guard let id = game.team1Id else { return [] }
         return cloudService.playersForTeam(id)
     }
 
     var team2Players: [Player] {
-        guard let id = matchup.team2Id else { return [] }
+        guard let id = game.team2Id else { return [] }
         return cloudService.playersForTeam(id)
     }
 
-    var nextGameNumber: Int {
-        matchup.games.count + 1
+    private var bracketLabel: String {
+        switch game.bracketSide {
+        case .winners: return "WINNERS BRACKET"
+        case .losers: return "LOSERS BRACKET"
+        case .championship: return "CHAMPIONSHIP"
+        case .ifNecessary: return "IF NECESSARY"
+        }
     }
 
     var body: some View {
@@ -47,70 +53,72 @@ struct GameEntrySheet: View {
                     VStack(spacing: 20) {
                         // Game header
                         VStack(spacing: 4) {
-                            Text("GAME \(nextGameNumber) OF 3")
-                                .font(AztecTheme.sfProBold(size: 12))
+                            Text("GAME \(game.gameNumber)")
+                                .font(AztecTheme.sfProBold(size: 14))
                                 .tracking(3)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
 
-                            Text("Series: \(matchup.seriesDescription)")
-                                .font(AztecTheme.sfProBold(size: 14))
+                            Text(bracketLabel)
+                                .font(AztecTheme.sfProBold(size: 12))
                                 .foregroundColor(AztecTheme.neonYellow)
                         }
 
-                        // Field picker
-                        VStack(spacing: 6) {
-                            Text("FIELD")
-                                .font(AztecTheme.sfProBold(size: 11))
-                                .tracking(2)
-                                .foregroundColor(AztecTheme.hotPink)
+                        if !isCompleted {
+                            // Field picker
+                            VStack(spacing: 6) {
+                                Text("FIELD")
+                                    .font(AztecTheme.sfProBold(size: 11))
+                                    .tracking(2)
+                                    .foregroundColor(AztecTheme.hotPink)
 
-                            Menu {
-                                Button("None") { selectedField = nil }
-                                ForEach(StickballField.allCases, id: \.self) { field in
-                                    Button(field.rawValue) { selectedField = field }
+                                Menu {
+                                    Button("None") { selectedField = nil }
+                                    ForEach(StickballField.allCases, id: \.self) { field in
+                                        Button(field.rawValue) { selectedField = field }
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(selectedField?.rawValue ?? "Select Field")
+                                            .font(AztecTheme.sfProBold(size: 14))
+                                            .foregroundColor(
+                                                selectedField != nil
+                                                    ? AztecTheme.neonYellow
+                                                    : AztecTheme.hotPink.opacity(0.6)
+                                            )
+                                        Spacer()
+                                        Image(systemName: "chevron.down")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(AztecTheme.hotPink)
+                                    }
+                                    .padding(12)
+                                    .background(Color.black)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(AztecTheme.hotPink.opacity(0.5), lineWidth: 2.25)
+                                    )
                                 }
-                            } label: {
-                                HStack {
-                                    Text(selectedField?.rawValue ?? "Select Field")
-                                        .font(AztecTheme.sfProBold(size: 14))
-                                        .foregroundColor(
-                                            selectedField != nil
-                                                ? AztecTheme.neonYellow
-                                                : AztecTheme.hotPink.opacity(0.6)
-                                        )
-                                    Spacer()
-                                    Image(systemName: "chevron.down")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(AztecTheme.hotPink)
-                                }
-                                .padding(12)
-                                .background(Color.black)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(AztecTheme.hotPink.opacity(0.5), lineWidth: 2.25)
-                                )
                             }
-                        }
 
-                        // Date & time picker
-                        VStack(spacing: 6) {
-                            Text("DATE & TIME")
-                                .font(AztecTheme.sfProBold(size: 11))
-                                .tracking(2)
-                                .foregroundColor(AztecTheme.hotPink)
+                            // Date & time picker
+                            VStack(spacing: 6) {
+                                Text("DATE & TIME")
+                                    .font(AztecTheme.sfProBold(size: 11))
+                                    .tracking(2)
+                                    .foregroundColor(AztecTheme.hotPink)
 
-                            DatePicker(
-                                "Game Date",
-                                selection: $gameDate,
-                                in: tournamentDateRange,
-                                displayedComponents: [.date, .hourAndMinute]
-                            )
-                            .datePickerStyle(.compact)
-                            .labelsHidden()
-                            .tint(AztecTheme.neonYellow)
-                            .colorScheme(.dark)
+                                DatePicker(
+                                    "Game Date",
+                                    selection: $gameDate,
+                                    in: tournamentDateRange,
+                                    displayedComponents: [.date, .hourAndMinute]
+                                )
+                                .datePickerStyle(.compact)
+                                .labelsHidden()
+                                .tint(AztecTheme.neonYellow)
+                                .colorScheme(.dark)
+                            }
                         }
 
                         // Score display with manual +/- buttons
@@ -138,21 +146,23 @@ struct GameEntrySheet: View {
                                     .foregroundColor(AztecTheme.neonYellow)
                                     .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 6)
 
-                                HStack(spacing: 12) {
-                                    Button {
-                                        if team1Score > 0 { team1Score -= 1 }
-                                    } label: {
-                                        Image(systemName: "minus.circle.fill")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(AztecTheme.hotPink)
-                                    }
+                                if !isCompleted {
+                                    HStack(spacing: 12) {
+                                        Button {
+                                            if team1Score > 0 { team1Score -= 1 }
+                                        } label: {
+                                            Image(systemName: "minus.circle.fill")
+                                                .font(.system(size: 28))
+                                                .foregroundColor(AztecTheme.hotPink)
+                                        }
 
-                                    Button {
-                                        team1Score += 1
-                                    } label: {
-                                        Image(systemName: "plus.circle.fill")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(AztecTheme.neonYellow)
+                                        Button {
+                                            team1Score += 1
+                                        } label: {
+                                            Image(systemName: "plus.circle.fill")
+                                                .font(.system(size: 28))
+                                                .foregroundColor(AztecTheme.neonYellow)
+                                        }
                                     }
                                 }
                             }
@@ -188,21 +198,23 @@ struct GameEntrySheet: View {
                                     .foregroundColor(AztecTheme.neonYellow)
                                     .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 6)
 
-                                HStack(spacing: 12) {
-                                    Button {
-                                        if team2Score > 0 { team2Score -= 1 }
-                                    } label: {
-                                        Image(systemName: "minus.circle.fill")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(AztecTheme.hotPink)
-                                    }
+                                if !isCompleted {
+                                    HStack(spacing: 12) {
+                                        Button {
+                                            if team2Score > 0 { team2Score -= 1 }
+                                        } label: {
+                                            Image(systemName: "minus.circle.fill")
+                                                .font(.system(size: 28))
+                                                .foregroundColor(AztecTheme.hotPink)
+                                        }
 
-                                    Button {
-                                        team2Score += 1
-                                    } label: {
-                                        Image(systemName: "plus.circle.fill")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(AztecTheme.neonYellow)
+                                        Button {
+                                            team2Score += 1
+                                        } label: {
+                                            Image(systemName: "plus.circle.fill")
+                                                .font(.system(size: 28))
+                                                .foregroundColor(AztecTheme.neonYellow)
+                                        }
                                     }
                                 }
                             }
@@ -220,11 +232,18 @@ struct GameEntrySheet: View {
                                     .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
                                 Spacer()
                             }
-                            ForEach(team1Players) { player in
-                                QuickStatEntry(
-                                    playerName: player.name,
-                                    stats: binding(for: player.id)
-                                )
+
+                            if isCompleted {
+                                ForEach(team1Players) { player in
+                                    ReadOnlyStatRow(playerName: player.name, stats: completedStats(for: player.id))
+                                }
+                            } else {
+                                ForEach(team1Players) { player in
+                                    QuickStatEntry(
+                                        playerName: player.name,
+                                        stats: binding(for: player.id)
+                                    )
+                                }
                             }
                         }
 
@@ -238,20 +257,29 @@ struct GameEntrySheet: View {
                                     .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 4)
                                 Spacer()
                             }
-                            ForEach(team2Players) { player in
-                                QuickStatEntry(
-                                    playerName: player.name,
-                                    stats: binding(for: player.id)
-                                )
+
+                            if isCompleted {
+                                ForEach(team2Players) { player in
+                                    ReadOnlyStatRow(playerName: player.name, stats: completedStats(for: player.id))
+                                }
+                            } else {
+                                ForEach(team2Players) { player in
+                                    QuickStatEntry(
+                                        playerName: player.name,
+                                        stats: binding(for: player.id)
+                                    )
+                                }
                             }
                         }
 
-                        // Submit
-                        Button("RECORD GAME") {
-                            showConfirm = true
+                        // Submit (only for non-completed games)
+                        if !isCompleted {
+                            Button("RECORD GAME") {
+                                showConfirm = true
+                            }
+                            .buttonStyle(AztecButtonStyle())
+                            .padding(.top, 8)
                         }
-                        .buttonStyle(AztecButtonStyle())
-                        .padding(.top, 8)
                     }
                     .padding()
                 }
@@ -259,7 +287,7 @@ struct GameEntrySheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(isCompleted ? "Close" : "Cancel") { dismiss() }
                         .dismissButtonStyle()
                 }
             }
@@ -274,7 +302,18 @@ struct GameEntrySheet: View {
                 Text("\(t1) \(team1Score) - \(team2Score) \(t2)")
             }
             .onAppear {
-                initializePlayerStats()
+                if isCompleted {
+                    team1Score = game.team1Score
+                    team2Score = game.team2Score
+                } else {
+                    initializePlayerStats()
+                    if let field = game.field {
+                        selectedField = StickballField(rawValue: field)
+                    }
+                    if let time = game.scheduledTime {
+                        gameDate = time
+                    }
+                }
             }
         }
     }
@@ -291,6 +330,13 @@ struct GameEntrySheet: View {
             get: { playerStats[playerId] ?? EditablePlayerStats() },
             set: { playerStats[playerId] = $0 }
         )
+    }
+
+    private func completedStats(for playerId: String) -> EditablePlayerStats {
+        if let stats = game.playerGameStats.first(where: { $0.playerId == playerId }) {
+            return EditablePlayerStats(dongs: stats.dongs, drops: stats.drops, doublePlays: stats.doublePlays, salamies: stats.salamies)
+        }
+        return EditablePlayerStats()
     }
 
     private func initializePlayerStats() {
@@ -313,9 +359,8 @@ struct GameEntrySheet: View {
 
         Task {
             await cloudService.recordGameResult(
-                roundIndex: roundIndex,
-                matchupIndex: matchupIndex,
-                gameIndex: matchup.games.count,
+                tierIndex: tierIndex,
+                gameId: game.id,
                 team1Score: team1Score,
                 team2Score: team2Score,
                 field: selectedField?.rawValue,
@@ -332,6 +377,53 @@ struct EditablePlayerStats {
     var drops: Int = 0
     var doublePlays: Int = 0
     var salamies: Int = 0
+}
+
+/// Read-only stat display for completed games
+struct ReadOnlyStatRow: View {
+    let playerName: String
+    let stats: EditablePlayerStats
+
+    var body: some View {
+        HStack {
+            Text(playerName)
+                .font(AztecTheme.sfProBold(size: 19))
+                .foregroundColor(AztecTheme.neonYellow)
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                if stats.dongs > 0 {
+                    Text("\(stats.dongs)D")
+                        .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                        .foregroundColor(AztecTheme.neonYellow)
+                }
+                if stats.salamies > 0 {
+                    Text("\(stats.salamies)S")
+                        .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                        .foregroundColor(AztecTheme.neonYellow)
+                }
+                if stats.doublePlays > 0 {
+                    Text("\(stats.doublePlays)DP")
+                        .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                        .foregroundColor(AztecTheme.hotPink)
+                }
+                if stats.drops > 0 {
+                    Text("\(stats.drops)Dr")
+                        .font(.system(size: 12, weight: .heavy, design: .monospaced))
+                        .foregroundColor(AztecTheme.hotPink)
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 2.25)
+        )
+    }
 }
 
 /// Quick stat entry row for a single player.
@@ -412,7 +504,6 @@ struct StatStepperRow: View {
     let label: String
     @Binding var value: Int
     var color: Color = AztecTheme.neonYellow
-    var onChanged: ((Int) -> Void)?
 
     var body: some View {
         HStack {
@@ -427,7 +518,6 @@ struct StatStepperRow: View {
             Button {
                 if value > 0 {
                     value -= 1
-                    onChanged?(-1)
                 }
             } label: {
                 Image(systemName: "minus")
@@ -449,7 +539,6 @@ struct StatStepperRow: View {
 
             Button {
                 value += 1
-                onChanged?(1)
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 12, weight: .bold))
