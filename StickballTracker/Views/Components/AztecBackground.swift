@@ -1,12 +1,12 @@
 import SwiftUI
 
-/// App header — uses G4_header_PINK image.
+/// App header — uses G4_header_YellowandPink image.
 struct AztecHeader: View {
     let title: String
 
     var body: some View {
         VStack(spacing: 0) {
-            Image("G4_header_PINK")
+            Image("G4_header_YellowandPink")
                 .resizable()
                 .scaledToFit()
                 .frame(height: 44)

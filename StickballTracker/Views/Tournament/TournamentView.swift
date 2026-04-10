@@ -336,11 +336,8 @@ struct GameCard: View {
                     // Team 1 column
                     VStack(spacing: compact ? 2 : 4) {
                         HStack(spacing: 4) {
-                            if let team = team1, let icon = team.iconName, !compact {
-                                Image(icon)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 20, height: 20)
+                            if let team = team1, !compact {
+                                TeamIconView(team: team, size: 20, glowRadius: 4)
                             }
                             scheduleTeamName(team1DisplayName, color: team1Color)
                         }
@@ -375,11 +372,8 @@ struct GameCard: View {
                     VStack(spacing: compact ? 2 : 4) {
                         HStack(spacing: 4) {
                             scheduleTeamName(team2DisplayName, color: team2Color, trailing: true)
-                            if let team = team2, let icon = team.iconName, !compact {
-                                Image(icon)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 20, height: 20)
+                            if let team = team2, !compact {
+                                TeamIconView(team: team, size: 20, glowRadius: 4)
                             }
                         }
 

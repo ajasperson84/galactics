@@ -354,19 +354,54 @@ struct TeamAggregatedRow: View {
 }
 
 /// Displays a team's custom icon from Assets if set, otherwise shows the two-letter abbreviation.
+/// Uses a static mapping for team-specific icons and glow colors.
 struct TeamIconView: View {
     let team: Team
     var size: CGFloat = 48
     var glowRadius: CGFloat = 10.8
 
+    /// Maps team name → (asset name, glow color, glow intensity multiplier)
+    static let teamLogos: [String: (icon: String, glowColor: Color, intensity: CGFloat)] = [
+        "Mothership Champs":    ("B_GOLD",        AztecTheme.hotPink,    1.0),
+        "Tinseltown Champs":    ("TTFB_GOLD",     AztecTheme.hotPink,    1.0),
+        "Rose City Champs":     ("Rose-City_GOLD", AztecTheme.hotPink,   1.0),
+        "Jet City Champs":      ("Jet-City_GOLD", AztecTheme.hotPink,    1.0),
+        "No Mames Wey Viejos":  ("NMW_VIEJOS",    Color.white,          1.0),
+        "Mothership JV Reds":   ("BJVRED",        AztecTheme.neonYellow, 1.0),
+        "Mothership JV Blacks": ("B",             AztecTheme.neonYellow, 1.25),
+        "Tinseltown JV":        ("TTFBJV",        AztecTheme.neonYellow, 1.0),
+        "Rose City JV":         ("RCJV",          AztecTheme.neonYellow, 1.0),
+        "D$$":                  ("DSS",           AztecTheme.neonYellow, 1.0),
+        "Steel City":           ("Steel-City",    AztecTheme.neonYellow, 1.0),
+        "Gold Coast":           ("Gold-Coast",    AztecTheme.neonYellow, 1.0),
+        "Banditos":             ("Banditos",      AztecTheme.neonYellow, 1.0),
+        "No Mames Wey Jovenes": ("NMW_JOVENES",   Color.white,          1.0),
+    ]
+
+    private var logoInfo: (icon: String, glowColor: Color, intensity: CGFloat)? {
+        Self.teamLogos[team.name]
+    }
+
+    private var resolvedIconName: String? {
+        logoInfo?.icon ?? team.iconName
+    }
+
+    private var glowColor: Color {
+        logoInfo?.glowColor ?? AztecTheme.hotPink
+    }
+
+    private var glowIntensity: CGFloat {
+        logoInfo?.intensity ?? 1.0
+    }
+
     var body: some View {
-        if let iconName = team.iconName {
+        if let iconName = resolvedIconName {
             Image(iconName)
                 .resizable()
                 .scaledToFit()
                 .frame(width: size, height: size)
                 .clipShape(RoundedRectangle(cornerRadius: size * 0.125))
-                .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: glowRadius)
+                .shadow(color: glowColor.opacity(0.6 * glowIntensity), radius: glowRadius * glowIntensity)
         } else {
             ZStack {
                 RoundedRectangle(cornerRadius: size * 0.125)

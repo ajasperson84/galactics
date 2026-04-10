@@ -93,12 +93,8 @@ struct GameEntrySheet: View {
                             // Team icons + names row
                             HStack(spacing: 0) {
                                 VStack(spacing: 8) {
-                                    if let icon = team1?.iconName {
-                                        Image(icon)
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 48, height: 48)
-                                            .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
+                                    if let team = team1 {
+                                        TeamIconView(team: team, size: 48, glowRadius: 15)
                                     }
                                     formattedTeamName(team1?.name ?? "Team 1", color: AztecTheme.neonYellow)
                                 }
@@ -107,12 +103,8 @@ struct GameEntrySheet: View {
                                 Spacer().frame(width: 80)
 
                                 VStack(spacing: 8) {
-                                    if let icon = team2?.iconName {
-                                        Image(icon)
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 48, height: 48)
-                                            .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
+                                    if let team = team2 {
+                                        TeamIconView(team: team, size: 48, glowRadius: 15)
                                     }
                                     formattedTeamName(team2?.name ?? "Team 2", color: AztecTheme.hotPink)
                                 }

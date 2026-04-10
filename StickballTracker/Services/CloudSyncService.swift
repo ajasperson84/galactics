@@ -177,8 +177,8 @@ class CloudSyncService: ObservableObject {
 
     // MARK: - Team Operations
 
-    func addTeam(name: String) async {
-        let team = Team(name: name)
+    func addTeam(name: String, iconName: String? = nil) async {
+        let team = Team(name: name, iconName: iconName)
         do {
             try db.collection("teams").document(team.id).setData(from: team)
         } catch {
@@ -233,20 +233,28 @@ class CloudSyncService: ObservableObject {
     // MARK: - Seed Tournament Teams
 
     func seedTournamentTeams() async {
-        let allTeamNames = [
+        // Team name → icon asset name (matches TeamIconView.teamLogos)
+        let allTeams: [(name: String, icon: String)] = [
             // Day 1 teams (9)
-            "Banditos", "No Mames Wey Jovenes",
-            "Mothership JV Reds", "Mothership JV Blacks",
-            "Tinseltown JV", "Rose City JV",
-            "D$$", "Steel City", "Gold Coast",
+            ("Banditos",             "Banditos"),
+            ("No Mames Wey Jovenes", "NMW_JOVENES"),
+            ("Mothership JV Reds",   "BJVRED"),
+            ("Mothership JV Blacks", "B"),
+            ("Tinseltown JV",        "TTFBJV"),
+            ("Rose City JV",         "RCJV"),
+            ("D$$",                  "DSS"),
+            ("Steel City",           "Steel-City"),
+            ("Gold Coast",           "Gold-Coast"),
             // Day 2 teams (5)
-            "Mothership Champs", "Tinseltown Champs",
-            "Rose City Champs", "Jet City Champs",
-            "No Mames Wey Viejos"
+            ("Mothership Champs",    "B_GOLD"),
+            ("Tinseltown Champs",    "TTFB_GOLD"),
+            ("Rose City Champs",     "Rose-City_GOLD"),
+            ("Jet City Champs",      "Jet-City_GOLD"),
+            ("No Mames Wey Viejos",  "NMW_VIEJOS"),
         ]
         let existingNames = Set(teams.map { $0.name })
-        for name in allTeamNames where !existingNames.contains(name) {
-            await addTeam(name: name)
+        for team in allTeams where !existingNames.contains(team.name) {
+            await addTeam(name: team.name, iconName: team.icon)
         }
     }
 
