@@ -378,6 +378,22 @@ class CloudSyncService: ObservableObject {
         await updateTournament(tournament)
     }
 
+    // MARK: - Live Score Update
+
+    func updateGameScores(tierIndex: Int, gameId: String, team1Score: Int, team2Score: Int) async {
+        guard var tournament else { return }
+        guard tierIndex < tournament.tiers.count else { return }
+        guard let gameIdx = tournament.tiers[tierIndex].games.firstIndex(where: { $0.id == gameId }) else { return }
+        tournament.tiers[tierIndex].games[gameIdx].team1Score = team1Score
+        tournament.tiers[tierIndex].games[gameIdx].team2Score = team2Score
+        if tournament.tiers[tierIndex].games[gameIdx].status == .pending {
+            tournament.tiers[tierIndex].games[gameIdx].status = .inProgress
+            tournament.tiers[tierIndex].status = .inProgress
+        }
+        self.tournament = tournament
+        await updateTournament(tournament)
+    }
+
     // MARK: - Record Game Result
 
     func recordGameResult(
@@ -653,6 +669,19 @@ class CloudSyncService: ObservableObject {
         g12.scheduledTime = gameTime(day: 25, hour: 18)         // 6:00 PM
         g13.scheduledTime = gameTime(day: 26, hour: 9)          // 9:00 AM SATURDAY
 
+        // === Field Assignments ===
+        // Games 1,2,5,6,9,10,11,13 → El Potrero
+        // Games 3,4,7,8,12 → La Finca
+        let potrero = StickballField.elPotrero.rawValue
+        let finca = StickballField.laFinca.rawValue
+        g1.field = potrero;  g2.field = potrero
+        g3.field = finca;    g4.field = finca
+        g5.field = potrero;  g6.field = potrero
+        g7.field = finca;    g8.field = finca
+        g9.field = potrero;  g10.field = potrero
+        g11.field = potrero; g12.field = finca
+        g13.field = potrero
+
         tier.games = [g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13]
 
         tier.winnersBracketRounds = [
@@ -744,6 +773,17 @@ class CloudSyncService: ObservableObject {
         g8.scheduledTime = gameTime(day: 26, hour: 15)          // 3:00 PM
         g9.scheduledTime = gameTime(day: 26, hour: 16, minute: 30)  // 4:30 PM
         g10.scheduledTime = gameTime(day: 26, hour: 16, minute: 30) // 4:30 PM
+
+        // === Field Assignments ===
+        // Games 1,3,5,7,9 → Valle De Mystique
+        // Games 2,4,6,8 → Lil Valle
+        let valle = StickballField.valleDeMystique.rawValue
+        let lil = StickballField.lilValle.rawValue
+        g1.field = valle;  g2.field = lil
+        g3.field = valle;  g4.field = lil
+        g5.field = valle;  g6.field = lil
+        g7.field = valle;  g8.field = lil
+        g9.field = valle;  g10.field = lil
 
         tier.games = [g1, g2, g3, g4, g5, g6, g7, g8, g9, g10]
 

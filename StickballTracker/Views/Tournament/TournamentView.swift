@@ -275,6 +275,18 @@ struct GameCard: View {
         }
     }
 
+    private var team1Color: Color {
+        if game.team1Id == nil { return AztecTheme.dimText }
+        if game.status == .completed && game.winnerId != game.team1Id { return AztecTheme.dimText }
+        return AztecTheme.neonYellow
+    }
+
+    private var team2Color: Color {
+        if game.team2Id == nil { return AztecTheme.dimText }
+        if game.status == .completed && game.winnerId != game.team2Id { return AztecTheme.dimText }
+        return AztecTheme.hotPink
+    }
+
     private var statusColor: Color {
         switch game.status {
         case .pending: return AztecTheme.dimText
@@ -309,40 +321,42 @@ struct GameCard: View {
 
                 // Teams and score
                 HStack(spacing: 0) {
-                    // Team 1
-                    HStack(spacing: 4) {
-                        if let team = team1, let icon = team.iconName, !compact {
-                            Image(icon)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
+                    // Team 1 column
+                    VStack(spacing: compact ? 2 : 4) {
+                        HStack(spacing: 4) {
+                            if let team = team1, let icon = team.iconName, !compact {
+                                Image(icon)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                            }
+                            Text(team1DisplayName.uppercased())
+                                .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
+                                .foregroundColor(team1Color)
+                                .shadow(color: AztecTheme.neonYellow.opacity(game.team1Id != nil ? 0.5 : 0), radius: 4)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.4)
                         }
-                        Text(team1DisplayName.uppercased())
-                            .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
-                            .foregroundColor(game.team1Id == nil
-                                ? AztecTheme.dimText
-                                : (game.winnerId == game.team1Id && game.status == .completed
-                                    ? AztecTheme.neonYellow
-                                    : (game.status == .completed && game.winnerId != game.team1Id
-                                        ? AztecTheme.dimText
-                                        : AztecTheme.neonYellow)))
-                            .shadow(color: AztecTheme.neonYellow.opacity(game.team1Id != nil ? 0.5 : 0), radius: 4)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.4)
+
+                        if game.status == .completed || game.status == .inProgress {
+                            let isWinner = game.winnerId == game.team1Id && game.status == .completed
+                            Text("\(game.team1Score)")
+                                .font(AztecTheme.hobbsFont(size: compact ? 20 : 28))
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundColor(AztecTheme.neonYellow)
+                                .shadow(color: AztecTheme.neonYellow.opacity(isWinner ? 0.9 : 0.2), radius: isWinner ? 10 : 2)
+                                .shadow(color: AztecTheme.neonYellow.opacity(isWinner ? 0.6 : 0), radius: isWinner ? 16 : 0)
+                        }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity)
 
                     if game.status == .completed || game.status == .inProgress {
-                        Text("\(game.team1Score)")
-                            .font(.system(size: compact ? 16 : 22, weight: .black, design: .monospaced))
-                            .foregroundColor(AztecTheme.neonYellow)
                         Text("-")
-                            .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
+                            .font(AztecTheme.hobbsFont(size: compact ? 20 : 28))
+                            .tracking(AztecTheme.hobbsKerning)
                             .foregroundColor(AztecTheme.hotPink)
                             .padding(.horizontal, 4)
-                        Text("\(game.team2Score)")
-                            .font(.system(size: compact ? 16 : 22, weight: .black, design: .monospaced))
-                            .foregroundColor(AztecTheme.hotPink)
+                            .offset(y: compact ? 10 : 14)
                     } else {
                         Text("VS")
                             .font(AztecTheme.hobbsFont(size: compact ? 27 : 36))
@@ -357,28 +371,34 @@ struct GameCard: View {
                             .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 4)
                     }
 
-                    // Team 2
-                    HStack(spacing: 4) {
-                        Text(team2DisplayName.uppercased())
-                            .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
-                            .foregroundColor(game.team2Id == nil
-                                ? AztecTheme.dimText
-                                : (game.winnerId == game.team2Id && game.status == .completed
-                                    ? AztecTheme.hotPink
-                                    : (game.status == .completed && game.winnerId != game.team2Id
-                                        ? AztecTheme.dimText
-                                        : AztecTheme.hotPink)))
-                            .shadow(color: AztecTheme.hotPink.opacity(game.team2Id != nil ? 0.5 : 0), radius: 4)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.4)
-                        if let team = team2, let icon = team.iconName, !compact {
-                            Image(icon)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
+                    // Team 2 column
+                    VStack(spacing: compact ? 2 : 4) {
+                        HStack(spacing: 4) {
+                            Text(team2DisplayName.uppercased())
+                                .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
+                                .foregroundColor(team2Color)
+                                .shadow(color: AztecTheme.hotPink.opacity(game.team2Id != nil ? 0.5 : 0), radius: 4)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.4)
+                            if let team = team2, let icon = team.iconName, !compact {
+                                Image(icon)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                            }
+                        }
+
+                        if game.status == .completed || game.status == .inProgress {
+                            let isWinner = game.winnerId == game.team2Id && game.status == .completed
+                            Text("\(game.team2Score)")
+                                .font(AztecTheme.hobbsFont(size: compact ? 20 : 28))
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundColor(AztecTheme.hotPink)
+                                .shadow(color: AztecTheme.hotPink.opacity(isWinner ? 0.9 : 0.2), radius: isWinner ? 10 : 2)
+                                .shadow(color: AztecTheme.hotPink.opacity(isWinner ? 0.6 : 0), radius: isWinner ? 16 : 0)
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .frame(maxWidth: .infinity)
                 }
 
                 // Assign teams hint
@@ -396,11 +416,11 @@ struct GameCard: View {
             .clipShape(RoundedRectangle(cornerRadius: compact ? 8 : 12))
             .overlay(
                 RoundedRectangle(cornerRadius: compact ? 8 : 12)
-                    .stroke(AztecTheme.borderGradient, lineWidth: 2.25)
+                    .stroke(AztecTheme.borderGradient, lineWidth: 2.8)
             )
-            .shadow(color: AztecTheme.neonYellow.opacity(0.2), radius: 4, x: -2)
-            .shadow(color: AztecTheme.hotPink.opacity(0.2), radius: 4, x: 2)
-            .shadow(color: game.status == .inProgress ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 6)
+            .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 6, x: -2)
+            .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 6, x: 2)
+            .shadow(color: game.status == .inProgress ? AztecTheme.neonYellow.opacity(0.4) : .clear, radius: 8)
         }
         .buttonStyle(.plain)
     }

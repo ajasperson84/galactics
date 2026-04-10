@@ -11,7 +11,6 @@ struct GameEntrySheet: View {
     @State private var team1Score: Int = 0
     @State private var team2Score: Int = 0
     @State private var playerStats: [String: EditablePlayerStats] = [:]
-    @State private var selectedField: StickballField?
     @State private var currentInning: Int = 1
     @State private var showConfirm = false
 
@@ -89,64 +88,18 @@ struct GameEntrySheet: View {
                             Spacer()
                         }
 
-                        if !isCompleted {
-                            // Field picker
-                            VStack(spacing: 6) {
-                                Text("FIELD")
-                                    .font(AztecTheme.sfProBold(size: 11))
-                                    .tracking(2)
-                                    .foregroundColor(AztecTheme.hotPink)
-
-                                Menu {
-                                    Button("None") { selectedField = nil }
-                                    ForEach(StickballField.allCases, id: \.self) { field in
-                                        Button(field.rawValue) { selectedField = field }
-                                    }
-                                } label: {
-                                    HStack {
-                                        Text(selectedField?.rawValue ?? "Select Field")
-                                            .font(AztecTheme.sfProBold(size: 14))
-                                            .foregroundColor(
-                                                selectedField != nil
-                                                    ? AztecTheme.neonYellow
-                                                    : AztecTheme.hotPink.opacity(0.6)
-                                            )
-                                        Spacer()
-                                        Image(systemName: "chevron.down")
-                                            .font(.system(size: 12, weight: .bold))
-                                            .foregroundColor(AztecTheme.hotPink)
-                                    }
-                                    .padding(12)
-                                    .background(Color.black)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(AztecTheme.hotPink.opacity(0.5), lineWidth: 2.25)
-                                    )
-                                }
-                            }
-                        }
-
                         // Score display with manual +/- buttons
                         HStack(spacing: 0) {
                             // Team 1 score
                             VStack(spacing: 8) {
-                                HStack(spacing: 4) {
-                                    if let icon = team1?.iconName {
-                                        Image(icon)
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 48, height: 48)
-                                            .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
-                                    }
-                                    Text(team1?.name ?? "Team 1")
-                                        .font(AztecTheme.hobbsFont(size: 53))
-                                        .tracking(AztecTheme.hobbsKerning)
-                                        .foregroundColor(AztecTheme.neonYellow)
-                                        .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.4)
+                                if let icon = team1?.iconName {
+                                    Image(icon)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 48, height: 48)
+                                        .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
                                 }
+                                formattedTeamName(team1?.name ?? "Team 1", color: AztecTheme.neonYellow)
 
                                 Text("\(team1Score)")
                                     .font(.system(size: 40, weight: .black, design: .monospaced))
@@ -157,6 +110,7 @@ struct GameEntrySheet: View {
                                     HStack(spacing: 12) {
                                         Button {
                                             if team1Score > 0 { team1Score -= 1 }
+                                            syncScores()
                                         } label: {
                                             Image(systemName: "minus.circle.fill")
                                                 .font(.system(size: 28))
@@ -165,6 +119,7 @@ struct GameEntrySheet: View {
 
                                         Button {
                                             team1Score += 1
+                                            syncScores()
                                         } label: {
                                             Image(systemName: "plus.circle.fill")
                                                 .font(.system(size: 28))
@@ -176,30 +131,29 @@ struct GameEntrySheet: View {
                             .frame(maxWidth: .infinity)
 
                             Text("VS")
-                                .font(AztecTheme.hobbsFont(size: 82))
+                                .font(AztecTheme.hobbsFont(size: 164))
                                 .tracking(AztecTheme.hobbsKerning)
-                                .foregroundColor(AztecTheme.hotPink)
-                                .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [AztecTheme.neonYellow, AztecTheme.hotPink],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 6)
+                                .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 6)
                                 .padding(.horizontal, 8)
 
                             // Team 2 score
                             VStack(spacing: 8) {
-                                HStack(spacing: 4) {
-                                    if let icon = team2?.iconName {
-                                        Image(icon)
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 48, height: 48)
-                                            .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
-                                    }
-                                    Text(team2?.name ?? "Team 2")
-                                        .font(AztecTheme.hobbsFont(size: 53))
-                                        .tracking(AztecTheme.hobbsKerning)
-                                        .foregroundColor(AztecTheme.hotPink)
-                                        .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.4)
+                                if let icon = team2?.iconName {
+                                    Image(icon)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 48, height: 48)
+                                        .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
                                 }
+                                formattedTeamName(team2?.name ?? "Team 2", color: AztecTheme.hotPink)
 
                                 Text("\(team2Score)")
                                     .font(.system(size: 40, weight: .black, design: .monospaced))
@@ -210,6 +164,7 @@ struct GameEntrySheet: View {
                                     HStack(spacing: 12) {
                                         Button {
                                             if team2Score > 0 { team2Score -= 1 }
+                                            syncScores()
                                         } label: {
                                             Image(systemName: "minus.circle.fill")
                                                 .font(.system(size: 28))
@@ -218,6 +173,7 @@ struct GameEntrySheet: View {
 
                                         Button {
                                             team2Score += 1
+                                            syncScores()
                                         } label: {
                                             Image(systemName: "plus.circle.fill")
                                                 .font(.system(size: 28))
@@ -332,7 +288,7 @@ struct GameEntrySheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(isCompleted ? "Close" : "Cancel") { dismiss() }
+                    Button(isCompleted ? "Close" : "Go Back") { dismiss() }
                         .dismissButtonStyle()
                 }
             }
@@ -352,9 +308,6 @@ struct GameEntrySheet: View {
                     team2Score = game.team2Score
                 } else {
                     initializePlayerStats()
-                    if let field = game.field {
-                        selectedField = StickballField(rawValue: field)
-                    }
                     if let inning = game.currentInning {
                         currentInning = inning
                     }
@@ -385,6 +338,47 @@ struct GameEntrySheet: View {
         }
     }
 
+    private func syncScores() {
+        Task {
+            await cloudService.updateGameScores(
+                tierIndex: tierIndex,
+                gameId: game.id,
+                team1Score: team1Score,
+                team2Score: team2Score
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func formattedTeamName(_ name: String, color: Color) -> some View {
+        let lines = Self.splitTeamName(name)
+        VStack(spacing: 0) {
+            ForEach(lines, id: \.self) { line in
+                Text(line)
+                    .font(AztecTheme.hobbsFont(size: 66))
+                    .tracking(AztecTheme.hobbsKerning)
+                    .foregroundColor(color)
+                    .shadow(color: color.opacity(0.5), radius: 4)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.3)
+            }
+        }
+    }
+
+    private static func splitTeamName(_ name: String) -> [String] {
+        // "Mothership JV Reds" → ["Mothership", "JV Reds"]
+        // "Mothership JV Blacks" → ["Mothership", "JV Blacks"]
+        // "No Mames Wey Jovenes" → ["No Mames Wey", "Jovenes"]
+        // "No Mames Wey Viejos" → ["No Mames Wey", "Viejos"]
+        if name.hasPrefix("Mothership JV") {
+            return ["Mothership", String(name.dropFirst("Mothership ".count))]
+        }
+        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
+            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
+        }
+        return [name]
+    }
+
     private func submitGame() {
         let gameStats = playerStats.map { playerId, stats -> PlayerGameStats in
             var gs = PlayerGameStats(playerId: playerId)
@@ -401,7 +395,7 @@ struct GameEntrySheet: View {
                 gameId: game.id,
                 team1Score: team1Score,
                 team2Score: team2Score,
-                field: selectedField?.rawValue,
+                field: game.field,
                 gameDate: game.scheduledTime,
                 playerStats: gameStats
             )
