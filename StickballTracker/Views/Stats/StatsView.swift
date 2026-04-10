@@ -123,28 +123,24 @@ struct StatsView: View {
                     StatsTableHeader()
                         .padding(.horizontal)
 
-                    // Player rows — top 7 visible, rest scrollable
+                    // Player rows — all in scrollable section with pink indicator
                     let playerList = Array(sortedPlayers.enumerated())
-                    let topPlayers = Array(playerList.prefix(7))
-                    let remainingPlayers = Array(playerList.dropFirst(7))
 
-                    LazyVStack(spacing: 4) {
-                        ForEach(topPlayers, id: \.element.id) { index, player in
-                            StatsTableRow(rank: index + 1, player: player, highlightStat: sortBy)
-                        }
-                    }
-                    .padding(.horizontal)
-
-                    if !remainingPlayers.isEmpty {
-                        ScrollView(.vertical, showsIndicators: true) {
-                            LazyVStack(spacing: 4) {
-                                ForEach(remainingPlayers, id: \.element.id) { index, player in
-                                    StatsTableRow(rank: index + 1, player: player, highlightStat: sortBy)
-                                }
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVStack(spacing: 4) {
+                            ForEach(playerList, id: \.element.id) { index, player in
+                                StatsTableRow(rank: index + 1, player: player, highlightStat: sortBy)
                             }
                         }
-                        .frame(maxHeight: 300)
                         .padding(.horizontal)
+                    }
+                    .frame(maxHeight: 450)
+                    .overlay(alignment: .trailing) {
+                        Capsule()
+                            .fill(AztecTheme.hotPink.opacity(0.5))
+                            .frame(width: 3)
+                            .padding(.vertical, 8)
+                            .padding(.trailing, 2)
                     }
                 }
 
@@ -193,27 +189,22 @@ struct StatsView: View {
                     .padding(.horizontal)
                 }
 
-                // Team rows — top 5 visible, rest scrollable
-                let topTeams = Array(sortedTeams.prefix(5))
-                let remainingTeams = Array(sortedTeams.dropFirst(5))
-
-                LazyVStack(spacing: 6) {
-                    ForEach(topTeams) { team in
-                        TeamAggregatedRow(team: team, highlightStat: teamSortBy)
-                    }
-                }
-                .padding(.horizontal)
-
-                if !remainingTeams.isEmpty {
-                    ScrollView(.vertical, showsIndicators: true) {
-                        LazyVStack(spacing: 6) {
-                            ForEach(remainingTeams) { team in
-                                TeamAggregatedRow(team: team, highlightStat: teamSortBy)
-                            }
+                // Team rows — all in scrollable section with pink indicator
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 6) {
+                        ForEach(sortedTeams) { team in
+                            TeamAggregatedRow(team: team, highlightStat: teamSortBy)
                         }
                     }
-                    .frame(maxHeight: 250)
                     .padding(.horizontal)
+                }
+                .frame(maxHeight: 350)
+                .overlay(alignment: .trailing) {
+                    Capsule()
+                        .fill(AztecTheme.hotPink.opacity(0.5))
+                        .frame(width: 3)
+                        .padding(.vertical, 8)
+                        .padding(.trailing, 2)
                 }
             }
             .padding(.top, 16)

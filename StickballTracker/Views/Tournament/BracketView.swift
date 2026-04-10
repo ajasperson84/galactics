@@ -30,7 +30,7 @@ struct BracketView: View {
                 VStack(spacing: 8) {
                     HStack {
                         Text("CHAMPIONSHIP")
-                            .font(AztecTheme.hobbsFont(size: 28))
+                            .font(AztecTheme.hobbsFont(size: 35))
                             .tracking(AztecTheme.hobbsKerning)
                             .foregroundColor(AztecTheme.neonYellow)
                             .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
@@ -54,7 +54,7 @@ struct BracketView: View {
                     VStack(spacing: 8) {
                         HStack {
                             Text("IF NECESSARY")
-                                .font(AztecTheme.hobbsFont(size: 28))
+                                .font(AztecTheme.hobbsFont(size: 35))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
@@ -140,10 +140,12 @@ struct BracketView: View {
         return VStack(spacing: 8) {
             HStack {
                 Text(title)
-                    .font(AztecTheme.hobbsFont(size: 28))
+                    .font(AztecTheme.hobbsFont(size: 35))
                     .tracking(AztecTheme.hobbsKerning)
                     .foregroundColor(color)
                     .shadow(color: color.opacity(0.5), radius: 4)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
                 Rectangle()
                     .fill(color.opacity(0.3))
                     .frame(height: 1)
@@ -155,11 +157,11 @@ struct BracketView: View {
                     ForEach(Array(rounds.enumerated()), id: \.offset) { roundIdx, roundGroup in
                         VStack(spacing: 0) {
                             Text(roundGroup.name.uppercased())
-                                .font(AztecTheme.hobbsFont(size: 20))
+                                .font(AztecTheme.hobbsFont(size: 25))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(color)
                                 .shadow(color: color.opacity(0.5), radius: 4)
-                                .frame(height: 20)
+                                .frame(height: 24)
 
                             ZStack {
                                 ForEach(roundGroup.gameIds, id: \.self) { gameId in
@@ -179,7 +181,7 @@ struct BracketView: View {
 
                         if roundIdx < rounds.count - 1 {
                             VStack(spacing: 0) {
-                                Color.clear.frame(height: 20)
+                                Color.clear.frame(height: 24)
                                 RoutedConnectors(
                                     tier: tier,
                                     fromGameIds: roundGroup.gameIds,

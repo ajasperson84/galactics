@@ -83,6 +83,8 @@ struct ScheduleView: View {
                 .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(color)
                 .shadow(color: color.opacity(0.5), radius: 4)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
             Rectangle()
                 .fill(color.opacity(0.3))
                 .frame(height: 1)

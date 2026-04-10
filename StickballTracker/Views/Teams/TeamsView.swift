@@ -395,12 +395,12 @@ struct TeamDetailSheet: View {
                         // Team record below icon
                         VStack(spacing: 2) {
                             Text(teamRecord)
-                                .font(AztecTheme.hobbsFont(size: 36))
+                                .font(AztecTheme.hobbsFont(size: 54))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(AztecTheme.neonYellow)
                                 .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
                             Text("RECORD")
-                                .font(AztecTheme.sfProBold(size: 12))
+                                .font(AztecTheme.sfProBold(size: 18))
                                 .foregroundColor(AztecTheme.hotPink)
                         }
 
@@ -507,7 +507,7 @@ struct TeamDetailSheet: View {
                     .padding()
                 }
             }
-            .navigationTitle("Squad Details")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -784,14 +784,14 @@ struct PlayerStatRow: View {
     var body: some View {
         HStack {
             Text(label)
-                .font(AztecTheme.hobbsFont(size: 20))
+                .font(AztecTheme.hobbsFont(size: 30))
                 .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(AztecTheme.hotPink)
 
             Spacer()
 
             Text("\(value)")
-                .font(AztecTheme.sfProBold(size: 18))
+                .font(AztecTheme.sfProBold(size: 27))
                 .foregroundColor(AztecTheme.neonYellow)
                 .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 2)
         }
@@ -807,12 +807,12 @@ struct StatBubble: View {
     var body: some View {
         VStack(spacing: 2) {
             Text("\(value)")
-                .font(AztecTheme.hobbsFont(size: 24))
+                .font(AztecTheme.hobbsFont(size: 36))
                 .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(AztecTheme.neonYellow)
                 .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
             Text(label)
-                .font(AztecTheme.sfProBold(size: 10))
+                .font(AztecTheme.sfProBold(size: 15))
                 .foregroundColor(AztecTheme.hotPink)
         }
         .frame(maxWidth: .infinity)

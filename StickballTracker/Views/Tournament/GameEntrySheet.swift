@@ -89,24 +89,67 @@ struct GameEntrySheet: View {
                         }
 
                         // Score display with manual +/- buttons
-                        HStack(spacing: 0) {
-                            // Team 1 score
-                            VStack(spacing: 8) {
-                                if let icon = team1?.iconName {
-                                    Image(icon)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 48, height: 48)
-                                        .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
+                        VStack(spacing: 8) {
+                            // Team icons + names row
+                            HStack(spacing: 0) {
+                                VStack(spacing: 8) {
+                                    if let icon = team1?.iconName {
+                                        Image(icon)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 48, height: 48)
+                                            .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
+                                    }
+                                    formattedTeamName(team1?.name ?? "Team 1", color: AztecTheme.neonYellow)
                                 }
-                                formattedTeamName(team1?.name ?? "Team 1", color: AztecTheme.neonYellow)
+                                .frame(maxWidth: .infinity)
 
+                                Spacer().frame(width: 80)
+
+                                VStack(spacing: 8) {
+                                    if let icon = team2?.iconName {
+                                        Image(icon)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 48, height: 48)
+                                            .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
+                                    }
+                                    formattedTeamName(team2?.name ?? "Team 2", color: AztecTheme.hotPink)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+
+                            // Scores + VS on the same horizontal line
+                            HStack(spacing: 0) {
                                 Text("\(team1Score)")
                                     .font(.system(size: 40, weight: .black, design: .monospaced))
                                     .foregroundColor(AztecTheme.neonYellow)
                                     .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 6)
+                                    .frame(maxWidth: .infinity)
 
-                                if !isCompleted {
+                                Text("VS")
+                                    .font(AztecTheme.hobbsFont(size: 82))
+                                    .tracking(AztecTheme.hobbsKerning)
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [AztecTheme.neonYellow, AztecTheme.hotPink],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 6)
+                                    .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 6)
+
+                                Text("\(team2Score)")
+                                    .font(.system(size: 40, weight: .black, design: .monospaced))
+                                    .foregroundColor(AztecTheme.neonYellow)
+                                    .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 6)
+                                    .frame(maxWidth: .infinity)
+                            }
+
+                            // +/- buttons row
+                            if !isCompleted {
+                                HStack(spacing: 0) {
                                     HStack(spacing: 12) {
                                         Button {
                                             if team1Score > 0 { team1Score -= 1 }
@@ -126,41 +169,10 @@ struct GameEntrySheet: View {
                                                 .foregroundColor(AztecTheme.neonYellow)
                                         }
                                     }
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
+                                    .frame(maxWidth: .infinity)
 
-                            Text("VS")
-                                .font(AztecTheme.hobbsFont(size: 82))
-                                .tracking(AztecTheme.hobbsKerning)
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [AztecTheme.neonYellow, AztecTheme.hotPink],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 6)
-                                .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 6)
-                                .padding(.horizontal, 8)
+                                    Spacer().frame(width: 80)
 
-                            // Team 2 score
-                            VStack(spacing: 8) {
-                                if let icon = team2?.iconName {
-                                    Image(icon)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 48, height: 48)
-                                        .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 15)
-                                }
-                                formattedTeamName(team2?.name ?? "Team 2", color: AztecTheme.hotPink)
-
-                                Text("\(team2Score)")
-                                    .font(.system(size: 40, weight: .black, design: .monospaced))
-                                    .foregroundColor(AztecTheme.neonYellow)
-                                    .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 6)
-
-                                if !isCompleted {
                                     HStack(spacing: 12) {
                                         Button {
                                             if team2Score > 0 { team2Score -= 1 }
@@ -180,9 +192,9 @@ struct GameEntrySheet: View {
                                                 .foregroundColor(AztecTheme.neonYellow)
                                         }
                                     }
+                                    .frame(maxWidth: .infinity)
                                 }
                             }
-                            .frame(maxWidth: .infinity)
                         }
                         .aztecCard(highlight: AztecTheme.hotPink)
 
