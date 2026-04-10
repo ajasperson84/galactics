@@ -235,6 +235,7 @@ struct ChampionBanner: View {
 struct GameCard: View {
     @EnvironmentObject var cloudService: CloudSyncService
     let game: TournamentGame
+    var tier: TournamentTier?
     var compact: Bool = false
     var onTap: (() -> Void)?
 
@@ -246,27 +247,30 @@ struct GameCard: View {
         game.team2Id.flatMap { cloudService.team(for: $0) }
     }
 
-    private var bracketLabel: String {
-        switch game.bracketSide {
-        case .winners: return "WB"
-        case .losers: return "LB"
-        case .championship: return "CHAMP"
-        case .ifNecessary: return "IF NEC"
-        }
+    private var team1DisplayName: String {
+        if let team = team1 { return team.name }
+        if let tier { return tier.slotDescription(gameId: game.id, slot: .team1) }
+        return "TBD"
     }
 
-    private var bracketColor: Color {
-        switch game.bracketSide {
-        case .winners: return AztecTheme.neonYellow
-        case .losers: return AztecTheme.hotPink
-        case .championship, .ifNecessary: return AztecTheme.neonYellow
-        }
+    private var team2DisplayName: String {
+        if let team = team2 { return team.name }
+        if let tier { return tier.slotDescription(gameId: game.id, slot: .team2) }
+        return "TBD"
     }
 
     private var statusLabel: String {
         switch game.status {
-        case .pending: return "UPCOMING"
-        case .inProgress: return "LIVE"
+        case .pending:
+            if let time = game.scheduledTime {
+                return time.formatted(.dateTime.hour().minute())
+            }
+            return "UPCOMING"
+        case .inProgress:
+            if let inning = game.currentInning {
+                return "INN \(inning)"
+            }
+            return "LIVE"
         case .completed: return "FINAL"
         }
     }
@@ -284,19 +288,17 @@ struct GameCard: View {
             onTap?()
         } label: {
             VStack(spacing: compact ? 4 : 8) {
-                // Header: Game #, bracket tag, status
+                // Header: Game #, field, status
                 HStack {
                     Text("GAME \(game.gameNumber)")
                         .font(AztecTheme.sfProBold(size: compact ? 10 : 12))
                         .foregroundColor(AztecTheme.neonYellow)
 
-                    Text(bracketLabel)
-                        .font(AztecTheme.sfProBold(size: compact ? 8 : 10))
-                        .foregroundColor(Color.black)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(bracketColor)
-                        .clipShape(Capsule())
+                    if let field = game.field {
+                        Text(field.uppercased())
+                            .font(AztecTheme.sfProBold(size: compact ? 8 : 10))
+                            .foregroundColor(AztecTheme.hotPink)
+                    }
 
                     Spacer()
 
@@ -315,13 +317,15 @@ struct GameCard: View {
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
                         }
-                        Text(team1?.name.uppercased() ?? "TBD")
+                        Text(team1DisplayName.uppercased())
                             .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
-                            .foregroundColor(game.winnerId == game.team1Id && game.status == .completed
-                                ? AztecTheme.neonYellow
-                                : (game.status == .completed && game.winnerId != game.team1Id
-                                    ? AztecTheme.dimText
-                                    : AztecTheme.neonYellow))
+                            .foregroundColor(game.team1Id == nil
+                                ? AztecTheme.dimText
+                                : (game.winnerId == game.team1Id && game.status == .completed
+                                    ? AztecTheme.neonYellow
+                                    : (game.status == .completed && game.winnerId != game.team1Id
+                                        ? AztecTheme.dimText
+                                        : AztecTheme.neonYellow)))
                             .lineLimit(1)
                             .minimumScaleFactor(0.4)
                     }
@@ -353,13 +357,15 @@ struct GameCard: View {
 
                     // Team 2
                     HStack(spacing: 4) {
-                        Text(team2?.name.uppercased() ?? "TBD")
+                        Text(team2DisplayName.uppercased())
                             .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
-                            .foregroundColor(game.winnerId == game.team2Id && game.status == .completed
-                                ? AztecTheme.hotPink
-                                : (game.status == .completed && game.winnerId != game.team2Id
-                                    ? AztecTheme.dimText
-                                    : AztecTheme.hotPink))
+                            .foregroundColor(game.team2Id == nil
+                                ? AztecTheme.dimText
+                                : (game.winnerId == game.team2Id && game.status == .completed
+                                    ? AztecTheme.hotPink
+                                    : (game.status == .completed && game.winnerId != game.team2Id
+                                        ? AztecTheme.dimText
+                                        : AztecTheme.hotPink)))
                             .lineLimit(1)
                             .minimumScaleFactor(0.4)
                         if let team = team2, let icon = team.iconName, !compact {
@@ -381,32 +387,6 @@ struct GameCard: View {
                         .padding(.top, 2)
                 }
 
-                // Field and time info (non-compact only)
-                if !compact {
-                    HStack(spacing: 12) {
-                        if let time = game.scheduledTime {
-                            HStack(spacing: 4) {
-                                Image(systemName: "clock")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(AztecTheme.neonYellow)
-                                Text(time.formatted(.dateTime.hour().minute()))
-                                    .font(AztecTheme.sfProBold(size: 12))
-                                    .foregroundColor(AztecTheme.neonYellow)
-                            }
-                        }
-                        if let field = game.field {
-                            HStack(spacing: 4) {
-                                Image(systemName: "mappin.and.ellipse")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(AztecTheme.hotPink)
-                                Text(field)
-                                    .font(AztecTheme.sfProBold(size: 12))
-                                    .foregroundColor(AztecTheme.neonYellow)
-                            }
-                        }
-                        Spacer()
-                    }
-                }
             }
             .padding(compact ? 8 : 12)
             .background(Color.black)
@@ -433,12 +413,40 @@ struct GameCard: View {
 struct CreateTournamentSheet: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @Environment(\.dismiss) var dismiss
-    @State private var step = 1
-    @State private var tier1TeamIds: [String] = []
-    @State private var tier2TeamIds: [String] = []
-    @State private var day1Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 25))!
-    @State private var day2Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 26))!
-    @State private var day3Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 27))!
+    @State private var isCreating = false
+
+    private let day1Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 25))!
+    private let day2Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 26))!
+    private let day3Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 27))!
+
+    private let day1TeamNames = [
+        "Mothership JV Reds", "Mothership JV Blacks",
+        "Tinseltown JV", "Rose City JV",
+        "D$$", "Steel City", "Gold Coast",
+        "Banditos", "No Mames Wey Jovenes"
+    ]
+
+    private let day2TeamNames = [
+        "Mothership Champs", "Tinseltown Champs",
+        "Rose City Champs", "Jet City Champs",
+        "No Mames Wey Viejos"
+    ]
+
+    private var day1TeamIds: [String] {
+        day1TeamNames.compactMap { name in
+            cloudService.teams.first { $0.name == name }?.id
+        }
+    }
+
+    private var day2TeamIds: [String] {
+        day2TeamNames.compactMap { name in
+            cloudService.teams.first { $0.name == name }?.id
+        }
+    }
+
+    private var allTeamsSeeded: Bool {
+        day1TeamIds.count == 9 && day2TeamIds.count == 5
+    }
 
     var body: some View {
         NavigationStack {
@@ -447,108 +455,80 @@ struct CreateTournamentSheet: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        if step == 1 {
-                            // Step 1: Select teams for Tier 1 (Day 1)
-                            AztecSectionHeader(title: "G Four Setup")
+                        AztecSectionHeader(title: "G Four Setup")
 
-                            Text("Select squads for Day 1 (Round 1).\nRemaining squads enter on Day 2.")
+                        if !allTeamsSeeded {
+                            Text("All 14 teams must be seeded before creating the tourney.")
                                 .font(AztecTheme.sfProMedium(size: 14))
                                 .foregroundColor(AztecTheme.hotPink)
                                 .multilineTextAlignment(.center)
 
-                            if cloudService.teams.count < 14 {
-                                Button("SEED ALL G4 TEAMS") {
-                                    Task {
-                                        await cloudService.seedTournamentTeams()
-                                    }
+                            Button("SEED ALL G4 TEAMS") {
+                                Task {
+                                    await cloudService.seedTournamentTeams()
                                 }
-                                .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.hotPink))
-                            }
-
-                            AztecSectionHeader(title: "Day 1 Squads (\(tier1TeamIds.count))", color: AztecTheme.hotPink)
-
-                            ForEach(cloudService.teams) { team in
-                                Button {
-                                    if let idx = tier1TeamIds.firstIndex(of: team.id) {
-                                        tier1TeamIds.remove(at: idx)
-                                    } else {
-                                        tier2TeamIds.removeAll { $0 == team.id }
-                                        tier1TeamIds.append(team.id)
-                                    }
-                                } label: {
-                                    teamSelectionRow(team: team, isSelected: tier1TeamIds.contains(team.id), label: "Day 1")
-                                }
-                            }
-
-                            if tier1TeamIds.count >= 2 {
-                                Button("NEXT: DAY 2 SQUADS") {
-                                    step = 2
-                                }
-                                .buttonStyle(AztecButtonStyle())
-                            } else {
-                                Text("Select at least 2 squads for Day 1")
-                                    .font(AztecTheme.sfProBold(size: 14))
-                                    .foregroundColor(AztecTheme.hotPink)
-                            }
-                        } else if step == 2 {
-                            // Step 2: Select teams entering on Day 2
-                            AztecSectionHeader(title: "Day 2 Squads")
-
-                            Text("Select squads waiting for Day 2.\n3 winners from Day 1 will join them.")
-                                .font(AztecTheme.sfProMedium(size: 14))
-                                .foregroundColor(AztecTheme.hotPink)
-                                .multilineTextAlignment(.center)
-
-                            if !tier2TeamIds.isEmpty {
-                                Text("\(tier2TeamIds.count) selected + 3 advancing = \(tier2TeamIds.count + 3) total")
-                                    .font(AztecTheme.sfProBold(size: 13))
-                                    .foregroundColor(AztecTheme.neonYellow)
-                            }
-
-                            let availableForDay2 = cloudService.teams.filter { !tier1TeamIds.contains($0.id) }
-                            ForEach(availableForDay2) { team in
-                                Button {
-                                    if let idx = tier2TeamIds.firstIndex(of: team.id) {
-                                        tier2TeamIds.remove(at: idx)
-                                    } else {
-                                        tier2TeamIds.append(team.id)
-                                    }
-                                } label: {
-                                    teamSelectionRow(team: team, isSelected: tier2TeamIds.contains(team.id), label: "Day 2")
-                                }
-                            }
-
-                            if availableForDay2.isEmpty {
-                                Text("All squads assigned to Day 1")
-                                    .font(AztecTheme.sfProBold(size: 14))
-                                    .foregroundColor(AztecTheme.hotPink)
-                            }
-
-                            Button("NEXT: CONFIRM") {
-                                step = 3
                             }
                             .buttonStyle(AztecButtonStyle())
+                        }
 
-                            Button("BACK") { step = 1 }
-                                .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.stone))
-                        } else {
-                            // Step 3: Confirm and create
-                            AztecSectionHeader(title: "Confirm Tourney")
-
-                            VStack(alignment: .leading, spacing: 12) {
-                                tierSummary(title: "DAY 1 (FRIDAY)", teamIds: tier1TeamIds, color: AztecTheme.neonYellow)
-                                tierSummary(title: "DAY 2 (SATURDAY) — \(tier2TeamIds.count) + 3 advancing", teamIds: tier2TeamIds, color: AztecTheme.hotPink)
-                                Text("FINALS (SUNDAY)")
-                                    .font(AztecTheme.sfProBold(size: 14))
-                                    .foregroundColor(AztecTheme.neonYellow)
-                                Text("Top 4 finishers from Day 2")
-                                    .font(AztecTheme.sfProMedium(size: 12))
-                                    .foregroundColor(AztecTheme.dimText)
+                        // Day 1 summary
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("DAY 1 (FRIDAY)")
+                                .font(AztecTheme.sfProBold(size: 14))
+                                .foregroundColor(AztecTheme.neonYellow)
+                            ForEach(day1TeamNames, id: \.self) { name in
+                                let found = cloudService.teams.contains { $0.name == name }
+                                HStack(spacing: 6) {
+                                    Image(systemName: found ? "checkmark.circle.fill" : "circle")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(found ? AztecTheme.neonYellow : AztecTheme.dimText)
+                                    Text(name)
+                                        .font(AztecTheme.sfProMedium(size: 12))
+                                        .foregroundColor(found ? AztecTheme.lightText : AztecTheme.dimText)
+                                }
                             }
-                            .padding()
-                            .neonCard()
+                        }
+                        .padding()
+                        .neonCard()
 
+                        // Day 2 summary
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("DAY 2 (SATURDAY) — 5 + 3 advancing")
+                                .font(AztecTheme.sfProBold(size: 14))
+                                .foregroundColor(AztecTheme.hotPink)
+                            ForEach(day2TeamNames, id: \.self) { name in
+                                let found = cloudService.teams.contains { $0.name == name }
+                                HStack(spacing: 6) {
+                                    Image(systemName: found ? "checkmark.circle.fill" : "circle")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(found ? AztecTheme.neonYellow : AztecTheme.dimText)
+                                    Text(name)
+                                        .font(AztecTheme.sfProMedium(size: 12))
+                                        .foregroundColor(found ? AztecTheme.lightText : AztecTheme.dimText)
+                                }
+                            }
+                            Text("+ 3 winners from Day 1")
+                                .font(AztecTheme.sfProMedium(size: 12))
+                                .foregroundColor(AztecTheme.dimText)
+                        }
+                        .padding()
+                        .neonCard()
+
+                        // Finals summary
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("FINALS (SUNDAY)")
+                                .font(AztecTheme.sfProBold(size: 14))
+                                .foregroundColor(AztecTheme.neonYellow)
+                            Text("Top 4 finishers from Day 2")
+                                .font(AztecTheme.sfProMedium(size: 12))
+                                .foregroundColor(AztecTheme.dimText)
+                        }
+                        .padding()
+                        .neonCard()
+
+                        if allTeamsSeeded {
                             Button("START TOURNEY") {
+                                isCreating = true
                                 Task {
                                     let configs = [
                                         CloudSyncService.TierConfig(
@@ -556,14 +536,14 @@ struct CreateTournamentSheet: View {
                                             tierName: "Day 1",
                                             dayLabel: "Friday",
                                             date: day1Date,
-                                            teamIds: tier1TeamIds
+                                            teamIds: day1TeamIds
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 2,
                                             tierName: "Day 2",
                                             dayLabel: "Saturday",
                                             date: day2Date,
-                                            teamIds: tier2TeamIds
+                                            teamIds: day2TeamIds
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 3,
@@ -581,9 +561,7 @@ struct CreateTournamentSheet: View {
                                 }
                             }
                             .buttonStyle(AztecButtonStyle())
-
-                            Button("BACK") { step = 2 }
-                                .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.stone))
+                            .disabled(isCreating)
                         }
                     }
                     .padding()
@@ -595,56 +573,6 @@ struct CreateTournamentSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                         .dismissButtonStyle()
-                }
-            }
-        }
-    }
-
-    private func teamSelectionRow(team: Team, isSelected: Bool, label: String) -> some View {
-        HStack {
-            TeamIconView(team: team, size: 28)
-            Text(team.name)
-                .font(AztecTheme.hobbsFont(size: 28))
-                .tracking(AztecTheme.hobbsKerning)
-                .foregroundColor(AztecTheme.neonYellow)
-            Spacer()
-            if isSelected {
-                Text(label)
-                    .font(AztecTheme.sfProBold(size: 10))
-                    .foregroundColor(AztecTheme.hotPink)
-            }
-            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                .foregroundColor(isSelected ? AztecTheme.neonYellow : AztecTheme.stone)
-                .shadow(color: isSelected ? AztecTheme.neonYellow.opacity(0.4) : .clear, radius: 3)
-        }
-        .padding(14)
-        .background(Color.black)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(
-                    isSelected ? AztecTheme.hotPink : AztecTheme.hotPink.opacity(0.3),
-                    lineWidth: 2.25
-                )
-        )
-    }
-
-    private func tierSummary(title: String, teamIds: [String], color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(AztecTheme.sfProBold(size: 14))
-                .foregroundColor(color)
-            if teamIds.isEmpty {
-                Text("No teams assigned yet")
-                    .font(AztecTheme.sfProMedium(size: 12))
-                    .foregroundColor(AztecTheme.dimText)
-            } else {
-                ForEach(teamIds, id: \.self) { id in
-                    if let team = cloudService.team(for: id) {
-                        Text("  \(team.name)")
-                            .font(AztecTheme.sfProMedium(size: 12))
-                            .foregroundColor(AztecTheme.lightText)
-                    }
                 }
             }
         }

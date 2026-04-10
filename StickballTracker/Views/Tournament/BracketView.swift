@@ -51,7 +51,7 @@ struct BracketView: View {
                     }
                     .padding(.horizontal)
 
-                    GameCard(game: champGame) {
+                    GameCard(game: champGame, tier: tier) {
                         onTapGame?(champGame)
                     }
                     .padding(.horizontal)
@@ -75,7 +75,7 @@ struct BracketView: View {
                         }
                         .padding(.horizontal)
 
-                        GameCard(game: ifNecGame) {
+                        GameCard(game: ifNecGame, tier: tier) {
                             onTapGame?(ifNecGame)
                         }
                         .padding(.horizontal)
@@ -85,8 +85,70 @@ struct BracketView: View {
         }
     }
 
+    private let nodeHeight: CGFloat = 56
+    private let nodeGap: CGFloat = 12
+
+    private func computePositions(rounds: [BracketRoundGroup]) -> (positions: [String: CGFloat], totalHeight: CGFloat) {
+        var positions: [String: CGFloat] = [:]
+        guard !rounds.isEmpty else { return (positions, 0) }
+
+        let maxCount = rounds.map { $0.gameIds.count }.max() ?? 1
+        let cellHeight = nodeHeight + nodeGap
+        let totalHeight = CGFloat(maxCount) * cellHeight
+
+        // Find densest round index
+        let maxRoundIdx = rounds.firstIndex { $0.gameIds.count == maxCount } ?? 0
+
+        // Position densest round evenly
+        for (i, gameId) in rounds[maxRoundIdx].gameIds.enumerated() {
+            positions[gameId] = CGFloat(i) * cellHeight + cellHeight / 2
+        }
+
+        // Forward: densest → last
+        for roundIdx in (maxRoundIdx + 1)..<rounds.count {
+            let prevRound = rounds[roundIdx - 1]
+            for gameId in rounds[roundIdx].gameIds {
+                var sourceYs: [CGFloat] = []
+                for srcId in prevRound.gameIds {
+                    if let g = tier.game(byId: srcId),
+                       let link = g.feedsWinnerTo,
+                       link.gameId == gameId,
+                       let y = positions[srcId] {
+                        sourceYs.append(y)
+                    }
+                }
+                if !sourceYs.isEmpty {
+                    positions[gameId] = sourceYs.reduce(0, +) / CGFloat(sourceYs.count)
+                } else {
+                    let idx = rounds[roundIdx].gameIds.firstIndex(of: gameId) ?? 0
+                    positions[gameId] = CGFloat(idx) * cellHeight + cellHeight / 2
+                }
+            }
+        }
+
+        // Backward: densest → first
+        for roundIdx in stride(from: maxRoundIdx - 1, through: 0, by: -1) {
+            let nextRound = rounds[roundIdx + 1]
+            for gameId in rounds[roundIdx].gameIds {
+                if let game = tier.game(byId: gameId),
+                   let link = game.feedsWinnerTo,
+                   nextRound.gameIds.contains(link.gameId),
+                   let targetY = positions[link.gameId] {
+                    positions[gameId] = targetY
+                } else {
+                    let idx = rounds[roundIdx].gameIds.firstIndex(of: gameId) ?? 0
+                    positions[gameId] = CGFloat(idx) * cellHeight + cellHeight / 2
+                }
+            }
+        }
+
+        return (positions, totalHeight)
+    }
+
     private func bracketSection(title: String, color: Color, rounds: [BracketRoundGroup]) -> some View {
-        VStack(spacing: 8) {
+        let (positions, totalHeight) = computePositions(rounds: rounds)
+
+        return VStack(spacing: 8) {
             HStack {
                 Text(title)
                     .font(AztecTheme.sfProBold(size: 14))
@@ -99,43 +161,43 @@ struct BracketView: View {
             }
             .padding(.horizontal)
 
-            // Horizontally scrollable bracket rounds
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 4) {
+                HStack(alignment: .top, spacing: 0) {
                     ForEach(Array(rounds.enumerated()), id: \.offset) { roundIdx, roundGroup in
-                        VStack(spacing: 4) {
-                            // Round header — use custom name
+                        VStack(spacing: 0) {
                             Text(roundGroup.name.uppercased())
                                 .font(AztecTheme.sfProBold(size: 10))
                                 .foregroundColor(color.opacity(0.7))
-                                .padding(.bottom, 4)
+                                .frame(height: 20)
 
-                            // Games in this round
-                            ForEach(roundGroup.gameIds, id: \.self) { gameId in
-                                if let game = tier.game(byId: gameId) {
-                                    // Skip bye games in bracket view
-                                    if !(game.status == .completed && game.team2Id == nil) {
-                                        BracketGameNode(game: game, accentColor: color) {
+                            ZStack {
+                                ForEach(roundGroup.gameIds, id: \.self) { gameId in
+                                    if let game = tier.game(byId: gameId),
+                                       let yCenter = positions[gameId],
+                                       !(game.status == .completed && game.team2Id == nil) {
+                                        BracketGameNode(game: game, tier: tier, accentColor: color) {
                                             onTapGame?(game)
                                         }
+                                        .frame(height: nodeHeight)
+                                        .position(x: 80, y: yCenter)
                                     }
                                 }
                             }
-
-                            Spacer()
+                            .frame(width: 160, height: totalHeight)
                         }
-                        .frame(width: 160)
 
-                        // Connector column between rounds (except after last)
                         if roundIdx < rounds.count - 1 {
-                            let nextRound = rounds[roundIdx + 1]
-                            RoutedConnectors(
-                                tier: tier,
-                                fromGameIds: roundGroup.gameIds,
-                                toGameIds: nextRound.gameIds,
-                                color: color
-                            )
-                            .frame(width: 24)
+                            VStack(spacing: 0) {
+                                Color.clear.frame(height: 20)
+                                RoutedConnectors(
+                                    tier: tier,
+                                    fromGameIds: roundGroup.gameIds,
+                                    toGameIds: rounds[roundIdx + 1].gameIds,
+                                    positions: positions,
+                                    color: color
+                                )
+                                .frame(width: 24, height: totalHeight)
+                            }
                         }
                     }
                 }
@@ -151,6 +213,7 @@ struct BracketView: View {
 struct BracketGameNode: View {
     @EnvironmentObject var cloudService: CloudSyncService
     let game: TournamentGame
+    var tier: TournamentTier?
     var accentColor: Color = AztecTheme.neonYellow
     var onTap: (() -> Void)?
 
@@ -167,6 +230,7 @@ struct BracketGameNode: View {
                 // Team 1 row
                 teamRow(
                     teamId: game.team1Id,
+                    slot: .team1,
                     score: game.team1Score,
                     isWinner: game.winnerId == game.team1Id && game.status == .completed
                 )
@@ -178,6 +242,7 @@ struct BracketGameNode: View {
                 // Team 2 row
                 teamRow(
                     teamId: game.team2Id,
+                    slot: .team2,
                     score: game.team2Score,
                     isWinner: game.winnerId == game.team2Id && game.status == .completed
                 )
@@ -197,7 +262,7 @@ struct BracketGameNode: View {
         .buttonStyle(.plain)
     }
 
-    private func teamRow(teamId: String?, score: Int, isWinner: Bool) -> some View {
+    private func teamRow(teamId: String?, slot: TeamSlot, score: Int, isWinner: Bool) -> some View {
         HStack(spacing: 4) {
             if let teamId, let team = cloudService.team(for: teamId) {
                 Text(String(team.name.prefix(6)).uppercased())
@@ -205,9 +270,11 @@ struct BracketGameNode: View {
                     .foregroundColor(isWinner ? AztecTheme.neonYellow : AztecTheme.lightText)
                     .lineLimit(1)
             } else {
-                Text("TBD")
-                    .font(AztecTheme.sfProBold(size: 10))
+                let desc = tier?.slotDescription(gameId: game.id, slot: slot) ?? "TBD"
+                Text(desc.uppercased())
+                    .font(AztecTheme.sfProBold(size: 9))
                     .foregroundColor(AztecTheme.dimText)
+                    .lineLimit(1)
             }
 
             Spacer()
@@ -227,35 +294,20 @@ struct RoutedConnectors: View {
     let tier: TournamentTier
     let fromGameIds: [String]
     let toGameIds: [String]
+    var positions: [String: CGFloat] = [:]
     var color: Color = AztecTheme.hotPink
 
     var body: some View {
         GeometryReader { geo in
             Path { path in
-                let h = geo.size.height
                 let w = geo.size.width
 
-                let fromCount = fromGameIds.count
-                let toCount = toGameIds.count
-                guard fromCount > 0, toCount > 0 else { return }
-
-                let fromSpacing = h / CGFloat(fromCount)
-                let toSpacing = h / CGFloat(toCount)
-
-                // Build lookup: toGameId → index in toGameIds
-                var toIndexMap: [String: Int] = [:]
-                for (idx, gId) in toGameIds.enumerated() {
-                    toIndexMap[gId] = idx
-                }
-
-                // For each source game, check if its feedsWinnerTo points to a game in toGameIds
-                for (fromIdx, fromId) in fromGameIds.enumerated() {
+                for fromId in fromGameIds {
                     guard let game = tier.game(byId: fromId),
                           let link = game.feedsWinnerTo,
-                          let toIdx = toIndexMap[link.gameId] else { continue }
-
-                    let fromY = fromSpacing * CGFloat(fromIdx) + fromSpacing / 2
-                    let toY = toSpacing * CGFloat(toIdx) + toSpacing / 2
+                          toGameIds.contains(link.gameId),
+                          let fromY = positions[fromId],
+                          let toY = positions[link.gameId] else { continue }
 
                     path.move(to: CGPoint(x: 0, y: fromY))
                     path.addLine(to: CGPoint(x: w / 2, y: fromY))

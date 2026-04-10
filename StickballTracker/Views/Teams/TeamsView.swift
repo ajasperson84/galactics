@@ -372,6 +372,7 @@ struct TeamDetailSheet: View {
     let team: Team
     @State private var showDeleteConfirm = false
     @State private var showAddPlayerPicker = false
+    @State private var showBadgePicker = false
 
     var teamPlayers: [Player] {
         cloudService.playersForTeam(team.id)
@@ -398,9 +399,19 @@ struct TeamDetailSheet: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Team icon large
-                        TeamIconView(team: team, size: 90)
-                            .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 12)
+                        // Team badge — tap to change
+                        Button {
+                            showBadgePicker = true
+                        } label: {
+                            VStack(spacing: 4) {
+                                TeamIconView(team: team, size: 90)
+                                    .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 12)
+                                Text("TAP TO CHANGE BADGE")
+                                    .font(AztecTheme.sfProBold(size: 9))
+                                    .tracking(1)
+                                    .foregroundColor(AztecTheme.dimText)
+                            }
+                        }
 
                         // Team name
                         Text(team.name)
@@ -527,6 +538,9 @@ struct TeamDetailSheet: View {
             .sheet(isPresented: $showAddPlayerPicker) {
                 AddPlayerToTeamSheet(team: team)
             }
+            .sheet(isPresented: $showBadgePicker) {
+                BadgePickerSheet(team: team)
+            }
         }
     }
 }
@@ -603,6 +617,117 @@ struct AddPlayerToTeamSheet: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .dismissButtonStyle()
+                }
+            }
+        }
+    }
+}
+
+struct BadgePickerSheet: View {
+    @EnvironmentObject var cloudService: CloudSyncService
+    @Environment(\.dismiss) var dismiss
+    let team: Team
+
+    // Badge asset names matching team identities
+    static let availableBadges = [
+        "badge-banditos", "badge-no-mames-jovenes",
+        "badge-mothership-jv-reds", "badge-mothership-jv-blacks",
+        "badge-tinseltown-jv", "badge-rose-city-jv",
+        "badge-dss", "badge-steel-city", "badge-gold-coast",
+        "badge-mothership-champs", "badge-tinseltown-champs",
+        "badge-rose-city-champs", "badge-jet-city-champs",
+        "badge-no-mames-viejos"
+    ]
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 12) {
+                        AztecSectionHeader(title: "Choose Badge")
+
+                        Text("Select a badge for \(team.name)")
+                            .font(AztecTheme.sfProMedium(size: 14))
+                            .foregroundColor(AztecTheme.hotPink)
+
+                        // Clear badge option
+                        Button {
+                            Task {
+                                var updated = team
+                                updated.iconName = nil
+                                await cloudService.updateTeam(updated)
+                                dismiss()
+                            }
+                        } label: {
+                            HStack {
+                                Text("NO BADGE")
+                                    .font(AztecTheme.sfProBold(size: 14))
+                                    .foregroundColor(AztecTheme.dimText)
+                                Spacer()
+                                if team.iconName == nil {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(AztecTheme.neonYellow)
+                                }
+                            }
+                            .padding(14)
+                            .background(Color.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(AztecTheme.hotPink.opacity(0.3), lineWidth: 2.25)
+                            )
+                        }
+
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 12)], spacing: 12) {
+                            ForEach(Self.availableBadges, id: \.self) { badge in
+                                Button {
+                                    Task {
+                                        var updated = team
+                                        updated.iconName = badge
+                                        await cloudService.updateTeam(updated)
+                                        dismiss()
+                                    }
+                                } label: {
+                                    VStack(spacing: 4) {
+                                        Image(badge)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 64, height: 64)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                        if team.iconName == badge {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(AztecTheme.neonYellow)
+                                        }
+                                    }
+                                    .padding(8)
+                                    .background(Color.black)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(
+                                                team.iconName == badge
+                                                    ? AztecTheme.neonYellow
+                                                    : AztecTheme.hotPink.opacity(0.3),
+                                                lineWidth: team.iconName == badge ? 2.25 : 1.5
+                                            )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Team Badge")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
                         .dismissButtonStyle()
                 }
             }

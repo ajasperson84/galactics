@@ -235,14 +235,14 @@ class CloudSyncService: ObservableObject {
     func seedTournamentTeams() async {
         let allTeamNames = [
             // Day 1 teams (9)
-            "Banditos", "No Mamas Wey Jovenes",
+            "Banditos", "No Mames Wey Jovenes",
             "Mothership JV Reds", "Mothership JV Blacks",
             "Tinseltown JV", "Rose City JV",
-            "DSS", "Steel City", "Gold Coast",
+            "D$$", "Steel City", "Gold Coast",
             // Day 2 teams (5)
             "Mothership Champs", "Tinseltown Champs",
             "Rose City Champs", "Jet City Champs",
-            "No Mamas Wey Viejos"
+            "No Mames Wey Viejos"
         ]
         let existingNames = Set(teams.map { $0.name })
         for name in allTeamNames where !existingNames.contains(name) {
@@ -361,6 +361,21 @@ class CloudSyncService: ObservableObject {
             if let link = game.feedsLoserTo, link.gameId == gameId, link.slot == slot { return true }
         }
         return false
+    }
+
+    // MARK: - Inning Tracking
+
+    func updateGameInning(tierIndex: Int, gameId: String, inning: Int?) async {
+        guard var tournament else { return }
+        guard tierIndex < tournament.tiers.count else { return }
+        guard let gameIdx = tournament.tiers[tierIndex].games.firstIndex(where: { $0.id == gameId }) else { return }
+        tournament.tiers[tierIndex].games[gameIdx].currentInning = inning
+        if inning != nil && tournament.tiers[tierIndex].games[gameIdx].status == .pending {
+            tournament.tiers[tierIndex].games[gameIdx].status = .inProgress
+            tournament.tiers[tierIndex].status = .inProgress
+        }
+        self.tournament = tournament
+        await updateTournament(tournament)
     }
 
     // MARK: - Record Game Result
@@ -560,7 +575,7 @@ class CloudSyncService: ObservableObject {
 
         // Find Banditos and No Mamas for auto-assignment to G1
         let banditosId = teams.first { $0.name == "Banditos" }?.id
-        let noMamasId = teams.first { $0.name == "No Mamas Wey Jovenes" }?.id
+        let noMamasId = teams.first { $0.name == "No Mames Wey Jovenes" }?.id
 
         // WB R1 (5 games)
         var g1 = TournamentGame(gameNumber: 1, bracketSide: .winners, team1Id: banditosId, team2Id: noMamasId)

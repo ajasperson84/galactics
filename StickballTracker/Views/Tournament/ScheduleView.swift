@@ -72,7 +72,7 @@ struct ScheduleView: View {
                     ForEach(tier.winnersBracketRounds) { roundGroup in
                         roundSubHeader(roundGroup.name, color: AztecTheme.neonYellow)
                         ForEach(gamesForRound(roundGroup)) { game in
-                            GameCard(game: game) {
+                            GameCard(game: game, tier: tier) {
                                 onTapGame?(game)
                             }
                         }
@@ -86,7 +86,7 @@ struct ScheduleView: View {
                     ForEach(tier.losersBracketRounds) { roundGroup in
                         roundSubHeader(roundGroup.name, color: AztecTheme.hotPink)
                         ForEach(gamesForRound(roundGroup)) { game in
-                            GameCard(game: game) {
+                            GameCard(game: game, tier: tier) {
                                 onTapGame?(game)
                             }
                         }

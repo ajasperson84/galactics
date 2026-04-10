@@ -13,6 +13,7 @@ struct GameEntrySheet: View {
     @State private var playerStats: [String: EditablePlayerStats] = [:]
     @State private var selectedField: StickballField?
     @State private var gameDate: Date = Date()
+    @State private var currentInning: Int = 1
     @State private var showConfirm = false
 
     var isCompleted: Bool { game.status == .completed }
@@ -222,6 +223,43 @@ struct GameEntrySheet: View {
                         }
                         .aztecCard(highlight: AztecTheme.hotPink)
 
+                        // Inning tracker
+                        if !isCompleted {
+                            VStack(spacing: 6) {
+                                Text("INNING")
+                                    .font(AztecTheme.sfProBold(size: 11))
+                                    .tracking(2)
+                                    .foregroundColor(AztecTheme.hotPink)
+
+                                HStack(spacing: 16) {
+                                    Button {
+                                        if currentInning > 1 { currentInning -= 1 }
+                                        Task { await cloudService.updateGameInning(tierIndex: tierIndex, gameId: game.id, inning: currentInning) }
+                                    } label: {
+                                        Image(systemName: "minus.circle.fill")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(AztecTheme.hotPink)
+                                    }
+
+                                    Text("\(currentInning)")
+                                        .font(.system(size: 32, weight: .black, design: .monospaced))
+                                        .foregroundColor(AztecTheme.neonYellow)
+                                        .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
+
+                                    Button {
+                                        currentInning += 1
+                                        Task { await cloudService.updateGameInning(tierIndex: tierIndex, gameId: game.id, inning: currentInning) }
+                                    } label: {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(AztecTheme.neonYellow)
+                                    }
+                                }
+                            }
+                            .padding(12)
+                            .neonCard()
+                        }
+
                         // Player stats - Team 1
                         if let team = team1 {
                             HStack {
@@ -312,6 +350,9 @@ struct GameEntrySheet: View {
                     }
                     if let time = game.scheduledTime {
                         gameDate = time
+                    }
+                    if let inning = game.currentInning {
+                        currentInning = inning
                     }
                 }
             }

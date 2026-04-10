@@ -82,6 +82,20 @@ struct TournamentTier: Identifiable, Codable {
         return losersBracketRounds[roundIndex].gameIds.compactMap { id in game(byId: id) }
     }
 
+    /// Describe what team will fill a given slot (e.g. "W G3", "L G10", "To Be Drawn")
+    func slotDescription(gameId: String, slot: TeamSlot) -> String {
+        // Check if any game feeds into this slot
+        for g in games {
+            if let link = g.feedsWinnerTo, link.gameId == gameId, link.slot == slot {
+                return "W G\(g.gameNumber)"
+            }
+            if let link = g.feedsLoserTo, link.gameId == gameId, link.slot == slot {
+                return "L G\(g.gameNumber)"
+            }
+        }
+        return "To Be Drawn"
+    }
+
     /// All games sorted by scheduled time then game number (for schedule view)
     var sortedGames: [TournamentGame] {
         games.sorted { a, b in
@@ -115,6 +129,7 @@ struct TournamentGame: Identifiable, Codable {
     var scheduledTime: Date?
     var status: GameStatus
     var completedAt: Date?
+    var currentInning: Int?
     var bracketSide: BracketSide
     var feedsWinnerTo: GameLink?
     var feedsLoserTo: GameLink?
@@ -139,6 +154,7 @@ struct TournamentGame: Identifiable, Codable {
         self.scheduledTime = nil
         self.status = .pending
         self.completedAt = nil
+        self.currentInning = nil
         self.bracketSide = bracketSide
         self.feedsWinnerTo = nil
         self.feedsLoserTo = nil
@@ -203,14 +219,8 @@ struct PlayerGameStats: Identifiable, Codable {
 // MARK: - Fields
 
 enum StickballField: String, CaseIterable, Codable {
-    case stonewallJackson = "Stonewall Jackson"
-    case williamsburg = "Williamsburg"
-    case deadEnd = "Dead End"
-    case theSchoolyard = "The Schoolyard"
-    case churchLot = "Church Lot"
-    case broadwayAlley = "Broadway Alley"
-    case theSandlot = "The Sandlot"
-    case rooftopDiamond = "Rooftop Diamond"
-    case elBarrio = "El Barrio"
-    case flatbushField = "Flatbush Field"
+    case valleDeMystique = "Valle De Mystique"
+    case lilValle = "Lil Valle"
+    case elPotrero = "El Potrero"
+    case laFinca = "La Finca"
 }
