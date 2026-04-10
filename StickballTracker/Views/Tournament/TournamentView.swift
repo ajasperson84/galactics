@@ -6,6 +6,7 @@ struct TournamentView: View {
     @State private var selectedGame: GameSelection?
     @State private var viewMode: ViewMode = .schedule
     @State private var selectedTierIndex: Int = 0
+    @State private var showPinEntry = false
 
     enum ViewMode: String, CaseIterable {
         case schedule = "Schedule"
@@ -148,11 +149,44 @@ struct TournamentView: View {
                                     .foregroundColor(AztecTheme.hotPink)
                             }
                         }
+
+                        // Lock button
+                        Spacer().frame(height: 16)
+                        Button {
+                            showPinEntry = true
+                        } label: {
+                            let isUnlocked = cloudService.accessLevel != .viewOnly
+                            HStack(spacing: 6) {
+                                Image(systemName: isUnlocked ? "lock.open.fill" : "lock.fill")
+                                    .font(.system(size: 16, weight: .bold))
+                                if isUnlocked {
+                                    Text(cloudService.accessLevel == .admin ? "ADMIN" : "SCOREKEEPER")
+                                        .font(AztecTheme.sfProBold(size: 10))
+                                        .tracking(1)
+                                }
+                            }
+                            .foregroundColor(isUnlocked ? AztecTheme.neonYellow : AztecTheme.hotPink)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(Color.black)
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .stroke(
+                                        isUnlocked ? AztecTheme.neonYellow.opacity(0.5) : AztecTheme.hotPink.opacity(0.4),
+                                        lineWidth: 1.5
+                                    )
+                            )
+                            .shadow(color: isUnlocked ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 4)
+                        }
                     }
                 }
             }
             .padding(.top, 16)
             .padding(.bottom, 32)
+        }
+        .sheet(isPresented: $showPinEntry) {
+            PinEntrySheet()
         }
         .sheet(isPresented: $showCreateTournament) {
             CreateTournamentSheet()
