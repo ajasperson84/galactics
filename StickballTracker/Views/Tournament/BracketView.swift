@@ -41,7 +41,7 @@ struct BracketView: View {
                 VStack(spacing: 8) {
                     HStack {
                         Text("CHAMPIONSHIP")
-                            .font(AztecTheme.hobbsFont(size: 21))
+                            .font(AztecTheme.hobbsFont(size: 28))
                             .tracking(AztecTheme.hobbsKerning)
                             .foregroundColor(AztecTheme.neonYellow)
                             .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
@@ -65,7 +65,7 @@ struct BracketView: View {
                     VStack(spacing: 8) {
                         HStack {
                             Text("IF NECESSARY")
-                                .font(AztecTheme.hobbsFont(size: 21))
+                                .font(AztecTheme.hobbsFont(size: 28))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
@@ -151,7 +151,7 @@ struct BracketView: View {
         return VStack(spacing: 8) {
             HStack {
                 Text(title)
-                    .font(AztecTheme.hobbsFont(size: 21))
+                    .font(AztecTheme.hobbsFont(size: 28))
                     .tracking(AztecTheme.hobbsKerning)
                     .foregroundColor(color)
                     .shadow(color: color.opacity(0.5), radius: 4)
@@ -166,7 +166,7 @@ struct BracketView: View {
                     ForEach(Array(rounds.enumerated()), id: \.offset) { roundIdx, roundGroup in
                         VStack(spacing: 0) {
                             Text(roundGroup.name.uppercased())
-                                .font(AztecTheme.hobbsFont(size: 15))
+                                .font(AztecTheme.hobbsFont(size: 20))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(color)
                                 .shadow(color: color.opacity(0.5), radius: 4)
@@ -256,7 +256,7 @@ struct BracketGameNode: View {
                 RoundedRectangle(cornerRadius: 6)
                     .stroke(
                         AztecTheme.borderGradient,
-                        lineWidth: game.status == .inProgress ? 2 : 1.5
+                        lineWidth: game.status == .inProgress ? 1.7 : 1.28
                     )
             )
             .shadow(color: AztecTheme.neonYellow.opacity(0.2), radius: 3, x: -1)
@@ -266,12 +266,34 @@ struct BracketGameNode: View {
         .buttonStyle(.plain)
     }
 
+    private static let bracketNameMap: [String: String] = [
+        "Tinseltown Champs": "TTFB Champs",
+        "Tinseltown JV": "TTFB JV",
+        "Rose City Champs": "Rose Champs",
+        "Rose City JV": "Rose JV",
+        "Mothership Champs": "Mother Champs",
+        "Mothership JV Blacks": "Mother Black JV",
+        "Mothership JV Reds": "Mother Red JV",
+        "No Mames Wey Jovenes": "Jovenes",
+        "No Mames Wey Viejos": "Viejos",
+        "Jet City Champs": "Jets",
+        "Steel City": "Steel",
+        "Banditos": "Bandits",
+        "Gold Coast": "Coast",
+        "D$$": "D$$",
+    ]
+
+    private func bracketDisplayName(for team: Team) -> String {
+        Self.bracketNameMap[team.name] ?? String(team.name.prefix(8))
+    }
+
     private func teamRow(teamId: String?, slot: TeamSlot, score: Int, isWinner: Bool) -> some View {
         HStack(spacing: 4) {
             if let teamId, let team = cloudService.team(for: teamId) {
-                Text(String(team.name.prefix(6)).uppercased())
+                Text(bracketDisplayName(for: team).uppercased())
                     .font(AztecTheme.sfProBold(size: 10))
                     .foregroundColor(isWinner ? AztecTheme.neonYellow : AztecTheme.lightText)
+                    .shadow(color: isWinner ? AztecTheme.neonYellow.opacity(0.7) : .clear, radius: isWinner ? 4 : 0)
                     .lineLimit(1)
             } else {
                 let desc = tier?.slotDescription(gameId: game.id, slot: slot) ?? "TBD"
@@ -287,6 +309,7 @@ struct BracketGameNode: View {
                 Text("\(score)")
                     .font(.system(size: 11, weight: isWinner ? .black : .bold, design: .monospaced))
                     .foregroundColor(isWinner ? AztecTheme.neonYellow : AztecTheme.dimText)
+                    .shadow(color: isWinner ? AztecTheme.neonYellow.opacity(0.8) : .clear, radius: isWinner ? 6 : 0)
             }
         }
     }

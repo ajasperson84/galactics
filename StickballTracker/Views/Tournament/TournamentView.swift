@@ -60,37 +60,35 @@ struct TournamentView: View {
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
 
-                    // Tier selector pills
+                    // Tier selector buttons — full width
                     if tournament.tiers.count > 1 {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                ForEach(Array(tournament.tiers.enumerated()), id: \.element.id) { index, tier in
-                                    Button {
-                                        selectedTierIndex = index
-                                    } label: {
-                                        let isSelected = selectedTierIndex == index
-                                        let color = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
-                                        VStack(spacing: 2) {
-                                            Text(tier.dayLabel.uppercased())
-                                                .font(AztecTheme.sfProBold(size: 11))
-                                            Text(tier.tierName.uppercased())
-                                                .font(AztecTheme.sfProBold(size: 14))
-                                        }
-                                        .foregroundColor(isSelected ? Color.black : color)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(isSelected ? color : Color.black)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .stroke(color, lineWidth: 2.25)
-                                        )
-                                        .shadow(color: isSelected ? color.opacity(0.4) : .clear, radius: 4)
+                        HStack(spacing: 8) {
+                            ForEach(Array(tournament.tiers.enumerated()), id: \.element.id) { index, tier in
+                                Button {
+                                    selectedTierIndex = index
+                                } label: {
+                                    let isSelected = selectedTierIndex == index
+                                    let color = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
+                                    VStack(spacing: 2) {
+                                        Text(tier.dayLabel.uppercased())
+                                            .font(AztecTheme.sfProBold(size: 11))
+                                        Text(tier.tierName.uppercased())
+                                            .font(AztecTheme.sfProBold(size: 14))
                                     }
+                                    .foregroundColor(isSelected ? Color.black : color)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                    .background(isSelected ? color : Color.black)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(color, lineWidth: 2.25)
+                                    )
+                                    .shadow(color: isSelected ? color.opacity(0.4) : .clear, radius: 4)
                                 }
                             }
-                            .padding(.horizontal)
                         }
+                        .padding(.horizontal)
                     }
 
                     // Content based on view mode
@@ -265,7 +263,7 @@ struct GameCard: View {
             if let time = game.scheduledTime {
                 return time.formatted(.dateTime.hour().minute())
             }
-            return "UPCOMING"
+            return ""
         case .inProgress:
             if let inning = game.currentInning {
                 return "INN \(inning)"
@@ -293,6 +291,40 @@ struct GameCard: View {
         case .inProgress: return AztecTheme.neonYellow
         case .completed: return AztecTheme.hotPink
         }
+    }
+
+    @ViewBuilder
+    private func scheduleTeamName(_ name: String, color: Color, trailing: Bool = false) -> some View {
+        let lines = splitForSchedule(name)
+        if lines.count > 1 {
+            VStack(spacing: 0) {
+                ForEach(lines, id: \.self) { line in
+                    Text(line.uppercased())
+                        .font(AztecTheme.sfProBold(size: compact ? 11 : 14))
+                        .foregroundColor(color)
+                        .shadow(color: color.opacity(game.team1Id != nil || game.team2Id != nil ? 0.5 : 0), radius: 4)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.4)
+                }
+            }
+        } else {
+            Text(name.uppercased())
+                .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
+                .foregroundColor(color)
+                .shadow(color: color.opacity(game.team1Id != nil || game.team2Id != nil ? 0.5 : 0), radius: 4)
+                .lineLimit(1)
+                .minimumScaleFactor(0.4)
+        }
+    }
+
+    private func splitForSchedule(_ name: String) -> [String] {
+        if name.hasPrefix("Mothership JV") {
+            return ["Mothership", String(name.dropFirst("Mothership ".count))]
+        }
+        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
+            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
+        }
+        return [name]
     }
 
     var body: some View {
@@ -330,12 +362,7 @@ struct GameCard: View {
                                     .scaledToFit()
                                     .frame(width: 20, height: 20)
                             }
-                            Text(team1DisplayName.uppercased())
-                                .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
-                                .foregroundColor(team1Color)
-                                .shadow(color: AztecTheme.neonYellow.opacity(game.team1Id != nil ? 0.5 : 0), radius: 4)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.4)
+                            scheduleTeamName(team1DisplayName, color: team1Color)
                         }
 
                         if game.status == .completed || game.status == .inProgress {
@@ -350,36 +377,24 @@ struct GameCard: View {
                     }
                     .frame(maxWidth: .infinity)
 
-                    if game.status == .completed || game.status == .inProgress {
-                        Text("-")
-                            .font(AztecTheme.hobbsFont(size: compact ? 20 : 28))
-                            .tracking(AztecTheme.hobbsKerning)
-                            .foregroundColor(AztecTheme.hotPink)
-                            .padding(.horizontal, 4)
-                            .offset(y: compact ? 10 : 14)
-                    } else {
-                        Text("VS")
-                            .font(AztecTheme.hobbsFont(size: compact ? 27 : 36))
-                            .tracking(AztecTheme.hobbsKerning)
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [AztecTheme.neonYellow, AztecTheme.hotPink],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
+                    // VS always visible
+                    Text("VS")
+                        .font(AztecTheme.hobbsFont(size: compact ? 32 : 43))
+                        .tracking(AztecTheme.hobbsKerning)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [AztecTheme.neonYellow, AztecTheme.hotPink],
+                                startPoint: .leading,
+                                endPoint: .trailing
                             )
-                            .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 4)
-                    }
+                        )
+                        .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 4)
+                        .offset(y: (game.status == .completed || game.status == .inProgress) ? (compact ? -4 : -6) : 0)
 
                     // Team 2 column
                     VStack(spacing: compact ? 2 : 4) {
                         HStack(spacing: 4) {
-                            Text(team2DisplayName.uppercased())
-                                .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
-                                .foregroundColor(team2Color)
-                                .shadow(color: AztecTheme.hotPink.opacity(game.team2Id != nil ? 0.5 : 0), radius: 4)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.4)
+                            scheduleTeamName(team2DisplayName, color: team2Color, trailing: true)
                             if let team = team2, let icon = team.iconName, !compact {
                                 Image(icon)
                                     .resizable()
@@ -416,7 +431,7 @@ struct GameCard: View {
             .clipShape(RoundedRectangle(cornerRadius: compact ? 8 : 12))
             .overlay(
                 RoundedRectangle(cornerRadius: compact ? 8 : 12)
-                    .stroke(AztecTheme.borderGradient, lineWidth: 2.8)
+                    .stroke(AztecTheme.borderGradient, lineWidth: 2.4)
             )
             .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 6, x: -2)
             .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 6, x: 2)

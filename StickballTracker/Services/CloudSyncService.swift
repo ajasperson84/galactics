@@ -873,8 +873,8 @@ class CloudSyncService: ObservableObject {
         tier.games = [g1, g2, g3, g4, g5, g6, g7]
 
         tier.winnersBracketRounds = [
-            BracketRoundGroup(name: "Semifinals", gameIds: [g1.id, g2.id]),
-            BracketRoundGroup(name: "Final", gameIds: [g3.id])
+            BracketRoundGroup(name: "Round 1", gameIds: [g1.id, g2.id]),
+            BracketRoundGroup(name: "Round 2", gameIds: [g3.id])
         ]
 
         tier.losersBracketRounds = [

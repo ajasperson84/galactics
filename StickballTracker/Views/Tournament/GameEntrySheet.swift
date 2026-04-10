@@ -131,7 +131,7 @@ struct GameEntrySheet: View {
                             .frame(maxWidth: .infinity)
 
                             Text("VS")
-                                .font(AztecTheme.hobbsFont(size: 164))
+                                .font(AztecTheme.hobbsFont(size: 82))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundStyle(
                                     LinearGradient(
