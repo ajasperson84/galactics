@@ -95,33 +95,6 @@ struct TournamentView: View {
                     let tierIdx = min(selectedTierIndex, tournament.tiers.count - 1)
                     let tier = tournament.tiers[tierIdx]
 
-                    // Team assignment banner
-                    let needsAssignment = !cloudService.unassignedTierTeams(tierIndex: tierIdx).isEmpty ||
-                        !cloudService.unplacedLosers(tierIndex: tierIdx).isEmpty
-                    if needsAssignment {
-                        HStack(spacing: 8) {
-                            Image(systemName: "person.badge.plus")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(AztecTheme.neonYellow)
-                            Text("TEAMS NEED ASSIGNING")
-                                .font(AztecTheme.sfProBold(size: 12))
-                                .tracking(1)
-                                .foregroundColor(AztecTheme.neonYellow)
-                            Spacer()
-                            Text("Tap a game to assign")
-                                .font(AztecTheme.sfProMedium(size: 11))
-                                .foregroundColor(AztecTheme.hotPink)
-                        }
-                        .padding(12)
-                        .background(AztecTheme.neonYellow.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(AztecTheme.neonYellow.opacity(0.4), lineWidth: 1.5)
-                        )
-                        .padding(.horizontal)
-                    }
-
                     switch viewMode {
                     case .schedule:
                         ScheduleView(tier: tier, tierIndex: tierIdx) { game in
@@ -416,13 +389,17 @@ struct GameCard: View {
                     .frame(maxWidth: .infinity)
                 }
 
-                // Assign teams hint
-                if game.team1Id == nil || game.team2Id == nil {
-                    Text("TAP TO ASSIGN TEAMS")
-                        .font(AztecTheme.sfProBold(size: 10))
-                        .tracking(1)
-                        .foregroundColor(AztecTheme.neonYellow)
-                        .padding(.top, 2)
+                // Assign teams hint — only for "To Be Drawn" slots, not auto-populated ones
+                if let tier {
+                    let hasDrawSlot = (game.team1Id == nil && tier.slotDescription(gameId: game.id, slot: .team1) == "To Be Drawn") ||
+                        (game.team2Id == nil && tier.slotDescription(gameId: game.id, slot: .team2) == "To Be Drawn")
+                    if hasDrawSlot {
+                        Text("TAP TO ASSIGN TEAMS")
+                            .font(AztecTheme.sfProBold(size: 10))
+                            .tracking(1)
+                            .foregroundColor(AztecTheme.neonYellow)
+                            .padding(.top, 2)
+                    }
                 }
 
             }

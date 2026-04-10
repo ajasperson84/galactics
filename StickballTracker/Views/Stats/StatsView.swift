@@ -57,148 +57,86 @@ struct StatsView: View {
         }
     }
 
+    private func sortButtons(selection: Binding<StatSort>) -> some View {
+        HStack(spacing: 6) {
+            ForEach(Array(StatSort.allCases.enumerated()), id: \.element) { index, sort in
+                Button {
+                    withAnimation { selection.wrappedValue = sort }
+                } label: {
+                    let altColor = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
+                    Text(sort.label)
+                        .font(AztecTheme.sfProBold(size: 13))
+                        .foregroundColor(
+                            selection.wrappedValue == sort ? Color.black : altColor
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 7)
+                        .background(
+                            selection.wrappedValue == sort
+                                ? altColor
+                                : Color.black
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(altColor, lineWidth: 2.25)
+                        )
+                        .shadow(color: selection.wrappedValue == sort
+                                ? altColor.opacity(0.4) : .clear, radius: 4)
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Leaderboard header — 50% larger, just "Leaderboard"
-                HStack {
-                    Text("LEADERBOARD")
-                        .font(AztecTheme.hobbsFont(size: 43))
-                        .tracking(AztecTheme.hobbsKerning)
-                        .foregroundColor(AztecTheme.neonYellow)
-                        .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
-                    Spacer()
-                }
-                .padding(.horizontal)
+        VStack(spacing: 12) {
+            // Leaderboard header
+            HStack {
+                Text("LEADERBOARD")
+                    .font(AztecTheme.hobbsFont(size: 43))
+                    .tracking(AztecTheme.hobbsKerning)
+                    .foregroundColor(AztecTheme.neonYellow)
+                    .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top, 16)
 
-                // Sort options — SF Pro, alternating yellow/pink
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(Array(StatSort.allCases.enumerated()), id: \.element) { index, sort in
-                            Button {
-                                withAnimation { sortBy = sort }
-                            } label: {
-                                let altColor = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
-                                Text(sort.label)
-                                    .font(AztecTheme.sfProBold(size: 16))
-                                    .foregroundColor(
-                                        sortBy == sort ? Color.black : altColor
-                                    )
-                                    .padding(.horizontal, 18)
-                                    .padding(.vertical, 7)
-                                    .background(
-                                        sortBy == sort
-                                            ? altColor
-                                            : Color.black
-                                    )
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(altColor, lineWidth: 2.25)
-                                    )
-                                    .shadow(color: sortBy == sort
-                                            ? altColor.opacity(0.4) : .clear, radius: 4)
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                }
+            // Sort options — full width buttons
+            sortButtons(selection: $sortBy)
 
-                // Stats table
-                if sortedPlayers.isEmpty {
-                    VStack(spacing: 12) {
-                        Spacer().frame(height: 40)
-                        Image(systemName: "chart.bar.xaxis")
-                            .font(.system(size: 40, weight: .bold))
-                            .foregroundColor(AztecTheme.hotPink)
-                        Text("No stats recorded yet")
-                            .font(AztecTheme.sfProBold(size: 16))
-                            .foregroundColor(AztecTheme.hotPink)
-                        Text("Play some games to see leaderboards.")
-                            .font(AztecTheme.sfProMedium(size: 14))
-                            .foregroundColor(AztecTheme.neonYellow)
-                    }
-                } else {
-                    // Table header
-                    StatsTableHeader()
-                        .padding(.horizontal)
-
-                    // Player rows — all in scrollable section with pink indicator
-                    let playerList = Array(sortedPlayers.enumerated())
-
-                    ScrollView(.vertical, showsIndicators: false) {
-                        LazyVStack(spacing: 4) {
-                            ForEach(playerList, id: \.element.id) { index, player in
-                                StatsTableRow(rank: index + 1, player: player, highlightStat: sortBy)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                    .frame(maxHeight: 450)
-                    .overlay(alignment: .trailing) {
-                        Capsule()
-                            .fill(AztecTheme.hotPink.opacity(0.5))
-                            .frame(width: 3)
-                            .padding(.vertical, 8)
-                            .padding(.trailing, 2)
-                    }
-                }
-
-                // Team aggregated stats
-                HStack {
-                    Text("SQUAD STATS")
-                        .font(AztecTheme.hobbsFont(size: 39))
-                        .tracking(AztecTheme.hobbsKerning)
+            // Stats table
+            if sortedPlayers.isEmpty {
+                VStack(spacing: 12) {
+                    Spacer().frame(height: 20)
+                    Image(systemName: "chart.bar.xaxis")
+                        .font(.system(size: 40, weight: .bold))
                         .foregroundColor(AztecTheme.hotPink)
-                        .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 4)
+                    Text("No stats recorded yet")
+                        .font(AztecTheme.sfProBold(size: 16))
+                        .foregroundColor(AztecTheme.hotPink)
+                    Text("Play some games to see leaderboards.")
+                        .font(AztecTheme.sfProMedium(size: 14))
+                        .foregroundColor(AztecTheme.neonYellow)
                     Spacer()
                 }
-                .padding(.horizontal)
-                .padding(.top, 8)
-
-                // Team sort options
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(Array(StatSort.allCases.enumerated()), id: \.element) { index, sort in
-                            Button {
-                                withAnimation { teamSortBy = sort }
-                            } label: {
-                                let altColor = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
-                                Text(sort.label)
-                                    .font(AztecTheme.sfProBold(size: 16))
-                                    .foregroundColor(
-                                        teamSortBy == sort ? Color.black : altColor
-                                    )
-                                    .padding(.horizontal, 18)
-                                    .padding(.vertical, 7)
-                                    .background(
-                                        teamSortBy == sort
-                                            ? altColor
-                                            : Color.black
-                                    )
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(altColor, lineWidth: 2.25)
-                                    )
-                                    .shadow(color: teamSortBy == sort
-                                            ? altColor.opacity(0.4) : .clear, radius: 4)
-                            }
-                        }
-                    }
+            } else {
+                // Table header
+                StatsTableHeader()
                     .padding(.horizontal)
-                }
 
-                // Team rows — all in scrollable section with pink indicator
+                // Player rows — scrollable section with pink indicator
+                let playerList = Array(sortedPlayers.enumerated())
+
                 ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(spacing: 6) {
-                        ForEach(sortedTeams) { team in
-                            TeamAggregatedRow(team: team, highlightStat: teamSortBy)
+                    LazyVStack(spacing: 4) {
+                        ForEach(playerList, id: \.element.id) { index, player in
+                            StatsTableRow(rank: index + 1, player: player, highlightStat: sortBy)
                         }
                     }
                     .padding(.horizontal)
                 }
-                .frame(maxHeight: 350)
                 .overlay(alignment: .trailing) {
                     Capsule()
                         .fill(AztecTheme.hotPink.opacity(0.5))
@@ -207,8 +145,38 @@ struct StatsView: View {
                         .padding(.trailing, 2)
                 }
             }
-            .padding(.top, 16)
-            .padding(.bottom, 32)
+
+            // Team aggregated stats
+            HStack {
+                Text("SQUAD STATS")
+                    .font(AztecTheme.hobbsFont(size: 39))
+                    .tracking(AztecTheme.hobbsKerning)
+                    .foregroundColor(AztecTheme.hotPink)
+                    .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 4)
+                Spacer()
+            }
+            .padding(.horizontal)
+
+            // Team sort options — full width buttons
+            sortButtons(selection: $teamSortBy)
+
+            // Team rows — scrollable section with pink indicator
+            ScrollView(.vertical, showsIndicators: false) {
+                LazyVStack(spacing: 6) {
+                    ForEach(sortedTeams) { team in
+                        TeamAggregatedRow(team: team, highlightStat: teamSortBy)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .overlay(alignment: .trailing) {
+                Capsule()
+                    .fill(AztecTheme.hotPink.opacity(0.5))
+                    .frame(width: 3)
+                    .padding(.vertical, 8)
+                    .padding(.trailing, 2)
+            }
+            .padding(.bottom, 16)
         }
     }
 }
