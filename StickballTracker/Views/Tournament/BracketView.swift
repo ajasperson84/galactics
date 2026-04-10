@@ -7,17 +7,6 @@ struct BracketView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            // Tier header
-            HStack {
-                Text(tier.tierName.uppercased())
-                    .font(AztecTheme.hobbsFont(size: 40))
-                    .tracking(AztecTheme.hobbsKerning)
-                    .foregroundColor(AztecTheme.neonYellow)
-                    .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
-                Spacer()
-            }
-            .padding(.horizontal)
-
             // Winners Bracket
             if !tier.winnersBracketRounds.isEmpty {
                 bracketSection(
@@ -224,10 +213,18 @@ struct BracketGameNode: View {
             onTap?()
         } label: {
             VStack(spacing: 2) {
-                // Game number
-                Text("G\(game.gameNumber)")
-                    .font(AztecTheme.sfProBold(size: 9))
-                    .foregroundColor(accentColor.opacity(0.7))
+                // Game number + inning
+                HStack(spacing: 4) {
+                    Text("G\(game.gameNumber)")
+                        .font(AztecTheme.sfProBold(size: 9))
+                        .foregroundColor(accentColor.opacity(0.7))
+                    if game.status == .inProgress, let inning = game.currentInning {
+                        Text("INN \(inning)")
+                            .font(AztecTheme.sfProBold(size: 8))
+                            .foregroundColor(AztecTheme.neonYellow)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 2)
+                    }
+                }
 
                 // Team 1 row
                 teamRow(

@@ -22,39 +22,6 @@ struct ScheduleView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            // Tier header
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(tier.tierName.uppercased())
-                        .font(AztecTheme.hobbsFont(size: 40))
-                        .tracking(AztecTheme.hobbsKerning)
-                        .foregroundColor(AztecTheme.neonYellow)
-                        .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
-
-                    Text(tier.dayLabel.uppercased())
-                        .font(AztecTheme.sfProBold(size: 14))
-                        .foregroundColor(AztecTheme.hotPink)
-                }
-                Spacer()
-
-                // Tier status badge
-                Text(tier.status.rawValue.uppercased())
-                    .font(AztecTheme.sfProBold(size: 11))
-                    .foregroundColor(tier.status == .inProgress ? AztecTheme.neonYellow : AztecTheme.dimText)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.black)
-                    .clipShape(Capsule())
-                    .overlay(
-                        Capsule()
-                            .stroke(
-                                tier.status == .inProgress ? AztecTheme.neonYellow : AztecTheme.hotPink.opacity(0.3),
-                                lineWidth: 1.5
-                            )
-                    )
-            }
-            .padding(.horizontal)
-
             if playableGames.isEmpty {
                 VStack(spacing: 12) {
                     Spacer().frame(height: 20)
@@ -112,7 +79,7 @@ struct ScheduleView: View {
     private func sectionHeader(_ title: String, color: Color) -> some View {
         HStack {
             Text(title)
-                .font(AztecTheme.hobbsFont(size: 25))
+                .font(AztecTheme.hobbsFont(size: 38))
                 .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(color)
                 .shadow(color: color.opacity(0.5), radius: 4)
@@ -127,7 +94,7 @@ struct ScheduleView: View {
     private func roundSubHeader(_ title: String, color: Color) -> some View {
         HStack {
             Text(title.uppercased())
-                .font(AztecTheme.hobbsFont(size: 20))
+                .font(AztecTheme.hobbsFont(size: 28))
                 .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(color)
                 .shadow(color: color.opacity(0.5), radius: 4)

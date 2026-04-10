@@ -2,7 +2,6 @@ import SwiftUI
 
 struct TeamsView: View {
     @EnvironmentObject var cloudService: CloudSyncService
-    @State private var showingAddTeam = false
     @State private var selectedTeam: Team?
 
     /// Teams sorted by record (best first), then by total dongs
@@ -37,31 +36,6 @@ struct TeamsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Add team button
-                HStack {
-                    Spacer()
-                    Button {
-                        showingAddTeam = true
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "plus")
-                            Text("NEW SQUAD")
-                        }
-                        .font(AztecTheme.sfProBold(size: 14))
-                        .foregroundColor(AztecTheme.hotPink)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 14)
-                        .background(Color.black)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(AztecTheme.hotPink, lineWidth: 2.25)
-                        )
-                        .shadow(color: AztecTheme.hotPink.opacity(0.3), radius: 6)
-                    }
-                }
-                .padding(.horizontal)
-
                 // Teams — sorted by record, then dongs
                 LazyVStack(spacing: 12) {
                     ForEach(Array(sortedTeams.enumerated()), id: \.element.id) { index, team in
@@ -88,9 +62,6 @@ struct TeamsView: View {
                 }
             }
             .padding(.top, 16)
-        }
-        .sheet(isPresented: $showingAddTeam) {
-            AddTeamSheet()
         }
         .sheet(item: $selectedTeam) { team in
             TeamDetailSheet(team: team)
@@ -373,6 +344,7 @@ struct TeamDetailSheet: View {
     @State private var showDeleteConfirm = false
     @State private var showAddPlayerPicker = false
     @State private var showBadgePicker = false
+    @State private var showCreatePlayer = false
 
     var teamPlayers: [Player] {
         cloudService.playersForTeam(team.id)
@@ -462,6 +434,25 @@ struct TeamDetailSheet: View {
                             }
                         }
 
+                        Button {
+                            showCreatePlayer = true
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "person.badge.plus")
+                                Text("CREATE NEW BALLER")
+                            }
+                            .font(AztecTheme.sfProBold(size: 14))
+                            .foregroundColor(AztecTheme.neonYellow)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(AztecTheme.neonYellow.opacity(0.5), lineWidth: 2.25)
+                            )
+                        }
+
                         ForEach(teamPlayers) { player in
                             VStack(spacing: 0) {
                                 HStack {
@@ -540,6 +531,57 @@ struct TeamDetailSheet: View {
             }
             .sheet(isPresented: $showBadgePicker) {
                 BadgePickerSheet(team: team)
+            }
+            .sheet(isPresented: $showCreatePlayer) {
+                CreatePlayerSheet(team: team)
+            }
+        }
+    }
+}
+
+struct CreatePlayerSheet: View {
+    @EnvironmentObject var cloudService: CloudSyncService
+    @Environment(\.dismiss) var dismiss
+    let team: Team
+    @State private var playerName = ""
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                VStack(spacing: 24) {
+                    AztecSectionHeader(title: "New Baller")
+
+                    Text("Adding to \(team.name)")
+                        .font(AztecTheme.sfProMedium(size: 14))
+                        .foregroundColor(AztecTheme.hotPink)
+
+                    TextField("Baller Name", text: $playerName)
+                        .aztecTextField()
+
+                    Button("CREATE BALLER") {
+                        let trimmed = playerName.trimmingCharacters(in: .whitespaces)
+                        guard !trimmed.isEmpty else { return }
+                        Task {
+                            await cloudService.addPlayer(name: trimmed, teamId: team.id)
+                            dismiss()
+                        }
+                    }
+                    .buttonStyle(AztecButtonStyle())
+                    .disabled(playerName.trimmingCharacters(in: .whitespaces).isEmpty)
+
+                    Spacer()
+                }
+                .padding()
+            }
+            .navigationTitle("Create Baller")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .dismissButtonStyle()
+                }
             }
         }
     }
