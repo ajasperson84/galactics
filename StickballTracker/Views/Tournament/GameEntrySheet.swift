@@ -91,25 +91,25 @@ struct GameEntrySheet: View {
 
                         // Score display with manual +/- buttons
                         VStack(spacing: 8) {
-                            // Team icons + names row
+                            // Team icons on same line
                             HStack(spacing: 0) {
-                                VStack(spacing: 8) {
-                                    if let team = team1 {
-                                        TeamIconView(team: team, size: 58, glowRadius: 18)
-                                    }
-                                    formattedTeamName(team1?.name ?? "Team 1", color: AztecTheme.neonYellow)
+                                if let team = team1 {
+                                    TeamIconView(team: team, size: 58, glowRadius: 18)
                                 }
-                                .frame(maxWidth: .infinity)
+                                Spacer()
+                                if let team = team2 {
+                                    TeamIconView(team: team, size: 58, glowRadius: 18)
+                                }
+                            }
+                            .padding(.horizontal, 20)
 
+                            // Team names row
+                            HStack(spacing: 0) {
+                                formattedTeamName(team1?.name ?? "Team 1", color: AztecTheme.neonYellow)
+                                    .frame(maxWidth: .infinity)
                                 Spacer().frame(width: 80)
-
-                                VStack(spacing: 8) {
-                                    if let team = team2 {
-                                        TeamIconView(team: team, size: 58, glowRadius: 18)
-                                    }
-                                    formattedTeamName(team2?.name ?? "Team 2", color: AztecTheme.hotPink)
-                                }
-                                .frame(maxWidth: .infinity)
+                                formattedTeamName(team2?.name ?? "Team 2", color: AztecTheme.hotPink)
+                                    .frame(maxWidth: .infinity)
                             }
 
                             // Scores + VS on the same horizontal line
