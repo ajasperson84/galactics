@@ -9,7 +9,7 @@ struct AztecHeader: View {
             Image("G4_header_YellowandPink")
                 .resizable()
                 .scaledToFit()
-                .frame(height: 44)
+                .frame(height: 66)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
 
@@ -18,7 +18,7 @@ struct AztecHeader: View {
                 .frame(height: 2)
                 .shadow(color: AztecTheme.hotPink.opacity(0.6), radius: 4)
         }
-        .background(Color.black)
+        .background(AztecTheme.hotPink)
     }
 }
 

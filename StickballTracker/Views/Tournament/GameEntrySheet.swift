@@ -94,7 +94,7 @@ struct GameEntrySheet: View {
                             HStack(spacing: 0) {
                                 VStack(spacing: 8) {
                                     if let team = team1 {
-                                        TeamIconView(team: team, size: 48, glowRadius: 15)
+                                        TeamIconView(team: team, size: 58, glowRadius: 18)
                                     }
                                     formattedTeamName(team1?.name ?? "Team 1", color: AztecTheme.neonYellow)
                                 }
@@ -104,7 +104,7 @@ struct GameEntrySheet: View {
 
                                 VStack(spacing: 8) {
                                     if let team = team2 {
-                                        TeamIconView(team: team, size: 48, glowRadius: 15)
+                                        TeamIconView(team: team, size: 58, glowRadius: 18)
                                     }
                                     formattedTeamName(team2?.name ?? "Team 2", color: AztecTheme.hotPink)
                                 }

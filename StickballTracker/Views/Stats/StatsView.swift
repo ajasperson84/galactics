@@ -368,7 +368,7 @@ struct TeamIconView: View {
         "Jet City Champs":      ("Jet-City_GOLD", AztecTheme.hotPink,    1.0),
         "No Mames Wey Viejos":  ("NMW_VIEJOS",    Color.white,          1.0),
         "Mothership JV Reds":   ("BJVRED",        AztecTheme.neonYellow, 1.0),
-        "Mothership JV Blacks": ("B",             AztecTheme.neonYellow, 1.25),
+        "Mothership JV Blacks": ("B",             AztecTheme.neonYellow, 1.3),
         "Tinseltown JV":        ("TTFBJV",        AztecTheme.neonYellow, 1.0),
         "Rose City JV":         ("RCJV",          AztecTheme.neonYellow, 1.0),
         "D$$":                  ("DSS",           AztecTheme.neonYellow, 1.0),

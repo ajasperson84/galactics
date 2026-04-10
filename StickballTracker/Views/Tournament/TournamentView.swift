@@ -337,7 +337,7 @@ struct GameCard: View {
                     VStack(spacing: compact ? 2 : 4) {
                         HStack(spacing: 4) {
                             if let team = team1, !compact {
-                                TeamIconView(team: team, size: 20, glowRadius: 4)
+                                TeamIconView(team: team, size: 24, glowRadius: 5)
                             }
                             scheduleTeamName(team1DisplayName, color: team1Color)
                         }
@@ -373,7 +373,7 @@ struct GameCard: View {
                         HStack(spacing: 4) {
                             scheduleTeamName(team2DisplayName, color: team2Color, trailing: true)
                             if let team = team2, !compact {
-                                TeamIconView(team: team, size: 20, glowRadius: 4)
+                                TeamIconView(team: team, size: 24, glowRadius: 5)
                             }
                         }
 
