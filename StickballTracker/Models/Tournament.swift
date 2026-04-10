@@ -165,10 +165,12 @@ struct GameLink: Codable {
 
 struct BracketRoundGroup: Identifiable, Codable {
     var id: String
+    var name: String
     var gameIds: [String]
 
-    init(id: String = UUID().uuidString, gameIds: [String]) {
+    init(id: String = UUID().uuidString, name: String = "", gameIds: [String]) {
         self.id = id
+        self.name = name
         self.gameIds = gameIds
     }
 }

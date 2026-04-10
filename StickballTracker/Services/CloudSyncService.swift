@@ -620,15 +620,16 @@ class CloudSyncService: ObservableObject {
         tier.games = [g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13]
 
         tier.winnersBracketRounds = [
-            BracketRoundGroup(gameIds: [g1.id, g2.id, g3.id, g4.id, g5.id]),
-            BracketRoundGroup(gameIds: [g9.id, g10.id])
+            BracketRoundGroup(name: "The Warm Up", gameIds: [g1.id]),
+            BracketRoundGroup(name: "Round 1", gameIds: [g2.id, g3.id, g4.id, g5.id]),
+            BracketRoundGroup(name: "Round 2", gameIds: [g9.id, g10.id])
         ]
 
         tier.losersBracketRounds = [
-            BracketRoundGroup(gameIds: [g6.id, g7.id]),
-            BracketRoundGroup(gameIds: [g8.id]),
-            BracketRoundGroup(gameIds: [g11.id, g12.id]),
-            BracketRoundGroup(gameIds: [g13.id])
+            BracketRoundGroup(name: "Purgatory", gameIds: [g6.id]),
+            BracketRoundGroup(name: "Quarterfinals", gameIds: [g7.id, g8.id]),
+            BracketRoundGroup(name: "Semifinals", gameIds: [g11.id, g12.id]),
+            BracketRoundGroup(name: "Final", gameIds: [g13.id])
         ]
 
         tier.championshipGameId = nil
@@ -699,13 +700,13 @@ class CloudSyncService: ObservableObject {
         tier.games = [g1, g2, g3, g4, g5, g6, g7, g8, g9, g10]
 
         tier.winnersBracketRounds = [
-            BracketRoundGroup(gameIds: [g1.id, g2.id, g3.id, g4.id]),
-            BracketRoundGroup(gameIds: [g7.id, g8.id])
+            BracketRoundGroup(name: "Round 1", gameIds: [g1.id, g2.id, g3.id, g4.id]),
+            BracketRoundGroup(name: "Round 2", gameIds: [g7.id, g8.id])
         ]
 
         tier.losersBracketRounds = [
-            BracketRoundGroup(gameIds: [g5.id, g6.id]),
-            BracketRoundGroup(gameIds: [g9.id, g10.id])
+            BracketRoundGroup(name: "Round 1", gameIds: [g5.id, g6.id]),
+            BracketRoundGroup(name: "Round 2", gameIds: [g9.id, g10.id])
         ]
 
         tier.championshipGameId = nil
@@ -775,13 +776,13 @@ class CloudSyncService: ObservableObject {
         tier.games = [g1, g2, g3, g4, g5, g6, g7]
 
         tier.winnersBracketRounds = [
-            BracketRoundGroup(gameIds: [g1.id, g2.id]),
-            BracketRoundGroup(gameIds: [g3.id])
+            BracketRoundGroup(name: "Semifinals", gameIds: [g1.id, g2.id]),
+            BracketRoundGroup(name: "Final", gameIds: [g3.id])
         ]
 
         tier.losersBracketRounds = [
-            BracketRoundGroup(gameIds: [g4.id]),
-            BracketRoundGroup(gameIds: [g5.id])
+            BracketRoundGroup(name: "Round 1", gameIds: [g4.id]),
+            BracketRoundGroup(name: "Round 2", gameIds: [g5.id])
         ]
 
         tier.championshipGameId = g6.id

@@ -66,31 +66,36 @@ struct ScheduleView: View {
                         .foregroundColor(AztecTheme.hotPink)
                 }
             } else {
-                // Group games by bracket section
-                let wbGames = playableGames.filter { $0.bracketSide == .winners }
-                let lbGames = playableGames.filter { $0.bracketSide == .losers }
-                let champGames = playableGames.filter { $0.bracketSide == .championship || $0.bracketSide == .ifNecessary }
-
-                if !wbGames.isEmpty {
+                // Winners Bracket — grouped by round
+                if !tier.winnersBracketRounds.isEmpty {
                     sectionHeader("WINNERS BRACKET", color: AztecTheme.neonYellow)
-                    ForEach(wbGames) { game in
-                        GameCard(game: game) {
-                            onTapGame?(game)
+                    ForEach(tier.winnersBracketRounds) { roundGroup in
+                        roundSubHeader(roundGroup.name, color: AztecTheme.neonYellow)
+                        ForEach(gamesForRound(roundGroup)) { game in
+                            GameCard(game: game) {
+                                onTapGame?(game)
+                            }
                         }
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                 }
 
-                if !lbGames.isEmpty {
+                // Losers Bracket — grouped by round
+                if !tier.losersBracketRounds.isEmpty {
                     sectionHeader("LOSERS BRACKET", color: AztecTheme.hotPink)
-                    ForEach(lbGames) { game in
-                        GameCard(game: game) {
-                            onTapGame?(game)
+                    ForEach(tier.losersBracketRounds) { roundGroup in
+                        roundSubHeader(roundGroup.name, color: AztecTheme.hotPink)
+                        ForEach(gamesForRound(roundGroup)) { game in
+                            GameCard(game: game) {
+                                onTapGame?(game)
+                            }
                         }
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                 }
 
+                // Championship
+                let champGames = playableGames.filter { $0.bracketSide == .championship || $0.bracketSide == .ifNecessary }
                 if !champGames.isEmpty {
                     sectionHeader("CHAMPIONSHIP", color: AztecTheme.neonYellow)
                     ForEach(champGames) { game in
@@ -117,5 +122,31 @@ struct ScheduleView: View {
         }
         .padding(.horizontal)
         .padding(.top, 8)
+    }
+
+    private func roundSubHeader(_ title: String, color: Color) -> some View {
+        HStack {
+            Text(title.uppercased())
+                .font(AztecTheme.sfProBold(size: 11))
+                .foregroundColor(color.opacity(0.6))
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 4)
+    }
+
+    private func gamesForRound(_ roundGroup: BracketRoundGroup) -> [TournamentGame] {
+        roundGroup.gameIds.compactMap { id in
+            tier.game(byId: id)
+        }.filter { game in
+            // Apply same filtering as playableGames
+            if game.bracketSide == .ifNecessary && (game.team1Id == nil || game.team2Id == nil) {
+                return false
+            }
+            if game.status == .completed && game.team2Id == nil {
+                return false
+            }
+            return true
+        }
     }
 }

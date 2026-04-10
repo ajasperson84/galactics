@@ -104,8 +104,8 @@ struct BracketView: View {
                 HStack(alignment: .top, spacing: 4) {
                     ForEach(Array(rounds.enumerated()), id: \.offset) { roundIdx, roundGroup in
                         VStack(spacing: 4) {
-                            // Round header
-                            Text("RD \(roundIdx + 1)")
+                            // Round header — use custom name
+                            Text(roundGroup.name.uppercased())
                                 .font(AztecTheme.sfProBold(size: 10))
                                 .foregroundColor(color.opacity(0.7))
                                 .padding(.bottom, 4)
@@ -128,9 +128,11 @@ struct BracketView: View {
 
                         // Connector column between rounds (except after last)
                         if roundIdx < rounds.count - 1 {
-                            BracketConnectors(
-                                fromCount: roundGroup.gameIds.count,
-                                toCount: roundIdx + 1 < rounds.count ? rounds[roundIdx + 1].gameIds.count : 1,
+                            let nextRound = rounds[roundIdx + 1]
+                            RoutedConnectors(
+                                tier: tier,
+                                fromGameIds: roundGroup.gameIds,
+                                toGameIds: nextRound.gameIds,
                                 color: color
                             )
                             .frame(width: 24)
@@ -219,11 +221,12 @@ struct BracketGameNode: View {
     }
 }
 
-// MARK: - Bracket Connectors
+// MARK: - Routed Connectors (draws lines based on feedsWinnerTo links)
 
-struct BracketConnectors: View {
-    let fromCount: Int
-    let toCount: Int
+struct RoutedConnectors: View {
+    let tier: TournamentTier
+    let fromGameIds: [String]
+    let toGameIds: [String]
     var color: Color = AztecTheme.hotPink
 
     var body: some View {
@@ -232,29 +235,32 @@ struct BracketConnectors: View {
                 let h = geo.size.height
                 let w = geo.size.width
 
-                let fromSpacing = fromCount > 0 ? h / CGFloat(fromCount) : h
-                let toSpacing = toCount > 0 ? h / CGFloat(toCount) : h
+                let fromCount = fromGameIds.count
+                let toCount = toGameIds.count
+                guard fromCount > 0, toCount > 0 else { return }
 
-                for i in 0..<toCount {
-                    let toY = toSpacing * CGFloat(i) + toSpacing / 2
-                    let from1 = i * 2
-                    let from2 = i * 2 + 1
+                let fromSpacing = h / CGFloat(fromCount)
+                let toSpacing = h / CGFloat(toCount)
 
-                    if from1 < fromCount {
-                        let fromY1 = fromSpacing * CGFloat(from1) + fromSpacing / 2
-                        path.move(to: CGPoint(x: 0, y: fromY1))
-                        path.addLine(to: CGPoint(x: w / 2, y: fromY1))
-                        path.addLine(to: CGPoint(x: w / 2, y: toY))
-                        path.addLine(to: CGPoint(x: w, y: toY))
-                    }
+                // Build lookup: toGameId → index in toGameIds
+                var toIndexMap: [String: Int] = [:]
+                for (idx, gId) in toGameIds.enumerated() {
+                    toIndexMap[gId] = idx
+                }
 
-                    if from2 < fromCount {
-                        let fromY2 = fromSpacing * CGFloat(from2) + fromSpacing / 2
-                        path.move(to: CGPoint(x: 0, y: fromY2))
-                        path.addLine(to: CGPoint(x: w / 2, y: fromY2))
-                        path.addLine(to: CGPoint(x: w / 2, y: toY))
-                        path.addLine(to: CGPoint(x: w, y: toY))
-                    }
+                // For each source game, check if its feedsWinnerTo points to a game in toGameIds
+                for (fromIdx, fromId) in fromGameIds.enumerated() {
+                    guard let game = tier.game(byId: fromId),
+                          let link = game.feedsWinnerTo,
+                          let toIdx = toIndexMap[link.gameId] else { continue }
+
+                    let fromY = fromSpacing * CGFloat(fromIdx) + fromSpacing / 2
+                    let toY = toSpacing * CGFloat(toIdx) + toSpacing / 2
+
+                    path.move(to: CGPoint(x: 0, y: fromY))
+                    path.addLine(to: CGPoint(x: w / 2, y: fromY))
+                    path.addLine(to: CGPoint(x: w / 2, y: toY))
+                    path.addLine(to: CGPoint(x: w, y: toY))
                 }
             }
             .stroke(color.opacity(0.3), lineWidth: 1)
