@@ -92,6 +92,13 @@ enum AztecTheme {
         endPoint: .bottom
     )
 
+    /// Border gradient: yellow on the left, pink on the right
+    static let borderGradient = LinearGradient(
+        colors: [neonYellow, hotPink],
+        startPoint: .leading,
+        endPoint: .trailing
+    )
+
     // MARK: - Fonts
 
     /// Custom HobbsFont — section headlines, team names, player names
@@ -164,11 +171,10 @@ struct NeonCardModifier: ViewModifier {
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(borderColor, lineWidth: 2.25)
+                    .stroke(AztecTheme.borderGradient, lineWidth: 2.25)
             )
-            .shadow(color: borderColor.opacity(0.5 * glowIntensity), radius: 4)
-            .shadow(color: borderColor.opacity(0.25 * glowIntensity), radius: 10)
-            .shadow(color: borderColor.opacity(0.1 * glowIntensity), radius: 20)
+            .shadow(color: AztecTheme.neonYellow.opacity(0.3 * glowIntensity), radius: 4, x: -2)
+            .shadow(color: AztecTheme.hotPink.opacity(0.3 * glowIntensity), radius: 4, x: 2)
     }
 }
 

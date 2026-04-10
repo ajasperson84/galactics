@@ -112,10 +112,10 @@ struct ScheduleView: View {
     private func sectionHeader(_ title: String, color: Color) -> some View {
         HStack {
             Text(title)
-                .font(AztecTheme.sfProBold(size: 14))
-                .tracking(2)
+                .font(AztecTheme.hobbsFont(size: 21))
+                .tracking(AztecTheme.hobbsKerning)
                 .foregroundColor(color)
-                .shadow(color: color.opacity(0.3), radius: 3)
+                .shadow(color: color.opacity(0.5), radius: 4)
             Rectangle()
                 .fill(color.opacity(0.3))
                 .frame(height: 1)
@@ -127,8 +127,10 @@ struct ScheduleView: View {
     private func roundSubHeader(_ title: String, color: Color) -> some View {
         HStack {
             Text(title.uppercased())
-                .font(AztecTheme.sfProBold(size: 11))
-                .foregroundColor(color.opacity(0.6))
+                .font(AztecTheme.hobbsFont(size: 17))
+                .tracking(AztecTheme.hobbsKerning)
+                .foregroundColor(color)
+                .shadow(color: color.opacity(0.5), radius: 4)
             Spacer()
         }
         .padding(.horizontal)

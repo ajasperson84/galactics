@@ -12,7 +12,6 @@ struct GameEntrySheet: View {
     @State private var team2Score: Int = 0
     @State private var playerStats: [String: EditablePlayerStats] = [:]
     @State private var selectedField: StickballField?
-    @State private var gameDate: Date = Date()
     @State private var currentInning: Int = 1
     @State private var showConfirm = false
 
@@ -65,6 +64,31 @@ struct GameEntrySheet: View {
                                 .foregroundColor(AztecTheme.neonYellow)
                         }
 
+                        // Game info: time and field
+                        HStack(spacing: 16) {
+                            if let time = game.scheduledTime {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "clock")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(AztecTheme.neonYellow)
+                                    Text(time.formatted(.dateTime.hour().minute()))
+                                        .font(AztecTheme.sfProBold(size: 14))
+                                        .foregroundColor(AztecTheme.neonYellow)
+                                }
+                            }
+                            if let field = game.field {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "mappin.and.ellipse")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(AztecTheme.hotPink)
+                                    Text(field)
+                                        .font(AztecTheme.sfProBold(size: 14))
+                                        .foregroundColor(AztecTheme.neonYellow)
+                                }
+                            }
+                            Spacer()
+                        }
+
                         if !isCompleted {
                             // Field picker
                             VStack(spacing: 6) {
@@ -101,25 +125,6 @@ struct GameEntrySheet: View {
                                     )
                                 }
                             }
-
-                            // Date & time picker
-                            VStack(spacing: 6) {
-                                Text("DATE & TIME")
-                                    .font(AztecTheme.sfProBold(size: 11))
-                                    .tracking(2)
-                                    .foregroundColor(AztecTheme.hotPink)
-
-                                DatePicker(
-                                    "Game Date",
-                                    selection: $gameDate,
-                                    in: tournamentDateRange,
-                                    displayedComponents: [.date, .hourAndMinute]
-                                )
-                                .datePickerStyle(.compact)
-                                .labelsHidden()
-                                .tint(AztecTheme.neonYellow)
-                                .colorScheme(.dark)
-                            }
                         }
 
                         // Score display with manual +/- buttons
@@ -138,6 +143,7 @@ struct GameEntrySheet: View {
                                         .font(AztecTheme.hobbsFont(size: 53))
                                         .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.neonYellow)
+                                        .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
                                         .lineLimit(1)
                                         .minimumScaleFactor(0.4)
                                 }
@@ -170,7 +176,7 @@ struct GameEntrySheet: View {
                             .frame(maxWidth: .infinity)
 
                             Text("VS")
-                                .font(AztecTheme.hobbsFont(size: 55))
+                                .font(AztecTheme.hobbsFont(size: 82))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
@@ -190,6 +196,7 @@ struct GameEntrySheet: View {
                                         .font(AztecTheme.hobbsFont(size: 53))
                                         .tracking(AztecTheme.hobbsKerning)
                                         .foregroundColor(AztecTheme.hotPink)
+                                        .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
                                         .lineLimit(1)
                                         .minimumScaleFactor(0.4)
                                 }
@@ -348,22 +355,12 @@ struct GameEntrySheet: View {
                     if let field = game.field {
                         selectedField = StickballField(rawValue: field)
                     }
-                    if let time = game.scheduledTime {
-                        gameDate = time
-                    }
                     if let inning = game.currentInning {
                         currentInning = inning
                     }
                 }
             }
         }
-    }
-
-    private var tournamentDateRange: ClosedRange<Date> {
-        let calendar = Calendar.current
-        let start = calendar.date(from: DateComponents(year: 2026, month: 4, day: 25))!
-        let end = calendar.date(from: DateComponents(year: 2026, month: 4, day: 27, hour: 23, minute: 59))!
-        return start...end
     }
 
     private func binding(for playerId: String) -> Binding<EditablePlayerStats> {
@@ -405,7 +402,7 @@ struct GameEntrySheet: View {
                 team1Score: team1Score,
                 team2Score: team2Score,
                 field: selectedField?.rawValue,
-                gameDate: gameDate,
+                gameDate: game.scheduledTime,
                 playerStats: gameStats
             )
             dismiss()

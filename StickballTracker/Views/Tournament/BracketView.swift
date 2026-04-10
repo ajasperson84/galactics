@@ -41,10 +41,10 @@ struct BracketView: View {
                 VStack(spacing: 8) {
                     HStack {
                         Text("CHAMPIONSHIP")
-                            .font(AztecTheme.sfProBold(size: 14))
-                            .tracking(2)
+                            .font(AztecTheme.hobbsFont(size: 21))
+                            .tracking(AztecTheme.hobbsKerning)
                             .foregroundColor(AztecTheme.neonYellow)
-                            .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 3)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
                         Rectangle()
                             .fill(AztecTheme.neonYellow.opacity(0.3))
                             .frame(height: 1)
@@ -65,10 +65,10 @@ struct BracketView: View {
                     VStack(spacing: 8) {
                         HStack {
                             Text("IF NECESSARY")
-                                .font(AztecTheme.sfProBold(size: 14))
-                                .tracking(2)
+                                .font(AztecTheme.hobbsFont(size: 21))
+                                .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(AztecTheme.hotPink)
-                                .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
+                                .shadow(color: AztecTheme.hotPink.opacity(0.5), radius: 4)
                             Rectangle()
                                 .fill(AztecTheme.hotPink.opacity(0.3))
                                 .frame(height: 1)
@@ -151,10 +151,10 @@ struct BracketView: View {
         return VStack(spacing: 8) {
             HStack {
                 Text(title)
-                    .font(AztecTheme.sfProBold(size: 14))
-                    .tracking(2)
+                    .font(AztecTheme.hobbsFont(size: 21))
+                    .tracking(AztecTheme.hobbsKerning)
                     .foregroundColor(color)
-                    .shadow(color: color.opacity(0.3), radius: 3)
+                    .shadow(color: color.opacity(0.5), radius: 4)
                 Rectangle()
                     .fill(color.opacity(0.3))
                     .frame(height: 1)
@@ -166,8 +166,10 @@ struct BracketView: View {
                     ForEach(Array(rounds.enumerated()), id: \.offset) { roundIdx, roundGroup in
                         VStack(spacing: 0) {
                             Text(roundGroup.name.uppercased())
-                                .font(AztecTheme.sfProBold(size: 10))
-                                .foregroundColor(color.opacity(0.7))
+                                .font(AztecTheme.hobbsFont(size: 15))
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundColor(color)
+                                .shadow(color: color.opacity(0.5), radius: 4)
                                 .frame(height: 20)
 
                             ZStack {
@@ -253,10 +255,12 @@ struct BracketGameNode: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 6)
                     .stroke(
-                        game.status == .inProgress ? accentColor : accentColor.opacity(0.4),
+                        AztecTheme.borderGradient,
                         lineWidth: game.status == .inProgress ? 2 : 1.5
                     )
             )
+            .shadow(color: AztecTheme.neonYellow.opacity(0.2), radius: 3, x: -1)
+            .shadow(color: AztecTheme.hotPink.opacity(0.2), radius: 3, x: 1)
             .shadow(color: game.status == .inProgress ? accentColor.opacity(0.3) : .clear, radius: 4)
         }
         .buttonStyle(.plain)

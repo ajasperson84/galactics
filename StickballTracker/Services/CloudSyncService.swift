@@ -554,6 +554,12 @@ class CloudSyncService: ObservableObject {
         }
     }
 
+    // MARK: - Time Helper
+
+    private func gameTime(year: Int = 2026, month: Int = 4, day: Int, hour: Int, minute: Int = 0) -> Date {
+        Calendar.current.date(from: DateComponents(year: year, month: month, day: day, hour: hour, minute: minute))!
+    }
+
     // MARK: - Day 1 Bracket (9 teams, 13 games)
     //
     // WB R1: G1 (play-in: Banditos vs No Mamas), G2, G3, G4, G5 (G1W + manual)
@@ -600,7 +606,7 @@ class CloudSyncService: ObservableObject {
         var g12 = TournamentGame(gameNumber: 12, bracketSide: .losers)  // G8W vs G9L
 
         // LB Final (1 game)
-        let g13 = TournamentGame(gameNumber: 13, bracketSide: .losers)  // G11W vs G12W
+        var g13 = TournamentGame(gameNumber: 13, bracketSide: .losers)  // G11W vs G12W
 
         // === Routing ===
 
@@ -631,6 +637,21 @@ class CloudSyncService: ObservableObject {
         g12.feedsWinnerTo = GameLink(gameId: g13.id, slot: .team2) // G12W → G13 team2
 
         // G13 winner advances, no further routing
+
+        // === Scheduled Times (Day 1 = Friday April 25, G13 = Saturday April 26) ===
+        g1.scheduledTime = gameTime(day: 25, hour: 9)           // 9:00 AM
+        g2.scheduledTime = gameTime(day: 25, hour: 10, minute: 30)  // 10:30 AM
+        g3.scheduledTime = gameTime(day: 25, hour: 10, minute: 30)  // 10:30 AM
+        g4.scheduledTime = gameTime(day: 25, hour: 12)          // 12:00 PM
+        g5.scheduledTime = gameTime(day: 25, hour: 12)          // 12:00 PM
+        g6.scheduledTime = gameTime(day: 25, hour: 13, minute: 30)  // 1:30 PM
+        g7.scheduledTime = gameTime(day: 25, hour: 13, minute: 30)  // 1:30 PM
+        g8.scheduledTime = gameTime(day: 25, hour: 15)          // 3:00 PM
+        g9.scheduledTime = gameTime(day: 25, hour: 15)          // 3:00 PM
+        g10.scheduledTime = gameTime(day: 25, hour: 16, minute: 30) // 4:30 PM
+        g11.scheduledTime = gameTime(day: 25, hour: 18)         // 6:00 PM
+        g12.scheduledTime = gameTime(day: 25, hour: 18)         // 6:00 PM
+        g13.scheduledTime = gameTime(day: 26, hour: 9)          // 9:00 AM SATURDAY
 
         tier.games = [g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13]
 
@@ -687,8 +708,8 @@ class CloudSyncService: ObservableObject {
         var g8 = TournamentGame(gameNumber: 8, bracketSide: .winners)
 
         // LB R2 (2 games, LB R1 winners vs WB R2 losers)
-        let g9 = TournamentGame(gameNumber: 9, bracketSide: .losers)
-        let g10 = TournamentGame(gameNumber: 10, bracketSide: .losers)
+        var g9 = TournamentGame(gameNumber: 9, bracketSide: .losers)
+        var g10 = TournamentGame(gameNumber: 10, bracketSide: .losers)
 
         // WB R1 winners → WB R2
         g1.feedsWinnerTo = GameLink(gameId: g7.id, slot: .team1)
@@ -711,6 +732,18 @@ class CloudSyncService: ObservableObject {
         g8.feedsLoserTo = GameLink(gameId: g9.id, slot: .team2)
 
         // WB R2 winners advance, LB R2 winners advance — no further routing
+
+        // === Scheduled Times (Day 2 = Saturday April 26) ===
+        g1.scheduledTime = gameTime(day: 26, hour: 10, minute: 30)  // 10:30 AM
+        g2.scheduledTime = gameTime(day: 26, hour: 10, minute: 30)  // 10:30 AM
+        g3.scheduledTime = gameTime(day: 26, hour: 12)          // 12:00 PM
+        g4.scheduledTime = gameTime(day: 26, hour: 12)          // 12:00 PM
+        g5.scheduledTime = gameTime(day: 26, hour: 13, minute: 30)  // 1:30 PM
+        g6.scheduledTime = gameTime(day: 26, hour: 13, minute: 30)  // 1:30 PM
+        g7.scheduledTime = gameTime(day: 26, hour: 15)          // 3:00 PM
+        g8.scheduledTime = gameTime(day: 26, hour: 15)          // 3:00 PM
+        g9.scheduledTime = gameTime(day: 26, hour: 16, minute: 30)  // 4:30 PM
+        g10.scheduledTime = gameTime(day: 26, hour: 16, minute: 30) // 4:30 PM
 
         tier.games = [g1, g2, g3, g4, g5, g6, g7, g8, g9, g10]
 
@@ -764,10 +797,10 @@ class CloudSyncService: ObservableObject {
         var g5 = TournamentGame(gameNumber: 5, bracketSide: .losers)
 
         // Championship
-        let g6 = TournamentGame(gameNumber: 6, bracketSide: .championship)
+        var g6 = TournamentGame(gameNumber: 6, bracketSide: .championship)
 
         // If Necessary
-        let g7 = TournamentGame(gameNumber: 7, bracketSide: .ifNecessary)
+        var g7 = TournamentGame(gameNumber: 7, bracketSide: .ifNecessary)
 
         // WB SF
         g1.feedsWinnerTo = GameLink(gameId: g3.id, slot: .team1)
@@ -787,6 +820,15 @@ class CloudSyncService: ObservableObject {
         g5.feedsWinnerTo = GameLink(gameId: g6.id, slot: .team2)  // LB champ → championship team2
 
         // Championship: winner is champion (or if LB wins, if-necessary is activated via recordGameResult)
+
+        // === Scheduled Times (Day 3 = Sunday April 27) ===
+        g1.scheduledTime = gameTime(day: 27, hour: 9)           // 9:00 AM
+        g2.scheduledTime = gameTime(day: 27, hour: 10, minute: 30)  // 10:30 AM
+        g3.scheduledTime = gameTime(day: 27, hour: 12)          // 12:00 PM
+        g4.scheduledTime = gameTime(day: 27, hour: 13, minute: 30)  // 1:30 PM
+        g5.scheduledTime = gameTime(day: 27, hour: 15)          // 3:00 PM
+        g6.scheduledTime = gameTime(day: 27, hour: 16, minute: 30)  // 4:30 PM
+        g7.scheduledTime = gameTime(day: 27, hour: 18)          // 6:00 PM
 
         tier.games = [g1, g2, g3, g4, g5, g6, g7]
 

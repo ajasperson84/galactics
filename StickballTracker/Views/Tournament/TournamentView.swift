@@ -326,6 +326,7 @@ struct GameCard: View {
                                     : (game.status == .completed && game.winnerId != game.team1Id
                                         ? AztecTheme.dimText
                                         : AztecTheme.neonYellow)))
+                            .shadow(color: AztecTheme.neonYellow.opacity(game.team1Id != nil ? 0.5 : 0), radius: 4)
                             .lineLimit(1)
                             .minimumScaleFactor(0.4)
                     }
@@ -344,7 +345,7 @@ struct GameCard: View {
                             .foregroundColor(AztecTheme.hotPink)
                     } else {
                         Text("VS")
-                            .font(AztecTheme.hobbsFont(size: compact ? 18 : 24))
+                            .font(AztecTheme.hobbsFont(size: compact ? 27 : 36))
                             .tracking(AztecTheme.hobbsKerning)
                             .foregroundStyle(
                                 LinearGradient(
@@ -353,6 +354,7 @@ struct GameCard: View {
                                     endPoint: .trailing
                                 )
                             )
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 4)
                     }
 
                     // Team 2
@@ -366,6 +368,7 @@ struct GameCard: View {
                                     : (game.status == .completed && game.winnerId != game.team2Id
                                         ? AztecTheme.dimText
                                         : AztecTheme.hotPink)))
+                            .shadow(color: AztecTheme.hotPink.opacity(game.team2Id != nil ? 0.5 : 0), radius: 4)
                             .lineLimit(1)
                             .minimumScaleFactor(0.4)
                         if let team = team2, let icon = team.iconName, !compact {
@@ -393,15 +396,10 @@ struct GameCard: View {
             .clipShape(RoundedRectangle(cornerRadius: compact ? 8 : 12))
             .overlay(
                 RoundedRectangle(cornerRadius: compact ? 8 : 12)
-                    .stroke(
-                        game.status == .completed
-                            ? AztecTheme.hotPink.opacity(0.5)
-                            : (game.status == .inProgress
-                                ? AztecTheme.neonYellow
-                                : AztecTheme.hotPink.opacity(0.3)),
-                        lineWidth: 2.25
-                    )
+                    .stroke(AztecTheme.borderGradient, lineWidth: 2.25)
             )
+            .shadow(color: AztecTheme.neonYellow.opacity(0.2), radius: 4, x: -2)
+            .shadow(color: AztecTheme.hotPink.opacity(0.2), radius: 4, x: 2)
             .shadow(color: game.status == .inProgress ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 6)
         }
         .buttonStyle(.plain)
