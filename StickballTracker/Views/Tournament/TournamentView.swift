@@ -138,16 +138,10 @@ struct TournamentView: View {
                             .multilineTextAlignment(.center)
 
                         if cloudService.accessLevel == .admin {
-                            if cloudService.teams.count >= 2 {
-                                Button("CREATE TOURNEY") {
-                                    showCreateTournament = true
-                                }
-                                .buttonStyle(AztecButtonStyle())
-                            } else {
-                                Text("Add at least 2 squads to create a tourney")
-                                    .font(AztecTheme.sfProBold(size: 14))
-                                    .foregroundColor(AztecTheme.hotPink)
+                            Button("CREATE TOURNEY") {
+                                showCreateTournament = true
                             }
+                            .buttonStyle(AztecButtonStyle())
                         }
 
                         // Lock button

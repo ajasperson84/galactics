@@ -291,10 +291,16 @@ struct PinEntrySheet: View {
                 cloudService.accessLevel = .admin
                 successMessage = "ADMIN UNLOCKED"
             }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                dismiss()
+            }
         } else if enteredCode == scorekeeperCode {
             withAnimation {
                 cloudService.accessLevel = .scorekeeper
                 successMessage = "SCOREKEEPER UNLOCKED"
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                dismiss()
             }
         } else {
             withAnimation(.default) {
