@@ -28,19 +28,21 @@ struct PlayersView: View {
                     }
                     .aztecTextField()
 
-                    // Pink plus in yellow circle (add baller button)
-                    Button {
-                        showingAddPlayer = true
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(AztecTheme.neonYellow)
-                                .frame(width: 44, height: 44)
-                                .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 6)
+                    // Pink plus in yellow circle (add baller button, admin only)
+                    if cloudService.accessLevel == .admin {
+                        Button {
+                            showingAddPlayer = true
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(AztecTheme.neonYellow)
+                                    .frame(width: 44, height: 44)
+                                    .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 6)
 
-                            Image(systemName: "plus")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(AztecTheme.hotPink)
+                                Image(systemName: "plus")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(AztecTheme.hotPink)
+                            }
                         }
                     }
                 }
@@ -344,29 +346,33 @@ struct PlayerDetailSheet: View {
                         .padding(.vertical, 8)
                         .neonCard()
 
-                        // Save button
-                        Button("SAVE CHANGES") {
-                            Task {
-                                var updated = player
-                                updated.name = editedName
-                                if updated.teamId != selectedTeamId {
-                                    await cloudService.assignPlayerToTeam(
-                                        playerId: player.id,
-                                        teamId: selectedTeamId
-                                    )
+                        // Save button (admin only)
+                        if cloudService.accessLevel == .admin {
+                            Button("SAVE CHANGES") {
+                                Task {
+                                    var updated = player
+                                    updated.name = editedName
+                                    if updated.teamId != selectedTeamId {
+                                        await cloudService.assignPlayerToTeam(
+                                            playerId: player.id,
+                                            teamId: selectedTeamId
+                                        )
+                                    }
+                                    updated.teamId = selectedTeamId
+                                    await cloudService.updatePlayer(updated)
+                                    dismiss()
                                 }
-                                updated.teamId = selectedTeamId
-                                await cloudService.updatePlayer(updated)
-                                dismiss()
                             }
+                            .buttonStyle(AztecButtonStyle(color: AztecTheme.hotPink))
                         }
-                        .buttonStyle(AztecButtonStyle(color: AztecTheme.hotPink))
 
-                        // Delete button
-                        Button("DELETE BALLER") {
-                            showDeleteConfirm = true
+                        // Delete button (admin only)
+                        if cloudService.accessLevel == .admin {
+                            Button("DELETE BALLER") {
+                                showDeleteConfirm = true
+                            }
+                            .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.bloodRed))
                         }
-                        .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.bloodRed))
                     }
                     .padding()
                 }

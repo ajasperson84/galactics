@@ -15,6 +15,7 @@ struct GameEntrySheet: View {
     @State private var showConfirm = false
 
     var isCompleted: Bool { game.status == .completed }
+    var canEditScores: Bool { !isCompleted && cloudService.accessLevel.rawValue >= AccessLevel.scorekeeper.rawValue }
 
     var team1: Team? {
         game.team1Id.flatMap { cloudService.team(for: $0) }
@@ -140,7 +141,7 @@ struct GameEntrySheet: View {
                             }
 
                             // +/- buttons row
-                            if !isCompleted {
+                            if canEditScores {
                                 HStack(spacing: 0) {
                                     HStack(spacing: 12) {
                                         Button {
@@ -191,7 +192,7 @@ struct GameEntrySheet: View {
                         .aztecCard(highlight: AztecTheme.hotPink)
 
                         // Inning tracker
-                        if !isCompleted {
+                        if canEditScores {
                             VStack(spacing: 6) {
                                 Text("INNING")
                                     .font(AztecTheme.sfProBold(size: 11))
@@ -238,7 +239,7 @@ struct GameEntrySheet: View {
                                 Spacer()
                             }
 
-                            if isCompleted {
+                            if isCompleted || !canEditScores {
                                 ForEach(team1Players) { player in
                                     ReadOnlyStatRow(playerName: player.name, stats: completedStats(for: player.id))
                                 }
@@ -263,7 +264,7 @@ struct GameEntrySheet: View {
                                 Spacer()
                             }
 
-                            if isCompleted {
+                            if isCompleted || !canEditScores {
                                 ForEach(team2Players) { player in
                                     ReadOnlyStatRow(playerName: player.name, stats: completedStats(for: player.id))
                                 }
@@ -277,8 +278,8 @@ struct GameEntrySheet: View {
                             }
                         }
 
-                        // Submit (only for non-completed games)
-                        if !isCompleted {
+                        // Submit (scorekeeper+ only, non-completed games)
+                        if canEditScores {
                             Button("RECORD GAME") {
                                 showConfirm = true
                             }

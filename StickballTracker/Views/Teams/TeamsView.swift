@@ -155,10 +155,12 @@ struct FreeAgentRow: View {
 
             Spacer()
 
-            Button("ASSIGN") {
-                showTeamPicker = true
+            if cloudService.accessLevel == .admin {
+                Button("ASSIGN") {
+                    showTeamPicker = true
+                }
+                .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.hotPink))
             }
-            .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.hotPink))
         }
         .padding(12)
         .background(Color.black)
@@ -413,32 +415,36 @@ struct TeamDetailSheet: View {
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
                             Spacer()
-                            Button {
-                                showAddPlayerPicker = true
-                            } label: {
-                                Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(AztecTheme.neonYellow)
-                                    .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
+                            if cloudService.accessLevel == .admin {
+                                Button {
+                                    showAddPlayerPicker = true
+                                } label: {
+                                    Image(systemName: "plus.circle.fill")
+                                        .foregroundColor(AztecTheme.neonYellow)
+                                        .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
+                                }
                             }
                         }
 
-                        Button {
-                            showCreatePlayer = true
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: "person.badge.plus")
-                                Text("CREATE NEW BALLER")
+                        if cloudService.accessLevel == .admin {
+                            Button {
+                                showCreatePlayer = true
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "person.badge.plus")
+                                    Text("CREATE NEW BALLER")
+                                }
+                                .font(AztecTheme.sfProBold(size: 14))
+                                .foregroundColor(AztecTheme.neonYellow)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.black)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(AztecTheme.neonYellow.opacity(0.5), lineWidth: 2.25)
+                                )
                             }
-                            .font(AztecTheme.sfProBold(size: 14))
-                            .foregroundColor(AztecTheme.neonYellow)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(Color.black)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(AztecTheme.neonYellow.opacity(0.5), lineWidth: 2.25)
-                            )
                         }
 
                         ForEach(teamPlayers) { player in
@@ -453,16 +459,18 @@ struct TeamDetailSheet: View {
 
                                     Spacer()
 
-                                    Button {
-                                        Task {
-                                            await cloudService.assignPlayerToTeam(
-                                                playerId: player.id,
-                                                teamId: nil
-                                            )
+                                    if cloudService.accessLevel == .admin {
+                                        Button {
+                                            Task {
+                                                await cloudService.assignPlayerToTeam(
+                                                    playerId: player.id,
+                                                    teamId: nil
+                                                )
+                                            }
+                                        } label: {
+                                            Image(systemName: "xmark.circle")
+                                                .foregroundColor(AztecTheme.bloodRed.opacity(0.6))
                                         }
-                                    } label: {
-                                        Image(systemName: "xmark.circle")
-                                            .foregroundColor(AztecTheme.bloodRed.opacity(0.6))
                                     }
                                 }
                                 .padding(.horizontal, 12)
@@ -487,10 +495,12 @@ struct TeamDetailSheet: View {
                             )
                         }
 
-                        Button("DELETE SQUAD") {
-                            showDeleteConfirm = true
+                        if cloudService.accessLevel == .admin {
+                            Button("DELETE SQUAD") {
+                                showDeleteConfirm = true
+                            }
+                            .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.bloodRed))
                         }
-                        .buttonStyle(AztecSecondaryButtonStyle(color: AztecTheme.bloodRed))
                     }
                     .padding()
                 }

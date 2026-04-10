@@ -2,6 +2,14 @@ import Foundation
 import FirebaseFirestore
 import Combine
 
+// MARK: - Access Level
+
+enum AccessLevel: Int {
+    case viewOnly = 0
+    case scorekeeper = 1
+    case admin = 2
+}
+
 /// Cloud sync service using Firebase Firestore for real-time multi-user synchronization.
 /// Also persists data locally as JSON so it survives app restarts even without connectivity.
 @MainActor
@@ -11,6 +19,7 @@ class CloudSyncService: ObservableObject {
     @Published var tournament: Tournament?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var accessLevel: AccessLevel = .viewOnly
 
     private let db = Firestore.firestore()
     private var listeners: [ListenerRegistration] = []

@@ -23,19 +23,21 @@ struct TournamentView: View {
         ScrollView {
             VStack(spacing: 16) {
                 if let tournament = cloudService.tournament {
-                    // Trash button
-                    HStack {
-                        Spacer()
-                        Button {
-                            Task {
-                                await cloudService.deleteTournament()
+                    // Trash button (admin only)
+                    if cloudService.accessLevel == .admin {
+                        HStack {
+                            Spacer()
+                            Button {
+                                Task {
+                                    await cloudService.deleteTournament()
+                                }
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundColor(AztecTheme.bloodRed)
                             }
-                        } label: {
-                            Image(systemName: "trash")
-                                .foregroundColor(AztecTheme.bloodRed)
                         }
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
 
                     // Champion display
                     if tournament.status == .completed,
@@ -134,15 +136,17 @@ struct TournamentView: View {
                             .foregroundColor(AztecTheme.hotPink)
                             .multilineTextAlignment(.center)
 
-                        if cloudService.teams.count >= 2 {
-                            Button("CREATE TOURNEY") {
-                                showCreateTournament = true
+                        if cloudService.accessLevel == .admin {
+                            if cloudService.teams.count >= 2 {
+                                Button("CREATE TOURNEY") {
+                                    showCreateTournament = true
+                                }
+                                .buttonStyle(AztecButtonStyle())
+                            } else {
+                                Text("Add at least 2 squads to create a tourney")
+                                    .font(AztecTheme.sfProBold(size: 14))
+                                    .foregroundColor(AztecTheme.hotPink)
                             }
-                            .buttonStyle(AztecButtonStyle())
-                        } else {
-                            Text("Add at least 2 squads to create a tourney")
-                                .font(AztecTheme.sfProBold(size: 14))
-                                .foregroundColor(AztecTheme.hotPink)
                         }
                     }
                 }
@@ -156,8 +160,10 @@ struct TournamentView: View {
         .sheet(item: $selectedGame) { selection in
             if selection.game.team1Id != nil && selection.game.team2Id != nil {
                 GameEntrySheet(tierIndex: selection.tierIndex, game: selection.game)
-            } else {
+            } else if cloudService.accessLevel == .admin {
                 TeamAssignmentSheet(tierIndex: selection.tierIndex, gameId: selection.gameId)
+            } else {
+                GameEntrySheet(tierIndex: selection.tierIndex, game: selection.game)
             }
         }
     }
