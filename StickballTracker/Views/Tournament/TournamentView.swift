@@ -234,7 +234,14 @@ struct GameCard: View {
         switch game.status {
         case .pending:
             if let time = game.scheduledTime {
-                return time.formatted(.dateTime.hour().minute())
+                let timeStr = time.formatted(.dateTime.hour().minute())
+                // Show day name if game is on a different day than the tier's date
+                if let tierDate = tier?.date,
+                   !Calendar.current.isDate(time, inSameDayAs: tierDate) {
+                    let dayName = time.formatted(.dateTime.weekday(.wide)).uppercased()
+                    return "\(timeStr) - \(dayName)"
+                }
+                return timeStr
             }
             return ""
         case .inProgress:
