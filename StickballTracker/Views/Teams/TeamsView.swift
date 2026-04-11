@@ -123,17 +123,14 @@ struct TeamCard: View {
                 }
             }
 
-            // Player names — SF Pro, pink
+            // Player names — SF Pro, pink, wrapping up to 2 lines
             if !teamPlayers.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(teamPlayers) { player in
-                            Text(player.name)
-                                .font(AztecTheme.sfProBold(size: 16))
-                                .foregroundColor(AztecTheme.hotPink)
-                        }
-                    }
-                }
+                Text(teamPlayers.map { $0.name }.joined(separator: "  ·  "))
+                    .font(AztecTheme.sfProBold(size: 16))
+                    .foregroundColor(AztecTheme.hotPink)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .padding(16)
