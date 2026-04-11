@@ -428,7 +428,7 @@ struct GameCard: View {
                 if let tier {
                     let hasDrawSlot = (game.team1Id == nil && tier.slotDescription(gameId: game.id, slot: .team1) == "To Be Drawn") ||
                         (game.team2Id == nil && tier.slotDescription(gameId: game.id, slot: .team2) == "To Be Drawn")
-                    if hasDrawSlot {
+                    if hasDrawSlot && cloudService.accessLevel == .admin {
                         Text("TAP TO ASSIGN TEAMS")
                             .font(AztecTheme.sfProBold(size: 10))
                             .tracking(1)
@@ -460,9 +460,9 @@ struct CreateTournamentSheet: View {
     @Environment(\.dismiss) var dismiss
     @State private var isCreating = false
 
-    private let day1Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 25))!
-    private let day2Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 26))!
-    private let day3Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 27))!
+    private let day1Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 24))!
+    private let day2Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 25))!
+    private let day3Date = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 26))!
 
     private let day1TeamNames = [
         "Mothership JV Reds", "Mothership JV Blacks",

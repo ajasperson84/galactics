@@ -671,20 +671,20 @@ class CloudSyncService: ObservableObject {
 
         // G13 winner advances, no further routing
 
-        // === Scheduled Times (Day 1 = Friday April 25, G13 = Saturday April 26) ===
-        g1.scheduledTime = gameTime(day: 25, hour: 9)           // 9:00 AM
-        g2.scheduledTime = gameTime(day: 25, hour: 10, minute: 30)  // 10:30 AM
-        g3.scheduledTime = gameTime(day: 25, hour: 10, minute: 30)  // 10:30 AM
-        g4.scheduledTime = gameTime(day: 25, hour: 12)          // 12:00 PM
-        g5.scheduledTime = gameTime(day: 25, hour: 12)          // 12:00 PM
-        g6.scheduledTime = gameTime(day: 25, hour: 13, minute: 30)  // 1:30 PM
-        g7.scheduledTime = gameTime(day: 25, hour: 13, minute: 30)  // 1:30 PM
-        g8.scheduledTime = gameTime(day: 25, hour: 15)          // 3:00 PM
-        g9.scheduledTime = gameTime(day: 25, hour: 15)          // 3:00 PM
-        g10.scheduledTime = gameTime(day: 25, hour: 16, minute: 30) // 4:30 PM
-        g11.scheduledTime = gameTime(day: 25, hour: 18)         // 6:00 PM
-        g12.scheduledTime = gameTime(day: 25, hour: 18)         // 6:00 PM
-        g13.scheduledTime = gameTime(day: 26, hour: 9)          // 9:00 AM SATURDAY
+        // === Scheduled Times (Day 1 = Friday April 24, G13 = Saturday April 25) ===
+        g1.scheduledTime = gameTime(day: 24, hour: 9)           // 9:00 AM
+        g2.scheduledTime = gameTime(day: 24, hour: 10, minute: 30)  // 10:30 AM
+        g3.scheduledTime = gameTime(day: 24, hour: 10, minute: 30)  // 10:30 AM
+        g4.scheduledTime = gameTime(day: 24, hour: 12)          // 12:00 PM
+        g5.scheduledTime = gameTime(day: 24, hour: 12)          // 12:00 PM
+        g6.scheduledTime = gameTime(day: 24, hour: 13, minute: 30)  // 1:30 PM
+        g7.scheduledTime = gameTime(day: 24, hour: 13, minute: 30)  // 1:30 PM
+        g8.scheduledTime = gameTime(day: 24, hour: 15)          // 3:00 PM
+        g9.scheduledTime = gameTime(day: 24, hour: 15)          // 3:00 PM
+        g10.scheduledTime = gameTime(day: 24, hour: 16, minute: 30) // 4:30 PM
+        g11.scheduledTime = gameTime(day: 24, hour: 18)         // 6:00 PM
+        g12.scheduledTime = gameTime(day: 24, hour: 18)         // 6:00 PM
+        g13.scheduledTime = gameTime(day: 25, hour: 9)          // 9:00 AM SATURDAY
 
         // === Field Assignments ===
         // Games 1,2,5,6,9,10,11,13 → El Potrero
@@ -779,17 +779,17 @@ class CloudSyncService: ObservableObject {
 
         // WB R2 winners advance, LB R2 winners advance — no further routing
 
-        // === Scheduled Times (Day 2 = Saturday April 26) ===
-        g1.scheduledTime = gameTime(day: 26, hour: 10, minute: 30)  // 10:30 AM
-        g2.scheduledTime = gameTime(day: 26, hour: 10, minute: 30)  // 10:30 AM
-        g3.scheduledTime = gameTime(day: 26, hour: 12)          // 12:00 PM
-        g4.scheduledTime = gameTime(day: 26, hour: 12)          // 12:00 PM
-        g5.scheduledTime = gameTime(day: 26, hour: 13, minute: 30)  // 1:30 PM
-        g6.scheduledTime = gameTime(day: 26, hour: 13, minute: 30)  // 1:30 PM
-        g7.scheduledTime = gameTime(day: 26, hour: 15)          // 3:00 PM
-        g8.scheduledTime = gameTime(day: 26, hour: 15)          // 3:00 PM
-        g9.scheduledTime = gameTime(day: 26, hour: 16, minute: 30)  // 4:30 PM
-        g10.scheduledTime = gameTime(day: 26, hour: 16, minute: 30) // 4:30 PM
+        // === Scheduled Times (Day 2 = Saturday April 25) ===
+        g1.scheduledTime = gameTime(day: 25, hour: 10, minute: 30)  // 10:30 AM
+        g2.scheduledTime = gameTime(day: 25, hour: 10, minute: 30)  // 10:30 AM
+        g3.scheduledTime = gameTime(day: 25, hour: 12)          // 12:00 PM
+        g4.scheduledTime = gameTime(day: 25, hour: 12)          // 12:00 PM
+        g5.scheduledTime = gameTime(day: 25, hour: 13, minute: 30)  // 1:30 PM
+        g6.scheduledTime = gameTime(day: 25, hour: 13, minute: 30)  // 1:30 PM
+        g7.scheduledTime = gameTime(day: 25, hour: 15)          // 3:00 PM
+        g8.scheduledTime = gameTime(day: 25, hour: 15)          // 3:00 PM
+        g9.scheduledTime = gameTime(day: 25, hour: 16, minute: 30)  // 4:30 PM
+        g10.scheduledTime = gameTime(day: 25, hour: 16, minute: 30) // 4:30 PM
 
         // === Field Assignments ===
         // Games 1,3,5,7,9 → Valle De Mystique
@@ -878,14 +878,14 @@ class CloudSyncService: ObservableObject {
 
         // Championship: winner is champion (or if LB wins, if-necessary is activated via recordGameResult)
 
-        // === Scheduled Times (Day 3 = Sunday April 27) ===
-        g1.scheduledTime = gameTime(day: 27, hour: 9)           // 9:00 AM
-        g2.scheduledTime = gameTime(day: 27, hour: 10, minute: 30)  // 10:30 AM
-        g3.scheduledTime = gameTime(day: 27, hour: 12)          // 12:00 PM
-        g4.scheduledTime = gameTime(day: 27, hour: 13, minute: 30)  // 1:30 PM
-        g5.scheduledTime = gameTime(day: 27, hour: 15)          // 3:00 PM
-        g6.scheduledTime = gameTime(day: 27, hour: 16, minute: 30)  // 4:30 PM
-        g7.scheduledTime = gameTime(day: 27, hour: 18)          // 6:00 PM
+        // === Scheduled Times (Day 3 = Sunday April 26) ===
+        g1.scheduledTime = gameTime(day: 26, hour: 9)           // 9:00 AM
+        g2.scheduledTime = gameTime(day: 26, hour: 10, minute: 30)  // 10:30 AM
+        g3.scheduledTime = gameTime(day: 26, hour: 12)          // 12:00 PM
+        g4.scheduledTime = gameTime(day: 26, hour: 13, minute: 30)  // 1:30 PM
+        g5.scheduledTime = gameTime(day: 26, hour: 15)          // 3:00 PM
+        g6.scheduledTime = gameTime(day: 26, hour: 16, minute: 30)  // 4:30 PM
+        g7.scheduledTime = gameTime(day: 26, hour: 18)          // 6:00 PM
 
         tier.games = [g1, g2, g3, g4, g5, g6, g7]
 
