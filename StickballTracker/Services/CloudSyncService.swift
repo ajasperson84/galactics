@@ -267,6 +267,38 @@ class CloudSyncService: ObservableObject {
         }
     }
 
+    func seedTournamentPlayers() async {
+        let existingNames = Set(players.map { $0.name })
+
+        let teamRosters: [(teamName: String, players: [String])] = [
+            ("Banditos",             ["The Rabbit", "Bandit Rick", "Wildcat", "Bandit Mitch", "Bandito Mayor"]),
+            ("No Mames Wey Jovenes", ["Flacco", "The Future", "Chino", "Rookie Alex"]),
+            ("Tinseltown JV",        ["Cuidado", "Dublé", "$alary", "Cojones", "Flashdance"]),
+            ("D$$",                  ["Lil Diamond", "Cap'n", "Katfish", "Rooster", "Hell Yeah Why Not?"]),
+            ("Steel City",           ["Solo Shot", "Clown Car", "Madre", "MidBen", "Mothman"]),
+            ("Gold Coast",           ["The Mechanic", "Cocaine Greg", "The Big Puna", "The Rookie", "Shroomin Mo"]),
+            ("Mothership Champs",    ["Soy Peligroso", "Jeffery Bomber", "Deep Space", "ODC", "Plough Jones"]),
+            ("Jet City Champs",      ["Daisy Cutter", "Well Fed Man", "Dirt Bag", "AAA", "Deadliest Catch"]),
+            ("Tinseltown Champs",    ["The Deal", "Dong Robber", "Lunch Money", "Candyman"]),
+            ("No Mames Wey Viejos",  ["El Toro", "Fuck Mañana", "Rookie Ulee", "Pelone"]),
+            ("Rose City Champs",     ["Big Trip", "Trees", "Almost Famous"]),
+            ("Rose City JV",         ["Honey Hamms", "Serial Killer", "The Wizard", "Holifield", "Cricket", "ShamWow"]),
+        ]
+
+        for roster in teamRosters {
+            guard let team = teams.first(where: { $0.name == roster.teamName }) else { continue }
+            for playerName in roster.players where !existingNames.contains(playerName) {
+                await addPlayer(name: playerName, teamId: team.id)
+            }
+        }
+
+        // Mothership JV pool — free agents until drafted
+        let freeAgents = ["The Surgeon", "8 Ball", "Stanklove", "Monkdank", "The Shepherd", "Long Balls", "Beverly Hills Cact", "Windows 95"]
+        for playerName in freeAgents where !existingNames.contains(playerName) {
+            await addPlayer(name: playerName, teamId: nil)
+        }
+    }
+
     // MARK: - Tournament Operations
 
     struct TierConfig {

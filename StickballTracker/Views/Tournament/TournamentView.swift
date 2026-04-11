@@ -514,6 +514,13 @@ struct CreateTournamentSheet: View {
                                 }
                             }
                             .buttonStyle(AztecButtonStyle())
+
+                            Button("SEED ALL PLAYERS") {
+                                Task {
+                                    await cloudService.seedTournamentPlayers()
+                                }
+                            }
+                            .buttonStyle(AztecButtonStyle(color: AztecTheme.hotPink))
                         }
 
                         // Day 1 summary
@@ -570,6 +577,15 @@ struct CreateTournamentSheet: View {
                         }
                         .padding()
                         .neonCard()
+
+                        if allTeamsSeeded && cloudService.players.count < 50 {
+                            Button("SEED ALL PLAYERS") {
+                                Task {
+                                    await cloudService.seedTournamentPlayers()
+                                }
+                            }
+                            .buttonStyle(AztecButtonStyle(color: AztecTheme.hotPink))
+                        }
 
                         if allTeamsSeeded {
                             Button("START TOURNEY") {
