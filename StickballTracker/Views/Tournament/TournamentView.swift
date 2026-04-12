@@ -108,6 +108,23 @@ struct TournamentView: View {
                             selectedGame = GameSelection(tierIndex: tierIdx, gameId: game.id, game: game)
                         }
                     }
+                } else if !cloudService.hasLoadedTournament {
+                    // Still waiting for the first Firestore snapshot — show a loader
+                    // instead of flashing "NO ACTIVE TOURNEY" at viewers who have no
+                    // cached tournament on disk yet.
+                    VStack(spacing: 20) {
+                        Spacer().frame(height: 60)
+
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: AztecTheme.neonYellow))
+                            .scaleEffect(1.5)
+
+                        Text("LOADING TOURNEY…")
+                            .font(AztecTheme.hobbsFont(size: 28))
+                            .tracking(AztecTheme.hobbsKerning)
+                            .foregroundColor(AztecTheme.neonYellow)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
+                    }
                 } else {
                     // No tournament
                     VStack(spacing: 24) {

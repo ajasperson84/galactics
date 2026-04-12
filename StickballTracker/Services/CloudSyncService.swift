@@ -20,6 +20,9 @@ class CloudSyncService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var accessLevel: AccessLevel = .viewOnly
+    /// True once the Firestore tournament listener has returned at least one snapshot.
+    /// Used by views to distinguish "still loading" from "confirmed no tournament".
+    @Published var hasLoadedTournament: Bool = false
 
     private let db = Firestore.firestore()
     private var listeners: [ListenerRegistration] = []
@@ -57,6 +60,7 @@ class CloudSyncService: ObservableObject {
         if let data = try? Data(contentsOf: Self.tournamentFile),
            let saved = try? decoder.decode(Tournament.self, from: data) {
             tournament = saved
+            hasLoadedTournament = true
         }
     }
 
@@ -126,11 +130,31 @@ class CloudSyncService: ObservableObject {
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if let error {
-                        self.errorMessage = error.localizedDescription
+                        self.errorMessage = "Tourney sync error: \(error.localizedDescription)"
+                        // Mark as loaded so the UI can stop showing a spinner and
+                        // surface whatever cached state we have (or empty state).
+                        self.hasLoadedTournament = true
                         return
                     }
-                    self.tournament = snapshot?.documents.first.flatMap { try? $0.data(as: Tournament.self) }
-                    self.saveTournament()
+                    guard let snapshot else {
+                        self.hasLoadedTournament = true
+                        return
+                    }
+                    if let doc = snapshot.documents.first {
+                        if let decoded = try? doc.data(as: Tournament.self) {
+                            self.tournament = decoded
+                            self.saveTournament()
+                        } else {
+                            // Decoding failed — keep any existing tournament (from disk
+                            // or a prior successful snapshot) rather than nulling it out.
+                            self.errorMessage = "Failed to decode tourney data."
+                        }
+                    } else {
+                        // Confirmed: no tournament exists in Firestore.
+                        self.tournament = nil
+                        self.saveTournament()
+                    }
+                    self.hasLoadedTournament = true
                 }
             }
         listeners.append(tournamentListener)
