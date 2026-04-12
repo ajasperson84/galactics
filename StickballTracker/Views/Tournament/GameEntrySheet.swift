@@ -308,14 +308,30 @@ struct GameEntrySheet: View {
                 Text("\(t1) \(team1Score) - \(team2Score) \(t2)")
             }
             .onAppear {
-                if isCompleted {
-                    team1Score = game.team1Score
-                    team2Score = game.team2Score
-                } else {
+                // Hydrate from the latest game state (including in-progress games) so
+                // scorekeepers can safely close and reopen the sheet without losing work.
+                let latestGame: TournamentGame = {
+                    guard let tiers = cloudService.tournament?.tiers,
+                          tierIndex < tiers.count,
+                          let found = tiers[tierIndex].games.first(where: { $0.id == game.id })
+                    else { return game }
+                    return found
+                }()
+                team1Score = latestGame.team1Score
+                team2Score = latestGame.team2Score
+                if let inning = latestGame.currentInning {
+                    currentInning = inning
+                }
+                for stat in latestGame.playerGameStats {
+                    playerStats[stat.playerId] = EditablePlayerStats(
+                        dongs: stat.dongs,
+                        drops: stat.drops,
+                        doublePlays: stat.doublePlays,
+                        salamies: stat.salamies
+                    )
+                }
+                if !isCompleted {
                     initializePlayerStats()
-                    if let inning = game.currentInning {
-                        currentInning = inning
-                    }
                 }
             }
         }
@@ -324,8 +340,35 @@ struct GameEntrySheet: View {
     private func binding(for playerId: String) -> Binding<EditablePlayerStats> {
         Binding(
             get: { playerStats[playerId] ?? EditablePlayerStats() },
-            set: { playerStats[playerId] = $0 }
+            set: { newValue in
+                playerStats[playerId] = newValue
+                // Live-persist per-player stats as they're edited so a scorekeeper
+                // closing the sheet (or another device) doesn't lose progress.
+                syncPlayerStats()
+            }
         )
+    }
+
+    private func syncPlayerStats() {
+        let snapshot = currentPlayerGameStats()
+        Task {
+            await cloudService.updateGamePlayerStats(
+                tierIndex: tierIndex,
+                gameId: game.id,
+                playerStats: snapshot
+            )
+        }
+    }
+
+    private func currentPlayerGameStats() -> [PlayerGameStats] {
+        playerStats.map { playerId, stats in
+            var gs = PlayerGameStats(playerId: playerId)
+            gs.dongs = stats.dongs
+            gs.drops = stats.drops
+            gs.doublePlays = stats.doublePlays
+            gs.salamies = stats.salamies
+            return gs
+        }
     }
 
     private func completedStats(for playerId: String) -> EditablePlayerStats {
@@ -385,14 +428,7 @@ struct GameEntrySheet: View {
     }
 
     private func submitGame() {
-        let gameStats = playerStats.map { playerId, stats -> PlayerGameStats in
-            var gs = PlayerGameStats(playerId: playerId)
-            gs.dongs = stats.dongs
-            gs.drops = stats.drops
-            gs.doublePlays = stats.doublePlays
-            gs.salamies = stats.salamies
-            return gs
-        }
+        let gameStats = currentPlayerGameStats()
 
         Task {
             await cloudService.recordGameResult(

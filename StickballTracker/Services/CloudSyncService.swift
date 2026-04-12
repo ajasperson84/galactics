@@ -467,6 +467,24 @@ class CloudSyncService: ObservableObject {
         await updateTournament(tournament)
     }
 
+    /// Live-sync in-progress per-player stats for a game (dongs / salamies / double plays / drops).
+    /// Writes are applied to the game's `playerGameStats` array without marking it completed,
+    /// so scorekeepers can safely close and reopen the sheet without losing work.
+    func updateGamePlayerStats(tierIndex: Int, gameId: String, playerStats: [PlayerGameStats]) async {
+        guard var tournament else { return }
+        guard tierIndex < tournament.tiers.count else { return }
+        guard let gameIdx = tournament.tiers[tierIndex].games.firstIndex(where: { $0.id == gameId }) else { return }
+        // Don't overwrite finalized games.
+        guard tournament.tiers[tierIndex].games[gameIdx].status != .completed else { return }
+        tournament.tiers[tierIndex].games[gameIdx].playerGameStats = playerStats
+        if tournament.tiers[tierIndex].games[gameIdx].status == .pending {
+            tournament.tiers[tierIndex].games[gameIdx].status = .inProgress
+            tournament.tiers[tierIndex].status = .inProgress
+        }
+        self.tournament = tournament
+        await updateTournament(tournament)
+    }
+
     // MARK: - Record Game Result
 
     func recordGameResult(
