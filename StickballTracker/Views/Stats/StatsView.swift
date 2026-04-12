@@ -229,8 +229,7 @@ struct StatsTableRow: View {
                 .frame(width: 20, alignment: .center)
 
             Text(player.name)
-                .font(AztecTheme.hobbsFont(size: 23))
-                .tracking(AztecTheme.hobbsKerning)
+                .font(AztecTheme.sfProBold(size: 14))
                 .foregroundColor(AztecTheme.neonYellow)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
