@@ -23,38 +23,35 @@ struct StatsView: View {
         }
     }
 
-    var sortedPlayers: [Player] {
-        let eligible = cloudService.players.filter { $0.stats.gamesPlayed > 0 }
-        let sorted = eligible.sorted { p1, p2 in
-            switch sortBy {
-            case .dongs:
-                return p1.stats.dongs > p2.stats.dongs
-            case .salamies:
-                return p1.stats.salamies > p2.stats.salamies
-            case .doublePlays:
-                return p1.stats.doublePlays > p2.stats.doublePlays
-            case .drops:
-                return p1.stats.drops > p2.stats.drops
-            }
+    private func playerStat(_ player: Player, sort: StatSort) -> Int {
+        switch sort {
+        case .dongs: return player.stats.dongs
+        case .salamies: return player.stats.salamies
+        case .doublePlays: return player.stats.doublePlays
+        case .drops: return player.stats.drops
         }
-        return sorted
+    }
+
+    private func teamStat(_ team: Team, sort: StatSort) -> Int {
+        let players = cloudService.playersForTeam(team.id)
+        switch sort {
+        case .dongs: return players.reduce(0) { $0 + $1.stats.dongs }
+        case .salamies: return players.reduce(0) { $0 + $1.stats.salamies }
+        case .doublePlays: return players.reduce(0) { $0 + $1.stats.doublePlays }
+        case .drops: return players.reduce(0) { $0 + $1.stats.drops }
+        }
+    }
+
+    var sortedPlayers: [Player] {
+        cloudService.players
+            .filter { playerStat($0, sort: sortBy) > 0 }
+            .sorted { playerStat($0, sort: sortBy) > playerStat($1, sort: sortBy) }
     }
 
     var sortedTeams: [Team] {
-        cloudService.teams.sorted { t1, t2 in
-            let p1 = cloudService.playersForTeam(t1.id)
-            let p2 = cloudService.playersForTeam(t2.id)
-            switch teamSortBy {
-            case .dongs:
-                return p1.reduce(0) { $0 + $1.stats.dongs } > p2.reduce(0) { $0 + $1.stats.dongs }
-            case .salamies:
-                return p1.reduce(0) { $0 + $1.stats.salamies } > p2.reduce(0) { $0 + $1.stats.salamies }
-            case .doublePlays:
-                return p1.reduce(0) { $0 + $1.stats.doublePlays } > p2.reduce(0) { $0 + $1.stats.doublePlays }
-            case .drops:
-                return p1.reduce(0) { $0 + $1.stats.drops } > p2.reduce(0) { $0 + $1.stats.drops }
-            }
-        }
+        cloudService.teams
+            .filter { teamStat($0, sort: teamSortBy) > 0 }
+            .sorted { teamStat($0, sort: teamSortBy) > teamStat($1, sort: teamSortBy) }
     }
 
     private func sortButtons(selection: Binding<StatSort>) -> some View {
@@ -161,22 +158,33 @@ struct StatsView: View {
             sortButtons(selection: $teamSortBy)
 
             // Team rows — scrollable section with pink indicator
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(spacing: 6) {
-                    ForEach(sortedTeams) { team in
-                        TeamAggregatedRow(team: team, highlightStat: teamSortBy)
-                    }
+            if sortedTeams.isEmpty {
+                VStack(spacing: 8) {
+                    Spacer().frame(height: 12)
+                    Text("No squads with \(teamSortBy.label.lowercased()) yet")
+                        .font(AztecTheme.sfProBold(size: 14))
+                        .foregroundColor(AztecTheme.hotPink)
+                    Spacer()
                 }
-                .padding(.horizontal)
+                .padding(.bottom, 16)
+            } else {
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 6) {
+                        ForEach(sortedTeams) { team in
+                            TeamAggregatedRow(team: team, highlightStat: teamSortBy)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .overlay(alignment: .trailing) {
+                    Capsule()
+                        .fill(AztecTheme.hotPink.opacity(0.5))
+                        .frame(width: 3)
+                        .padding(.vertical, 8)
+                        .padding(.trailing, 2)
+                }
+                .padding(.bottom, 16)
             }
-            .overlay(alignment: .trailing) {
-                Capsule()
-                    .fill(AztecTheme.hotPink.opacity(0.5))
-                    .frame(width: 3)
-                    .padding(.vertical, 8)
-                    .padding(.trailing, 2)
-            }
-            .padding(.bottom, 16)
         }
     }
 }
