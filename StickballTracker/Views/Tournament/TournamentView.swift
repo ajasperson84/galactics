@@ -23,6 +23,16 @@ struct TournamentView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                // Cloud sync error banner — surfaces Firestore errors
+                // (permission denied, offline, etc.) so the user actually
+                // sees when their changes aren't reaching the server.
+                if let errorMessage = cloudService.errorMessage {
+                    SyncErrorBanner(message: errorMessage) {
+                        cloudService.errorMessage = nil
+                    }
+                    .padding(.horizontal)
+                }
+
                 if let tournament = cloudService.tournament {
                     // Trash button (admin only)
                     if cloudService.accessLevel == .admin {

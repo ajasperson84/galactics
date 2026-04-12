@@ -44,3 +44,59 @@ struct AztecSectionHeader: View {
         .padding(.vertical, 2)
     }
 }
+
+/// Banner shown at the top of a view when CloudSyncService reports a Firestore
+/// sync error (permission denied, network failure, decoding problem, etc.).
+/// This is critical: without it, sync failures are completely invisible to
+/// users because Firestore's offline cache makes failed writes still appear
+/// to "succeed" locally.
+struct SyncErrorBanner: View {
+    let message: String
+    var onDismiss: (() -> Void)?
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(AztecTheme.bloodRed)
+                .shadow(color: AztecTheme.bloodRed.opacity(0.6), radius: 4)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("CLOUD SYNC ERROR")
+                    .font(AztecTheme.sfProBold(size: 12))
+                    .tracking(1.5)
+                    .foregroundColor(AztecTheme.bloodRed)
+
+                Text(message)
+                    .font(AztecTheme.sfProMedium(size: 13))
+                    .foregroundColor(.white)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text("Changes may not be reaching other devices. Check Firestore security rules.")
+                    .font(AztecTheme.sfProMedium(size: 11))
+                    .foregroundColor(.white.opacity(0.7))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 4)
+
+            if let onDismiss {
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white.opacity(0.6))
+                }
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.black)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(AztecTheme.bloodRed, lineWidth: 2)
+                .shadow(color: AztecTheme.bloodRed.opacity(0.5), radius: 6)
+        )
+    }
+}

@@ -27,6 +27,54 @@ class CloudSyncService: ObservableObject {
     private let db = Firestore.firestore()
     private var listeners: [ListenerRegistration] = []
 
+    // MARK: - Write Helpers (with server-error reporting)
+
+    /// Writes a Codable value to Firestore. Unlike the bare `setData(from:)` call,
+    /// this captures **server-side** errors (permission denied, network failures
+    /// after retry exhaustion, etc.) via the completion handler and surfaces them
+    /// on `errorMessage` so the UI can display a sync problem to the user.
+    ///
+    /// Note: Firestore writes are queued locally first (so the local snapshot
+    /// listeners fire immediately), then synced to the server. The completion
+    /// closure runs only after the server acknowledges or rejects the write —
+    /// which is why we need it to detect that data isn't actually reaching the
+    /// cloud.
+    private func writeDocument<T: Encodable>(_ value: T, to collection: String, id: String) {
+        do {
+            try db.collection(collection).document(id).setData(from: value) { [weak self] error in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    if let error {
+                        let nsErr = error as NSError
+                        print("[CloudSync] WRITE FAILED \(collection)/\(id): \(error.localizedDescription) (code=\(nsErr.code) domain=\(nsErr.domain))")
+                        self.errorMessage = "Cloud sync failed (\(collection)): \(error.localizedDescription)"
+                    } else {
+                        print("[CloudSync] write OK \(collection)/\(id)")
+                    }
+                }
+            }
+        } catch {
+            print("[CloudSync] ENCODING FAILED \(collection)/\(id): \(error)")
+            errorMessage = "Encoding error (\(collection)): \(error.localizedDescription)"
+        }
+    }
+
+    /// Deletes a document with completion-handler-based error reporting.
+    private func deleteDocument(in collection: String, id: String) {
+        db.collection(collection).document(id).delete { [weak self] error in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if let error {
+                    let nsErr = error as NSError
+                    print("[CloudSync] DELETE FAILED \(collection)/\(id): \(error.localizedDescription) (code=\(nsErr.code) domain=\(nsErr.domain))")
+                    self.errorMessage = "Cloud sync failed (\(collection)): \(error.localizedDescription)"
+                } else {
+                    print("[CloudSync] delete OK \(collection)/\(id)")
+                }
+            }
+        }
+    }
+
     // MARK: - Local Persistence Paths
 
     private static var documentsDir: URL {
@@ -37,6 +85,8 @@ class CloudSyncService: ObservableObject {
     private static var tournamentFile: URL { documentsDir.appendingPathComponent("tournament.json") }
 
     init() {
+        // Firestore offline persistence is enabled by default on iOS, so the
+        // local cache survives across launches and reads work offline.
         loadFromDisk()
         attachListeners()
     }
@@ -97,11 +147,15 @@ class CloudSyncService: ObservableObject {
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if let error {
-                        self.errorMessage = error.localizedDescription
+                        let nsErr = error as NSError
+                        print("[CloudSync] players listener error: \(error.localizedDescription) (code=\(nsErr.code))")
+                        self.errorMessage = "Players sync error: \(error.localizedDescription)"
                         return
                     }
-                    guard let documents = snapshot?.documents else { return }
-                    self.players = documents.compactMap { try? $0.data(as: Player.self) }
+                    guard let snapshot else { return }
+                    let source = snapshot.metadata.isFromCache ? "cache" : "server"
+                    print("[CloudSync] players snapshot: \(snapshot.documents.count) docs from \(source)")
+                    self.players = snapshot.documents.compactMap { try? $0.data(as: Player.self) }
                     self.savePlayers()
                 }
             }
@@ -113,11 +167,15 @@ class CloudSyncService: ObservableObject {
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if let error {
-                        self.errorMessage = error.localizedDescription
+                        let nsErr = error as NSError
+                        print("[CloudSync] teams listener error: \(error.localizedDescription) (code=\(nsErr.code))")
+                        self.errorMessage = "Teams sync error: \(error.localizedDescription)"
                         return
                     }
-                    guard let documents = snapshot?.documents else { return }
-                    self.teams = documents.compactMap { try? $0.data(as: Team.self) }
+                    guard let snapshot else { return }
+                    let source = snapshot.metadata.isFromCache ? "cache" : "server"
+                    print("[CloudSync] teams snapshot: \(snapshot.documents.count) docs from \(source)")
+                    self.teams = snapshot.documents.compactMap { try? $0.data(as: Team.self) }
                     self.saveTeams()
                 }
             }
@@ -126,10 +184,12 @@ class CloudSyncService: ObservableObject {
         let tournamentListener = db.collection("tournaments")
             .order(by: "createdAt", descending: true)
             .limit(to: 1)
-            .addSnapshotListener { [weak self] snapshot, error in
+            .addSnapshotListener(includeMetadataChanges: true) { [weak self] snapshot, error in
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if let error {
+                        let nsErr = error as NSError
+                        print("[CloudSync] tournament listener error: \(error.localizedDescription) (code=\(nsErr.code) domain=\(nsErr.domain))")
                         self.errorMessage = "Tourney sync error: \(error.localizedDescription)"
                         // Mark as loaded so the UI can stop showing a spinner and
                         // surface whatever cached state we have (or empty state).
@@ -140,6 +200,9 @@ class CloudSyncService: ObservableObject {
                         self.hasLoadedTournament = true
                         return
                     }
+                    let source = snapshot.metadata.isFromCache ? "cache" : "server"
+                    print("[CloudSync] tournament snapshot: \(snapshot.documents.count) docs from \(source) (pendingWrites=\(snapshot.metadata.hasPendingWrites))")
+
                     if let doc = snapshot.documents.first {
                         if let decoded = try? doc.data(as: Tournament.self) {
                             self.tournament = decoded
@@ -147,10 +210,13 @@ class CloudSyncService: ObservableObject {
                         } else {
                             // Decoding failed — keep any existing tournament (from disk
                             // or a prior successful snapshot) rather than nulling it out.
+                            print("[CloudSync] Failed to decode tournament document \(doc.documentID)")
                             self.errorMessage = "Failed to decode tourney data."
                         }
-                    } else {
-                        // Confirmed: no tournament exists in Firestore.
+                    } else if !snapshot.metadata.isFromCache {
+                        // Confirmed by SERVER: no tournament exists in Firestore.
+                        // Don't null out from a stale cache snapshot — only trust the
+                        // server's "empty" answer.
                         self.tournament = nil
                         self.saveTournament()
                     }
@@ -164,37 +230,25 @@ class CloudSyncService: ObservableObject {
 
     func addPlayer(name: String, teamId: String? = nil) async {
         let player = Player(name: name, teamId: teamId)
-        do {
-            try db.collection("players").document(player.id).setData(from: player)
-            if let teamId,
-               var team = teams.first(where: { $0.id == teamId }),
-               !team.playerIds.contains(player.id) {
-                team.playerIds.append(player.id)
-                try db.collection("teams").document(team.id).setData(from: team)
-            }
-        } catch {
-            errorMessage = "Failed to add player: \(error.localizedDescription)"
+        writeDocument(player, to: "players", id: player.id)
+        if let teamId,
+           var team = teams.first(where: { $0.id == teamId }),
+           !team.playerIds.contains(player.id) {
+            team.playerIds.append(player.id)
+            writeDocument(team, to: "teams", id: team.id)
         }
     }
 
     func updatePlayer(_ player: Player) async {
-        do {
-            try db.collection("players").document(player.id).setData(from: player)
-        } catch {
-            errorMessage = "Failed to update player: \(error.localizedDescription)"
-        }
+        writeDocument(player, to: "players", id: player.id)
     }
 
     func deletePlayer(_ player: Player) async {
-        do {
-            try await db.collection("players").document(player.id).delete()
-            if let teamId = player.teamId,
-               var team = teams.first(where: { $0.id == teamId }) {
-                team.playerIds.removeAll { $0 == player.id }
-                try db.collection("teams").document(team.id).setData(from: team)
-            }
-        } catch {
-            errorMessage = "Failed to delete player: \(error.localizedDescription)"
+        deleteDocument(in: "players", id: player.id)
+        if let teamId = player.teamId,
+           var team = teams.first(where: { $0.id == teamId }) {
+            team.playerIds.removeAll { $0 == player.id }
+            writeDocument(team, to: "teams", id: team.id)
         }
     }
 
@@ -212,31 +266,19 @@ class CloudSyncService: ObservableObject {
 
     func addTeam(name: String, iconName: String? = nil) async {
         let team = Team(name: name, iconName: iconName)
-        do {
-            try db.collection("teams").document(team.id).setData(from: team)
-        } catch {
-            errorMessage = "Failed to add team: \(error.localizedDescription)"
-        }
+        writeDocument(team, to: "teams", id: team.id)
     }
 
     func updateTeam(_ team: Team) async {
-        do {
-            try db.collection("teams").document(team.id).setData(from: team)
-        } catch {
-            errorMessage = "Failed to update team: \(error.localizedDescription)"
-        }
+        writeDocument(team, to: "teams", id: team.id)
     }
 
     func deleteTeam(_ team: Team) async {
-        do {
-            for var player in players where player.teamId == team.id {
-                player.teamId = nil
-                try db.collection("players").document(player.id).setData(from: player)
-            }
-            try await db.collection("teams").document(team.id).delete()
-        } catch {
-            errorMessage = "Failed to delete team: \(error.localizedDescription)"
+        for var player in players where player.teamId == team.id {
+            player.teamId = nil
+            writeDocument(player, to: "players", id: player.id)
         }
+        deleteDocument(in: "teams", id: team.id)
     }
 
     func assignPlayerToTeam(playerId: String, teamId: String?) async {
@@ -349,28 +391,23 @@ class CloudSyncService: ObservableObject {
         }
 
         tournament.status = .inProgress
-        do {
-            try db.collection("tournaments").document(tournament.id).setData(from: tournament)
-        } catch {
-            errorMessage = "Failed to create tournament: \(error.localizedDescription)"
-        }
+        // Optimistically update local state immediately so the UI reflects
+        // the new tournament without waiting for the listener round-trip.
+        self.tournament = tournament
+        self.hasLoadedTournament = true
+        saveTournament()
+        writeDocument(tournament, to: "tournaments", id: tournament.id)
     }
 
     func updateTournament(_ tournament: Tournament) async {
-        do {
-            try db.collection("tournaments").document(tournament.id).setData(from: tournament)
-        } catch {
-            errorMessage = "Failed to update tournament: \(error.localizedDescription)"
-        }
+        writeDocument(tournament, to: "tournaments", id: tournament.id)
     }
 
     func deleteTournament() async {
         guard let tournament else { return }
-        do {
-            try await db.collection("tournaments").document(tournament.id).delete()
-        } catch {
-            errorMessage = "Failed to delete tournament: \(error.localizedDescription)"
-        }
+        deleteDocument(in: "tournaments", id: tournament.id)
+        self.tournament = nil
+        saveTournament()
     }
 
     // MARK: - Team Assignment

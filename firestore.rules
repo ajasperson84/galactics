@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Stickball tracker is open-access by design — anyone with the app
+    // can read tournament data and any scorekeeper/admin can write.
+    // Access control is enforced client-side via the PIN system.
+    match /players/{playerId} {
+      allow read, write: if true;
+    }
+    match /teams/{teamId} {
+      allow read, write: if true;
+    }
+    match /tournaments/{tournamentId} {
+      allow read, write: if true;
+    }
+  }
+}

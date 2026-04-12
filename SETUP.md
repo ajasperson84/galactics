@@ -21,31 +21,48 @@ This app uses Firebase Firestore for real-time cloud sync so multiple users can 
 
 1. In Firebase Console → **Build** → **Firestore Database**
 2. Click **Create database**
-3. Choose **Start in test mode** for development (switch to production rules before release)
-4. Select a region close to your users
+3. Select a region close to your users (you cannot change this later)
 
-### 4. Firestore Security Rules (Production)
+### 4. Firestore Security Rules ⚠️ CRITICAL
 
-Replace the default rules with:
+**Test mode rules expire after 30 days and silently start denying ALL writes.**
+When that happens, the iOS Firestore SDK still updates its **local cache**, so
+the device that wrote the data shows it correctly — but the data **never
+actually reaches the server**, and other devices can't see it. After
+reinstalling the app, the data is gone because it only existed in the now-wiped
+local cache.
 
+**This is the #1 cause of "tournament works on my phone but not anyone else's"
+and "tournament disappeared after I reinstalled".**
+
+This repo includes a `firestore.rules` file with permissive rules that match
+the app's design (the app enforces access control client-side via PIN). Deploy
+them with the Firebase CLI:
+
+```bash
+# 1. Install the CLI (one-time)
+npm install -g firebase-tools
+
+# 2. Log in
+firebase login
+
+# 3. From the repo root, deploy the rules to your project:
+firebase deploy --only firestore:rules --project galactics-ae662
 ```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /players/{playerId} {
-      allow read, write: if true;
-    }
-    match /teams/{teamId} {
-      allow read, write: if true;
-    }
-    match /tournaments/{tournamentId} {
-      allow read, write: if true;
-    }
-  }
-}
-```
 
-For authenticated access, replace `if true` with `if request.auth != null`.
+Or paste the contents of `firestore.rules` directly into the Firebase Console
+under **Firestore Database → Rules → Publish**.
+
+After deploying, test by:
+1. Creating a tournament on Phone A
+2. Checking Firebase Console → Firestore Database → `tournaments` collection.
+   The document should appear there within seconds.
+3. Opening the app on Phone B — the tournament should appear automatically.
+4. If you see a red **CLOUD SYNC ERROR** banner inside the app, the rules are
+   still wrong — re-deploy and check the Firebase Console rules tab.
+
+For authenticated access in the future, replace `if true` with
+`if request.auth != null` in `firestore.rules` and redeploy.
 
 ### 5. Open in Xcode
 
