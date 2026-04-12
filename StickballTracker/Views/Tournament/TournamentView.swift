@@ -34,10 +34,27 @@ struct TournamentView: View {
                 }
 
                 if let tournament = cloudService.tournament {
-                    // Trash button (admin only)
+                    // Admin actions: re-sync to cloud + delete
                     if cloudService.accessLevel == .admin {
-                        HStack {
+                        HStack(spacing: 16) {
                             Spacer()
+                            // Re-push local tourney to Firestore. Useful if the
+                            // original write was rejected (e.g. closed rules)
+                            // and the doc only lives in the device's local cache.
+                            Button {
+                                Task {
+                                    await cloudService.resyncTournamentToCloud()
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "arrow.triangle.2.circlepath.icloud")
+                                    Text("RE-SYNC")
+                                        .font(AztecTheme.sfProBold(size: 11))
+                                        .tracking(1)
+                                }
+                                .foregroundColor(AztecTheme.neonYellow)
+                            }
+
                             Button {
                                 Task {
                                     await cloudService.deleteTournament()

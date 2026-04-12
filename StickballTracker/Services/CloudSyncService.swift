@@ -181,9 +181,13 @@ class CloudSyncService: ObservableObject {
             }
         listeners.append(teamsListener)
 
+        // NOTE: We deliberately do NOT use `.order(by: "createdAt")` here.
+        // Firestore's orderBy silently excludes any document missing that field,
+        // which would make tournament docs written by older app versions (or
+        // hand-edited in the console) invisible to viewers. Instead we fetch
+        // every doc in the small `tournaments` collection and pick the latest
+        // one client-side.
         let tournamentListener = db.collection("tournaments")
-            .order(by: "createdAt", descending: true)
-            .limit(to: 1)
             .addSnapshotListener(includeMetadataChanges: true) { [weak self] snapshot, error in
                 Task { @MainActor [weak self] in
                     guard let self else { return }
@@ -203,16 +207,25 @@ class CloudSyncService: ObservableObject {
                     let source = snapshot.metadata.isFromCache ? "cache" : "server"
                     print("[CloudSync] tournament snapshot: \(snapshot.documents.count) docs from \(source) (pendingWrites=\(snapshot.metadata.hasPendingWrites))")
 
-                    if let doc = snapshot.documents.first {
-                        if let decoded = try? doc.data(as: Tournament.self) {
-                            self.tournament = decoded
-                            self.saveTournament()
-                        } else {
-                            // Decoding failed — keep any existing tournament (from disk
-                            // or a prior successful snapshot) rather than nulling it out.
-                            print("[CloudSync] Failed to decode tournament document \(doc.documentID)")
-                            self.errorMessage = "Failed to decode tourney data."
+                    // Decode every doc; pick the most-recently-created one.
+                    // Falls back gracefully if `createdAt` is missing.
+                    let decoded: [Tournament] = snapshot.documents.compactMap { doc in
+                        do {
+                            return try doc.data(as: Tournament.self)
+                        } catch {
+                            print("[CloudSync] Failed to decode tournament \(doc.documentID): \(error)")
+                            return nil
                         }
+                    }
+
+                    if let latest = decoded.max(by: { $0.createdAt < $1.createdAt }) {
+                        self.tournament = latest
+                        self.saveTournament()
+                    } else if !snapshot.documents.isEmpty {
+                        // Docs exist but none could be decoded — surface the error
+                        // and keep any existing local copy rather than wiping it.
+                        print("[CloudSync] tournament snapshot had \(snapshot.documents.count) doc(s) but none decoded")
+                        self.errorMessage = "Failed to decode tourney data."
                     } else if !snapshot.metadata.isFromCache {
                         // Confirmed by SERVER: no tournament exists in Firestore.
                         // Don't null out from a stale cache snapshot — only trust the
@@ -400,6 +413,22 @@ class CloudSyncService: ObservableObject {
     }
 
     func updateTournament(_ tournament: Tournament) async {
+        writeDocument(tournament, to: "tournaments", id: tournament.id)
+    }
+
+    /// Force-rewrite the local tournament document to Firestore. Use this to
+    /// recover from the case where a previous write was rejected (e.g. by
+    /// restrictive security rules) — the tournament still exists in the
+    /// device's local cache but never reached the server, so other users see
+    /// "no active tourney". After the rules are opened up, the admin can call
+    /// this to push the local copy back to the cloud.
+    func resyncTournamentToCloud() async {
+        guard let tournament else {
+            print("[CloudSync] resync skipped — no local tournament to upload")
+            errorMessage = "No local tourney to re-sync."
+            return
+        }
+        print("[CloudSync] resyncing tournament \(tournament.id) (\(tournament.name)) to cloud")
         writeDocument(tournament, to: "tournaments", id: tournament.id)
     }
 
