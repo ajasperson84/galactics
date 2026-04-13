@@ -9,9 +9,8 @@ struct AztecHeader: View {
             Image("G4_header_YellowandPink")
                 .resizable()
                 .scaledToFit()
-                .frame(height: 66)
+                .frame(height: 86)
                 .padding(.horizontal, 16)
-                .padding(.vertical, 10)
 
             Rectangle()
                 .fill(AztecTheme.hotPink)
