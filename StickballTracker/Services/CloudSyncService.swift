@@ -535,10 +535,27 @@ class CloudSyncService: ObservableObject {
     }
 
     func deleteTournament() async {
-        guard let tournament else { return }
-        deleteDocument(in: "tournaments", id: tournament.id)
+        // Clear local state immediately so the UI reflects the delete without
+        // waiting for the listener round-trip.
         self.tournament = nil
         saveTournament()
+
+        // Delete EVERY document in the `tournaments` collection, not just the
+        // one we happened to have cached locally. This guarantees the
+        // collection is truly empty so that when a new tournament is created,
+        // all users pick up the new doc as the single source of truth rather
+        // than racing against orphan docs from earlier sessions.
+        do {
+            let snapshot = try await db.collection("tournaments").getDocuments()
+            print("[CloudSync] deleteTournament clearing \(snapshot.documents.count) tournament doc(s)")
+            for doc in snapshot.documents {
+                deleteDocument(in: "tournaments", id: doc.documentID)
+            }
+        } catch {
+            let nsErr = error as NSError
+            print("[CloudSync] deleteTournament enumerate failed: \(error.localizedDescription) (code=\(nsErr.code))")
+            errorMessage = "Failed to clear tourneys: \(error.localizedDescription)"
+        }
     }
 
     // MARK: - Team Assignment
