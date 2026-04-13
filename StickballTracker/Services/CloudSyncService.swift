@@ -26,6 +26,9 @@ class CloudSyncService: ObservableObject {
 
     private let db = Firestore.firestore()
     private var listeners: [ListenerRegistration] = []
+    /// Ensures the Rose City draft-pool unassign migration only runs once
+    /// per app launch, even though the players listener fires repeatedly.
+    private var didMigrateRoseCityDraftPool = false
 
     // MARK: - Write Helpers (with server-error reporting)
 
@@ -157,6 +160,7 @@ class CloudSyncService: ObservableObject {
                     print("[CloudSync] players snapshot: \(snapshot.documents.count) docs from \(source)")
                     self.players = snapshot.documents.compactMap { try? $0.data(as: Player.self) }
                     self.savePlayers()
+                    self.runRoseCityDraftPoolMigrationIfNeeded()
                 }
             }
         listeners.append(playersListener)
@@ -346,6 +350,68 @@ class CloudSyncService: ObservableObject {
         }
     }
 
+    // MARK: - Draft Pools
+    //
+    // Some players are drafted into a team at tourney time rather than being
+    // pre-rostered. They show up as free agents ("awaiting assignment") and,
+    // when assigned, can only be placed on a restricted subset of teams.
+
+    /// Mothership JV draft pool — these 8 players are drafted between the
+    /// two Mothership JV squads (Reds / Blacks).
+    static let mothershipJVDraftPool: Set<String> = [
+        "The Surgeon", "8 Ball", "Stanklove", "Monkdank",
+        "The Shepherd", "Long Balls", "Beverly Hills Cact", "Windows 95"
+    ]
+    static let mothershipJVDraftTeams: Set<String> = [
+        "Mothership JV Reds", "Mothership JV Blacks"
+    ]
+
+    /// Rose City draft pool — these 6 players are assigned to either
+    /// Rose City Champs or Rose City JV at tourney time.
+    static let roseCityDraftPool: Set<String> = [
+        "Honey Hamms", "Serial Killer", "The Wizard", "Holifield", "Cricket", "ShamWow"
+    ]
+    static let roseCityDraftTeams: Set<String> = [
+        "Rose City Champs", "Rose City JV"
+    ]
+
+    /// One-time migration: move any Rose City draft pool players that were
+    /// pre-rostered by earlier seed data back into the free agent pool so
+    /// they can be re-drafted onto Rose City Champs or Rose City JV. Runs
+    /// once per app launch after the players snapshot has arrived and at
+    /// least a handful of players exist (to avoid racing the initial seed).
+    func runRoseCityDraftPoolMigrationIfNeeded() {
+        guard !didMigrateRoseCityDraftPool else { return }
+        // Only the admin device should push this migration; otherwise every
+        // viewer would race to write the same update.
+        guard accessLevel == .admin else { return }
+        guard players.count >= Self.roseCityDraftPool.count else { return }
+        let draftees = players.filter {
+            Self.roseCityDraftPool.contains($0.name) && $0.teamId != nil
+        }
+        // Mark migrated immediately — even if there's nothing to unassign,
+        // we don't want to re-check on every subsequent snapshot.
+        didMigrateRoseCityDraftPool = true
+        guard !draftees.isEmpty else { return }
+        Task { @MainActor in
+            for player in draftees {
+                await self.assignPlayerToTeam(playerId: player.id, teamId: nil)
+            }
+        }
+    }
+
+    /// Returns the subset of teams a given player is eligible to be assigned
+    /// to. Players not in a restricted draft pool may be placed on any team.
+    func allowedTeamsForPlayer(_ player: Player) -> [Team] {
+        if Self.mothershipJVDraftPool.contains(player.name) {
+            return teams.filter { Self.mothershipJVDraftTeams.contains($0.name) }
+        }
+        if Self.roseCityDraftPool.contains(player.name) {
+            return teams.filter { Self.roseCityDraftTeams.contains($0.name) }
+        }
+        return teams
+    }
+
     func seedTournamentPlayers() async {
         let existingNames = Set(players.map { $0.name })
 
@@ -360,8 +426,9 @@ class CloudSyncService: ObservableObject {
             ("Jet City Champs",      ["Daisy Cutter", "Well Fed Man", "Dirt Bag", "AAA", "Deadliest Catch"]),
             ("Tinseltown Champs",    ["The Deal", "Dong Robber", "Lunch Money", "Candyman"]),
             ("No Mames Wey Viejos",  ["El Toro", "Fuck Mañana", "Rookie Ulee", "Pelone"]),
+            // Rose City Champs has 3 set players; the rest of the Rose City
+            // roster is drafted from the free agent pool below.
             ("Rose City Champs",     ["Big Trip", "Trees", "Almost Famous"]),
-            ("Rose City JV",         ["Honey Hamms", "Serial Killer", "The Wizard", "Holifield", "Cricket", "ShamWow"]),
         ]
 
         for roster in teamRosters {
@@ -371,10 +438,25 @@ class CloudSyncService: ObservableObject {
             }
         }
 
-        // Mothership JV pool — free agents until drafted
-        let freeAgents = ["The Surgeon", "8 Ball", "Stanklove", "Monkdank", "The Shepherd", "Long Balls", "Beverly Hills Cact", "Windows 95"]
-        for playerName in freeAgents where !existingNames.contains(playerName) {
+        // Mothership JV draft pool — free agents until drafted onto Reds/Blacks.
+        for playerName in Self.mothershipJVDraftPool where !existingNames.contains(playerName) {
             await addPlayer(name: playerName, teamId: nil)
+        }
+
+        // Rose City draft pool — free agents until assigned to Champs or JV.
+        for playerName in Self.roseCityDraftPool where !existingNames.contains(playerName) {
+            await addPlayer(name: playerName, teamId: nil)
+        }
+
+        // Migration: any Rose City draft pool players that already exist with
+        // a team assignment (from prior seeds) should be moved back to the
+        // free agent pool so they can be re-drafted. Snapshot the list first
+        // since `assignPlayerToTeam` mutates `players`.
+        let roseCityDraftees = players.filter {
+            Self.roseCityDraftPool.contains($0.name) && $0.teamId != nil
+        }
+        for player in roseCityDraftees {
+            await assignPlayerToTeam(playerId: player.id, teamId: nil)
         }
     }
 

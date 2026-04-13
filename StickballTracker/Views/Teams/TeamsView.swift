@@ -186,7 +186,7 @@ struct TeamPickerSheet: View {
                     VStack(spacing: 8) {
                         AztecSectionHeader(title: "Assign \(player.name)")
 
-                        ForEach(cloudService.teams) { team in
+                        ForEach(cloudService.allowedTeamsForPlayer(player)) { team in
                             Button {
                                 Task {
                                     await cloudService.assignPlayerToTeam(

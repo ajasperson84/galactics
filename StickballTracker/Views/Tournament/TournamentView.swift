@@ -434,7 +434,7 @@ struct GameCard: View {
 
                     // VS always visible
                     Text("VS")
-                        .font(AztecTheme.hobbsFont(size: compact ? 32 : 43))
+                        .font(AztecTheme.hobbsFont(size: compact ? 32 : 49))
                         .tracking(AztecTheme.hobbsKerning)
                         .foregroundStyle(
                             LinearGradient(
@@ -444,7 +444,7 @@ struct GameCard: View {
                             )
                         )
                         .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 4)
-                        .offset(y: (game.status == .completed || game.status == .inProgress) ? (compact ? -4 : -6) : 0)
+                        .offset(y: (game.status == .completed || game.status == .inProgress) ? (compact ? -4 : -1) : (compact ? 0 : 5))
 
                     // Team 2 column
                     VStack(spacing: compact ? 2 : 4) {

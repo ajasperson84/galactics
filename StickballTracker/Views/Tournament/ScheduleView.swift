@@ -291,6 +291,9 @@ struct PinEntrySheet: View {
                 cloudService.accessLevel = .admin
                 successMessage = "ADMIN UNLOCKED"
             }
+            // Admin just unlocked — give any admin-gated migrations a chance
+            // to run now that they have write permission.
+            cloudService.runRoseCityDraftPoolMigrationIfNeeded()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 dismiss()
             }
