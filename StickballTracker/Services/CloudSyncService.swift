@@ -470,7 +470,27 @@ class CloudSyncService: ObservableObject {
         var teamIds: [String]        // Seeded order
     }
 
+    /// Reset every draft pool player (Mothership JV Reds/Blacks and Rose City
+    /// Champs/JV) back to the free agent pool so they can be re-drafted at
+    /// the start of a new tournament. Each pool has its own eligibility
+    /// restriction enforced by `allowedTeamsForPlayer`.
+    func resetDraftPoolPlayersToFreeAgents() async {
+        let draftees = players.filter {
+            (Self.mothershipJVDraftPool.contains($0.name) ||
+             Self.roseCityDraftPool.contains($0.name)) &&
+            $0.teamId != nil
+        }
+        for player in draftees {
+            await assignPlayerToTeam(playerId: player.id, teamId: nil)
+        }
+    }
+
     func createTournament(name: String, tierConfigs: [TierConfig]) async {
+        // Reset draft pool players (Mothership JV Reds/Blacks, Rose City)
+        // back to free agents so they can be re-drafted onto their eligible
+        // teams for the new tournament.
+        await resetDraftPoolPlayersToFreeAgents()
+
         let allTeamIds = tierConfigs.flatMap { $0.teamIds }
         var tournament = Tournament(name: name, teamIds: Array(Set(allTeamIds)))
 
