@@ -1182,4 +1182,31 @@ class CloudSyncService: ObservableObject {
     func unassignedPlayers() -> [Player] {
         players.filter { $0.teamId == nil }
     }
+
+    func isTeamEliminated(_ teamId: String) -> Bool {
+        guard let tournament else { return false }
+
+        for tier in tournament.tiers {
+            if tier.advancingTeamIds.contains(teamId) { return false }
+        }
+
+        var hasLost = false
+        var hasUpcomingGame = false
+
+        for tier in tournament.tiers {
+            for game in tier.games {
+                let isInGame = game.team1Id == teamId || game.team2Id == teamId
+                guard isInGame else { continue }
+
+                if game.status == .completed && game.loserId == teamId {
+                    hasLost = true
+                }
+                if game.status == .pending || game.status == .inProgress {
+                    hasUpcomingGame = true
+                }
+            }
+        }
+
+        return hasLost && !hasUpcomingGame
+    }
 }

@@ -135,6 +135,17 @@ struct TeamCard: View {
         }
         .padding(16)
         .neonCard()
+        .overlay {
+            if cloudService.isTeamEliminated(team.id) {
+                Text("LOSER")
+                    .font(AztecTheme.hobbsFont(size: 60))
+                    .tracking(AztecTheme.hobbsKerning)
+                    .foregroundColor(AztecTheme.bloodRed)
+                    .shadow(color: AztecTheme.bloodRed.opacity(0.6), radius: 6)
+                    .rotationEffect(.degrees(-30))
+                    .allowsHitTesting(false)
+            }
+        }
     }
 }
 

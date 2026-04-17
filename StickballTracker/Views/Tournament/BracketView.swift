@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct BracketView: View {
+    @EnvironmentObject var cloudService: CloudSyncService
     let tier: TournamentTier
     let tierIndex: Int
     var onTapGame: ((TournamentGame) -> Void)?
@@ -12,7 +13,8 @@ struct BracketView: View {
                 bracketSection(
                     title: "WINNERS BRACKET",
                     color: AztecTheme.neonYellow,
-                    rounds: tier.winnersBracketRounds
+                    rounds: tier.winnersBracketRounds,
+                    showWinnersColumn: tierIndex != 2
                 )
             }
 
@@ -21,7 +23,8 @@ struct BracketView: View {
                 bracketSection(
                     title: "LOSERS BRACKET",
                     color: AztecTheme.hotPink,
-                    rounds: tier.losersBracketRounds
+                    rounds: tier.losersBracketRounds,
+                    showWinnersColumn: tierIndex != 2
                 )
             }
 
@@ -71,7 +74,58 @@ struct BracketView: View {
                     }
                 }
             }
+
+            // Galacticos 4 Champs — tier 3 champion display
+            if tierIndex == 2, let champTeam = tournamentChampion {
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("GALACTICOS 4 CHAMPS")
+                            .font(AztecTheme.hobbsFont(size: 35))
+                            .tracking(AztecTheme.hobbsKerning)
+                            .foregroundColor(AztecTheme.neonYellow)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                        Rectangle()
+                            .fill(AztecTheme.neonYellow.opacity(0.3))
+                            .frame(height: 1)
+                    }
+                    .padding(.horizontal)
+
+                    HStack(spacing: 12) {
+                        TeamIconView(team: champTeam, size: 48)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.6), radius: 8)
+                        Text(champTeam.name.uppercased())
+                            .font(AztecTheme.hobbsFont(size: 40))
+                            .tracking(AztecTheme.hobbsKerning)
+                            .foregroundColor(AztecTheme.neonYellow)
+                            .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 6)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.4)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .neonCard(border: AztecTheme.neonYellow)
+                    .padding(.horizontal)
+                }
+            }
         }
+    }
+
+    private var tournamentChampion: Team? {
+        if let ifNecId = tier.ifNecessaryGameId,
+           let ifNecGame = tier.game(byId: ifNecId),
+           ifNecGame.status == .completed,
+           let winnerId = ifNecGame.winnerId {
+            return cloudService.team(for: winnerId)
+        }
+        if let champId = tier.championshipGameId,
+           let champGame = tier.game(byId: champId),
+           champGame.status == .completed,
+           let winnerId = champGame.winnerId {
+            return cloudService.team(for: winnerId)
+        }
+        return nil
     }
 
     private let nodeHeight: CGFloat = 56
@@ -134,7 +188,28 @@ struct BracketView: View {
         return (positions, totalHeight)
     }
 
-    private func bracketSection(title: String, color: Color, rounds: [BracketRoundGroup]) -> some View {
+    private static let bracketNameMap: [String: String] = [
+        "Tinseltown Champs": "TTFB Champs",
+        "Tinseltown JV": "TTFB JV",
+        "Rose City Champs": "Rose Champs",
+        "Rose City JV": "Rose JV",
+        "Mothership Champs": "Mother Champs",
+        "Mothership JV Blacks": "Mother Black JV",
+        "Mothership JV Reds": "Mother Red JV",
+        "No Mames Wey Jovenes": "Jovenes",
+        "No Mames Wey Viejos": "Viejos",
+        "Jet City Champs": "Jets",
+        "Steel City": "Steel",
+        "Banditos": "Bandits",
+        "Gold Coast": "Coast",
+        "D$$": "D$$",
+    ]
+
+    private func bracketDisplayName(for team: Team) -> String {
+        Self.bracketNameMap[team.name] ?? String(team.name.prefix(8))
+    }
+
+    private func bracketSection(title: String, color: Color, rounds: [BracketRoundGroup], showWinnersColumn: Bool = false) -> some View {
         let (positions, totalHeight) = computePositions(rounds: rounds)
 
         return VStack(spacing: 8) {
@@ -184,6 +259,53 @@ struct BracketView: View {
                                 .frame(width: 24, height: totalHeight)
                             }
                         }
+                    }
+
+                    // Round Winners column after last round
+                    if showWinnersColumn, let lastRound = rounds.last {
+                        // Connector lines from last round to winners
+                        ZStack {
+                            Path { path in
+                                for gameId in lastRound.gameIds {
+                                    guard let game = tier.game(byId: gameId),
+                                          game.status == .completed,
+                                          game.winnerId != nil,
+                                          let yCenter = positions[gameId] else { continue }
+                                    path.move(to: CGPoint(x: 0, y: yCenter))
+                                    path.addLine(to: CGPoint(x: 24, y: yCenter))
+                                }
+                            }
+                            .stroke(color.opacity(0.3), lineWidth: 1)
+                        }
+                        .frame(width: 24, height: totalHeight)
+
+                        // Winners display
+                        ZStack {
+                            Text("ROUND\nWINNERS")
+                                .font(AztecTheme.sfProBold(size: 9))
+                                .tracking(1)
+                                .foregroundColor(color)
+                                .multilineTextAlignment(.center)
+                                .position(x: 60, y: 12)
+
+                            ForEach(lastRound.gameIds, id: \.self) { gameId in
+                                if let game = tier.game(byId: gameId),
+                                   game.status == .completed,
+                                   let winnerId = game.winnerId,
+                                   let team = cloudService.team(for: winnerId),
+                                   let yCenter = positions[gameId] {
+                                    HStack(spacing: 4) {
+                                        TeamIconView(team: team, size: 20, glowRadius: 3)
+                                        Text(bracketDisplayName(for: team).uppercased())
+                                            .font(AztecTheme.sfProBold(size: 9))
+                                            .foregroundColor(AztecTheme.neonYellow)
+                                            .lineLimit(1)
+                                    }
+                                    .position(x: 60, y: yCenter)
+                                }
+                            }
+                        }
+                        .frame(width: 120, height: totalHeight)
                     }
                 }
                 .padding(.horizontal)

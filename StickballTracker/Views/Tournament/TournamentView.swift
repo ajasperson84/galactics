@@ -117,6 +117,22 @@ struct TournamentView: View {
                         .padding(.horizontal)
                     }
 
+                    // Round subtitle
+                    Group {
+                        switch selectedTierIndex {
+                        case 0:
+                            Text("9 Teams Enter,  3 Advance")
+                        case 1:
+                            Text("8 Teams Enter,  4 Advance")
+                        default:
+                            Text("Championship Sunday")
+                        }
+                    }
+                    .font(AztecTheme.sfProBold(size: 14))
+                    .tracking(1)
+                    .foregroundColor(AztecTheme.hotPink)
+                    .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
+
                     // Content based on view mode
                     let tierIdx = min(selectedTierIndex, tournament.tiers.count - 1)
                     let tier = tournament.tiers[tierIdx]
