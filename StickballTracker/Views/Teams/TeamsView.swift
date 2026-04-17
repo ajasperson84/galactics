@@ -137,13 +137,17 @@ struct TeamCard: View {
         .neonCard()
         .overlay {
             if cloudService.isTeamEliminated(team.id) {
-                Text("LOSER")
-                    .font(AztecTheme.hobbsFont(size: 60))
-                    .tracking(AztecTheme.hobbsKerning)
-                    .foregroundColor(AztecTheme.bloodRed)
-                    .shadow(color: AztecTheme.bloodRed.opacity(0.6), radius: 6)
-                    .rotationEffect(.degrees(-30))
-                    .allowsHitTesting(false)
+                GeometryReader { geo in
+                    Text("LOSER")
+                        .font(AztecTheme.hobbsFont(size: geo.size.height * 0.7))
+                        .tracking(AztecTheme.hobbsKerning)
+                        .foregroundColor(AztecTheme.tennisGreen)
+                        .shadow(color: AztecTheme.tennisGreen.opacity(0.6), radius: 6)
+                        .rotationEffect(.degrees(-30))
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .allowsHitTesting(false)
+                }
+                .allowsHitTesting(false)
             }
         }
     }

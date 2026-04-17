@@ -14,7 +14,7 @@ struct BracketView: View {
                     title: "WINNERS BRACKET",
                     color: AztecTheme.neonYellow,
                     rounds: tier.winnersBracketRounds,
-                    showWinnersColumn: tierIndex != 2
+                    advancingLabel: winnersAdvancingLabel
                 )
             }
 
@@ -24,7 +24,7 @@ struct BracketView: View {
                     title: "LOSERS BRACKET",
                     color: AztecTheme.hotPink,
                     rounds: tier.losersBracketRounds,
-                    showWinnersColumn: tierIndex != 2
+                    advancingLabel: losersAdvancingLabel
                 )
             }
 
@@ -75,40 +75,23 @@ struct BracketView: View {
                 }
             }
 
-            // Galacticos 4 Champs — tier 3 champion display
-            if tierIndex == 2, let champTeam = tournamentChampion {
-                VStack(spacing: 8) {
-                    HStack {
-                        Text("GALACTICOS 4 CHAMPS")
-                            .font(AztecTheme.hobbsFont(size: 35))
-                            .tracking(AztecTheme.hobbsKerning)
-                            .foregroundColor(AztecTheme.neonYellow)
-                            .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 4)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                        Rectangle()
-                            .fill(AztecTheme.neonYellow.opacity(0.3))
-                            .frame(height: 1)
-                    }
-                    .padding(.horizontal)
+        }
+    }
 
-                    HStack(spacing: 12) {
-                        TeamIconView(team: champTeam, size: 48)
-                            .shadow(color: AztecTheme.neonYellow.opacity(0.6), radius: 8)
-                        Text(champTeam.name.uppercased())
-                            .font(AztecTheme.hobbsFont(size: 40))
-                            .tracking(AztecTheme.hobbsKerning)
-                            .foregroundColor(AztecTheme.neonYellow)
-                            .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 6)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.4)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .neonCard(border: AztecTheme.neonYellow)
-                    .padding(.horizontal)
-                }
-            }
+    private var winnersAdvancingLabel: String? {
+        switch tierIndex {
+        case 0: return "ADVANCING\nTEAMS"
+        case 1: return "ADVANCING\nTEAMS"
+        case 2: return "GALACTICOS 4\nCHAMPS"
+        default: return nil
+        }
+    }
+
+    private var losersAdvancingLabel: String? {
+        switch tierIndex {
+        case 0: return "ADVANCING\nTEAM"
+        case 1: return "ADVANCING\nTEAMS"
+        default: return nil
         }
     }
 
@@ -209,8 +192,13 @@ struct BracketView: View {
         Self.bracketNameMap[team.name] ?? String(team.name.prefix(8))
     }
 
-    private func bracketSection(title: String, color: Color, rounds: [BracketRoundGroup], showWinnersColumn: Bool = false) -> some View {
+    private func bracketSection(title: String, color: Color, rounds: [BracketRoundGroup], advancingLabel: String? = nil) -> some View {
         let (positions, totalHeight) = computePositions(rounds: rounds)
+        let isChampColumn = advancingLabel?.contains("GALACTICOS") == true
+        let iconSize: CGFloat = isChampColumn ? 32 : 26
+        let fontSize: CGFloat = isChampColumn ? 14 : 12
+        let labelFontSize: CGFloat = isChampColumn ? 12 : 10
+        let columnWidth: CGFloat = isChampColumn ? 180 : 160
 
         return VStack(spacing: 8) {
             HStack {
@@ -261,51 +249,75 @@ struct BracketView: View {
                         }
                     }
 
-                    // Round Winners column after last round
-                    if showWinnersColumn, let lastRound = rounds.last {
+                    // Advancing teams column after last round
+                    if let label = advancingLabel, let lastRound = rounds.last {
                         // Connector lines from last round to winners
                         ZStack {
                             Path { path in
-                                for gameId in lastRound.gameIds {
-                                    guard let game = tier.game(byId: gameId),
-                                          game.status == .completed,
-                                          game.winnerId != nil,
-                                          let yCenter = positions[gameId] else { continue }
-                                    path.move(to: CGPoint(x: 0, y: yCenter))
-                                    path.addLine(to: CGPoint(x: 24, y: yCenter))
+                                if isChampColumn {
+                                    if let champTeam = tournamentChampion {
+                                        let midY = totalHeight / 2
+                                        _ = champTeam
+                                        path.move(to: CGPoint(x: 0, y: midY))
+                                        path.addLine(to: CGPoint(x: 24, y: midY))
+                                    }
+                                } else {
+                                    for gameId in lastRound.gameIds {
+                                        guard let game = tier.game(byId: gameId),
+                                              game.status == .completed,
+                                              game.winnerId != nil,
+                                              let yCenter = positions[gameId] else { continue }
+                                        path.move(to: CGPoint(x: 0, y: yCenter))
+                                        path.addLine(to: CGPoint(x: 24, y: yCenter))
+                                    }
                                 }
                             }
                             .stroke(color.opacity(0.3), lineWidth: 1)
                         }
                         .frame(width: 24, height: totalHeight)
 
-                        // Winners display
+                        // Advancing teams display
                         ZStack {
-                            Text("ROUND\nWINNERS")
-                                .font(AztecTheme.sfProBold(size: 9))
+                            Text(label)
+                                .font(AztecTheme.sfProBold(size: labelFontSize))
                                 .tracking(1)
                                 .foregroundColor(color)
                                 .multilineTextAlignment(.center)
-                                .position(x: 60, y: 12)
+                                .position(x: columnWidth / 2, y: 14)
 
-                            ForEach(lastRound.gameIds, id: \.self) { gameId in
-                                if let game = tier.game(byId: gameId),
-                                   game.status == .completed,
-                                   let winnerId = game.winnerId,
-                                   let team = cloudService.team(for: winnerId),
-                                   let yCenter = positions[gameId] {
-                                    HStack(spacing: 4) {
-                                        TeamIconView(team: team, size: 20, glowRadius: 3)
-                                        Text(bracketDisplayName(for: team).uppercased())
-                                            .font(AztecTheme.sfProBold(size: 9))
+                            if isChampColumn {
+                                if let team = tournamentChampion {
+                                    HStack(spacing: 6) {
+                                        TeamIconView(team: team, size: iconSize, glowRadius: 4)
+                                        Text(team.name.uppercased())
+                                            .font(AztecTheme.sfProBold(size: fontSize))
                                             .foregroundColor(AztecTheme.neonYellow)
                                             .lineLimit(1)
+                                            .minimumScaleFactor(0.5)
                                     }
-                                    .position(x: 60, y: yCenter)
+                                    .position(x: columnWidth / 2, y: totalHeight / 2)
+                                }
+                            } else {
+                                ForEach(lastRound.gameIds, id: \.self) { gameId in
+                                    if let game = tier.game(byId: gameId),
+                                       game.status == .completed,
+                                       let winnerId = game.winnerId,
+                                       let team = cloudService.team(for: winnerId),
+                                       let yCenter = positions[gameId] {
+                                        HStack(spacing: 6) {
+                                            TeamIconView(team: team, size: iconSize, glowRadius: 4)
+                                            Text(team.name.uppercased())
+                                                .font(AztecTheme.sfProBold(size: fontSize))
+                                                .foregroundColor(AztecTheme.neonYellow)
+                                                .lineLimit(1)
+                                                .minimumScaleFactor(0.5)
+                                        }
+                                        .position(x: columnWidth / 2, y: yCenter)
+                                    }
                                 }
                             }
                         }
-                        .frame(width: 120, height: totalHeight)
+                        .frame(width: columnWidth, height: totalHeight)
                     }
                 }
                 .padding(.horizontal)

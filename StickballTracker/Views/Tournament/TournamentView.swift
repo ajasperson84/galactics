@@ -99,7 +99,8 @@ struct TournamentView: View {
                                 } label: {
                                     let isSelected = selectedTierIndex == index
                                     let color = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
-                                    Text(tier.tierName.uppercased())
+                                    let label = index == 0 ? "ROUND 1" : index == 1 ? "ROUND 2" : "FINALS"
+                                    Text(label)
                                         .font(AztecTheme.sfProBold(size: 14))
                                     .foregroundColor(isSelected ? Color.black : color)
                                     .frame(maxWidth: .infinity)
@@ -118,20 +119,17 @@ struct TournamentView: View {
                     }
 
                     // Round subtitle
-                    Group {
-                        switch selectedTierIndex {
-                        case 0:
-                            Text("9 Teams Enter,  3 Advance")
-                        case 1:
-                            Text("8 Teams Enter,  4 Advance")
-                        default:
-                            Text("Championship Sunday")
-                        }
+                    if selectedTierIndex < 2 {
+                        Text(selectedTierIndex == 0 ? "9 Teams Enter,  3 Advance" : "8 Teams Enter,  4 Advance")
+                            .font(AztecTheme.hobbsFont(size: 28))
+                            .tracking(AztecTheme.hobbsKerning)
+                            .foregroundColor(AztecTheme.hotPink)
+                            .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal)
                     }
-                    .font(AztecTheme.sfProBold(size: 14))
-                    .tracking(1)
-                    .foregroundColor(AztecTheme.hotPink)
-                    .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
 
                     // Content based on view mode
                     let tierIdx = min(selectedTierIndex, tournament.tiers.count - 1)
@@ -664,7 +662,7 @@ struct CreateTournamentSheet: View {
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 3,
-                                            tierName: "Round 3",
+                                            tierName: "Finals",
                                             dayLabel: "",
                                             date: day3Date,
                                             teamIds: []
