@@ -156,13 +156,6 @@ struct BracketView: View {
                 HStack(alignment: .top, spacing: 0) {
                     ForEach(Array(rounds.enumerated()), id: \.offset) { roundIdx, roundGroup in
                         VStack(spacing: 0) {
-                            Text(roundGroup.name.uppercased())
-                                .font(AztecTheme.hobbsFont(size: 25))
-                                .tracking(AztecTheme.hobbsKerning)
-                                .foregroundColor(color)
-                                .shadow(color: color.opacity(0.5), radius: 4)
-                                .frame(height: 24)
-
                             ZStack {
                                 ForEach(roundGroup.gameIds, id: \.self) { gameId in
                                     if let game = tier.game(byId: gameId),
@@ -181,7 +174,6 @@ struct BracketView: View {
 
                         if roundIdx < rounds.count - 1 {
                             VStack(spacing: 0) {
-                                Color.clear.frame(height: 24)
                                 RoutedConnectors(
                                     tier: tier,
                                     fromGameIds: roundGroup.gameIds,

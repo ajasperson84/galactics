@@ -99,12 +99,8 @@ struct TournamentView: View {
                                 } label: {
                                     let isSelected = selectedTierIndex == index
                                     let color = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
-                                    VStack(spacing: 2) {
-                                        Text(tier.dayLabel.uppercased())
-                                            .font(AztecTheme.sfProBold(size: 11))
-                                        Text(tier.tierName.uppercased())
-                                            .font(AztecTheme.sfProBold(size: 14))
-                                    }
+                                    Text(tier.tierName.uppercased())
+                                        .font(AztecTheme.sfProBold(size: 14))
                                     .foregroundColor(isSelected ? Color.black : color)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
@@ -567,9 +563,9 @@ struct CreateTournamentSheet: View {
                             .buttonStyle(AztecButtonStyle(color: AztecTheme.hotPink))
                         }
 
-                        // Day 1 summary
+                        // Round 1 summary
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("DAY 1 (FRIDAY)")
+                            Text("ROUND 1")
                                 .font(AztecTheme.sfProBold(size: 14))
                                 .foregroundColor(AztecTheme.neonYellow)
                             ForEach(day1TeamNames, id: \.self) { name in
@@ -587,9 +583,9 @@ struct CreateTournamentSheet: View {
                         .padding()
                         .neonCard()
 
-                        // Day 2 summary
+                        // Round 2 summary
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("DAY 2 (SATURDAY) — 5 + 3 advancing")
+                            Text("ROUND 2 — 5 + 3 advancing")
                                 .font(AztecTheme.sfProBold(size: 14))
                                 .foregroundColor(AztecTheme.hotPink)
                             ForEach(day2TeamNames, id: \.self) { name in
@@ -603,19 +599,19 @@ struct CreateTournamentSheet: View {
                                         .foregroundColor(found ? AztecTheme.lightText : AztecTheme.dimText)
                                 }
                             }
-                            Text("+ 3 winners from Day 1")
+                            Text("+ 3 winners from Round 1")
                                 .font(AztecTheme.sfProMedium(size: 12))
                                 .foregroundColor(AztecTheme.dimText)
                         }
                         .padding()
                         .neonCard()
 
-                        // Finals summary
+                        // Round 3 summary
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("FINALS (SUNDAY)")
+                            Text("ROUND 3")
                                 .font(AztecTheme.sfProBold(size: 14))
                                 .foregroundColor(AztecTheme.neonYellow)
-                            Text("Top 4 finishers from Day 2")
+                            Text("Top 4 finishers from Round 2")
                                 .font(AztecTheme.sfProMedium(size: 12))
                                 .foregroundColor(AztecTheme.dimText)
                         }
@@ -638,22 +634,22 @@ struct CreateTournamentSheet: View {
                                     let configs = [
                                         CloudSyncService.TierConfig(
                                             tierNumber: 1,
-                                            tierName: "Day 1",
-                                            dayLabel: "Friday",
+                                            tierName: "Round 1",
+                                            dayLabel: "",
                                             date: day1Date,
                                             teamIds: day1TeamIds
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 2,
-                                            tierName: "Day 2",
-                                            dayLabel: "Saturday",
+                                            tierName: "Round 2",
+                                            dayLabel: "",
                                             date: day2Date,
                                             teamIds: day2TeamIds
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 3,
-                                            tierName: "Finals",
-                                            dayLabel: "Sunday",
+                                            tierName: "Round 3",
+                                            dayLabel: "",
                                             date: day3Date,
                                             teamIds: []
                                         ),

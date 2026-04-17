@@ -39,7 +39,6 @@ struct ScheduleView: View {
                 if !tier.winnersBracketRounds.isEmpty {
                     sectionHeader("WINNERS BRACKET", color: AztecTheme.neonYellow)
                     ForEach(tier.winnersBracketRounds) { roundGroup in
-                        roundSubHeader(roundGroup.name, color: AztecTheme.neonYellow)
                         ForEach(gamesForRound(roundGroup)) { game in
                             GameCard(game: game, tier: tier) {
                                 onTapGame?(game)
@@ -53,7 +52,6 @@ struct ScheduleView: View {
                 if !tier.losersBracketRounds.isEmpty {
                     sectionHeader("LOSERS BRACKET", color: AztecTheme.hotPink)
                     ForEach(tier.losersBracketRounds) { roundGroup in
-                        roundSubHeader(roundGroup.name, color: AztecTheme.hotPink)
                         ForEach(gamesForRound(roundGroup)) { game in
                             GameCard(game: game, tier: tier) {
                                 onTapGame?(game)
@@ -127,19 +125,6 @@ struct ScheduleView: View {
         }
         .padding(.horizontal)
         .padding(.top, 8)
-    }
-
-    private func roundSubHeader(_ title: String, color: Color) -> some View {
-        HStack {
-            Text(title.uppercased())
-                .font(AztecTheme.hobbsFont(size: 28))
-                .tracking(AztecTheme.hobbsKerning)
-                .foregroundColor(color)
-                .shadow(color: color.opacity(0.5), radius: 4)
-            Spacer()
-        }
-        .padding(.horizontal)
-        .padding(.top, 4)
     }
 
     private func gamesForRound(_ roundGroup: BracketRoundGroup) -> [TournamentGame] {
