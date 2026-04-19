@@ -28,8 +28,8 @@ struct PlayersView: View {
                     }
                     .aztecTextField()
 
-                    // Pink plus in yellow circle (add baller button, admin only)
-                    if cloudService.accessLevel == .admin {
+                    // Pink plus in yellow circle (add baller button)
+                    if true {
                         Button {
                             showingAddPlayer = true
                         } label: {
@@ -346,8 +346,8 @@ struct PlayerDetailSheet: View {
                         .padding(.vertical, 8)
                         .neonCard()
 
-                        // Save button (admin only)
-                        if cloudService.accessLevel == .admin {
+                        // Save button
+                        if true {
                             Button("SAVE CHANGES") {
                                 Task {
                                     var updated = player
@@ -366,8 +366,8 @@ struct PlayerDetailSheet: View {
                             .buttonStyle(AztecButtonStyle(color: AztecTheme.hotPink))
                         }
 
-                        // Delete button (admin only)
-                        if cloudService.accessLevel == .admin {
+                        // Delete button
+                        if true {
                             Button("DELETE BALLER") {
                                 showDeleteConfirm = true
                             }

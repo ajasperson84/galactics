@@ -15,7 +15,7 @@ struct GameEntrySheet: View {
     @State private var showConfirm = false
 
     var isCompleted: Bool { game.status == .completed }
-    var canEditScores: Bool { !isCompleted && cloudService.accessLevel.rawValue >= AccessLevel.scorekeeper.rawValue }
+    var canEditScores: Bool { !isCompleted }
 
     var team1: Team? {
         game.team1Id.flatMap { cloudService.team(for: $0) }

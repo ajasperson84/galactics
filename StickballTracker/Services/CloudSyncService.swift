@@ -19,7 +19,7 @@ class CloudSyncService: ObservableObject {
     @Published var tournament: Tournament?
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var accessLevel: AccessLevel = .viewOnly
+    @Published var accessLevel: AccessLevel = .admin
     /// True once the Firestore tournament listener has returned at least one snapshot.
     /// Used by views to distinguish "still loading" from "confirmed no tournament".
     @Published var hasLoadedTournament: Bool = false
@@ -382,9 +382,6 @@ class CloudSyncService: ObservableObject {
     /// least a handful of players exist (to avoid racing the initial seed).
     func runRoseCityDraftPoolMigrationIfNeeded() {
         guard !didMigrateRoseCityDraftPool else { return }
-        // Only the admin device should push this migration; otherwise every
-        // viewer would race to write the same update.
-        guard accessLevel == .admin else { return }
         guard players.count >= Self.roseCityDraftPool.count else { return }
         let draftees = players.filter {
             Self.roseCityDraftPool.contains($0.name) && $0.teamId != nil
@@ -421,11 +418,11 @@ class CloudSyncService: ObservableObject {
             ("Tinseltown JV",        ["Cuidado", "Dublé", "$alary", "Cojones", "Flashdance"]),
             ("D$$",                  ["Lil Diamond", "Cap'n", "Katfish", "Rooster", "Hell Yeah Why Not?"]),
             ("Steel City",           ["Solo Shot", "Clown Car", "Madre", "MidBen", "Mothman"]),
-            ("Gold Coast",           ["The Mechanic", "Cocaine Greg", "The Big Puna", "The Rookie", "Shroomin Mo"]),
+            ("Gold Coast",           ["The Mechanic", "Cocaine Greg", "The Big Puna", "The Rookie", "Swingin Moe"]),
             ("Mothership Champs",    ["Soy Peligroso", "Jeffery Bomber", "Deep Space", "ODC", "Plough Jones"]),
             ("Jet City Champs",      ["Daisy Cutter", "Well Fed Man", "Dirt Bag", "AAA", "Deadliest Catch"]),
             ("Tinseltown Champs",    ["The Deal", "Dong Robber", "Lunch Money", "Candyman"]),
-            ("No Mames Wey Viejos",  ["El Toro", "Fuck Mañana", "Rookie Ulee", "Pelone"]),
+            ("No Mames Wey Viejos",  ["El Toro", "No Mas", "Rookie Ulee", "Pelone"]),
             // Rose City Champs has 3 set players; the rest of the Rose City
             // roster is drafted from the free agent pool below.
             ("Rose City Champs",     ["Big Trip", "Trees", "Almost Famous"]),

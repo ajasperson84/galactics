@@ -167,7 +167,7 @@ struct FreeAgentRow: View {
 
             Spacer()
 
-            if cloudService.accessLevel == .admin {
+            if true {
                 Button("ASSIGN") {
                     showTeamPicker = true
                 }
@@ -427,7 +427,7 @@ struct TeamDetailSheet: View {
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
                             Spacer()
-                            if cloudService.accessLevel == .admin {
+                            if true {
                                 Button {
                                     showAddPlayerPicker = true
                                 } label: {
@@ -438,7 +438,7 @@ struct TeamDetailSheet: View {
                             }
                         }
 
-                        if cloudService.accessLevel == .admin {
+                        if true {
                             Button {
                                 showCreatePlayer = true
                             } label: {
@@ -471,7 +471,7 @@ struct TeamDetailSheet: View {
 
                                     Spacer()
 
-                                    if cloudService.accessLevel == .admin {
+                                    if true {
                                         Button {
                                             Task {
                                                 await cloudService.assignPlayerToTeam(
@@ -507,7 +507,7 @@ struct TeamDetailSheet: View {
                             )
                         }
 
-                        if cloudService.accessLevel == .admin {
+                        if true {
                             Button("DELETE SQUAD") {
                                 showDeleteConfirm = true
                             }

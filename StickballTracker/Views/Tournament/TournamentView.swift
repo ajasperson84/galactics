@@ -6,7 +6,6 @@ struct TournamentView: View {
     @State private var selectedGame: GameSelection?
     @State private var viewMode: ViewMode = .schedule
     @State private var selectedTierIndex: Int = 0
-    @State private var showPinEntry = false
 
     enum ViewMode: String, CaseIterable {
         case schedule = "Schedule"
@@ -34,38 +33,32 @@ struct TournamentView: View {
                 }
 
                 if let tournament = cloudService.tournament {
-                    // Admin actions: re-sync to cloud + delete
-                    if cloudService.accessLevel == .admin {
-                        HStack(spacing: 16) {
-                            Spacer()
-                            // Re-push local tourney to Firestore. Useful if the
-                            // original write was rejected (e.g. closed rules)
-                            // and the doc only lives in the device's local cache.
-                            Button {
-                                Task {
-                                    await cloudService.resyncTournamentToCloud()
-                                }
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "arrow.triangle.2.circlepath.icloud")
-                                    Text("RE-SYNC")
-                                        .font(AztecTheme.sfProBold(size: 11))
-                                        .tracking(1)
-                                }
-                                .foregroundColor(AztecTheme.neonYellow)
+                    HStack(spacing: 16) {
+                        Spacer()
+                        Button {
+                            Task {
+                                await cloudService.resyncTournamentToCloud()
                             }
-
-                            Button {
-                                Task {
-                                    await cloudService.deleteTournament()
-                                }
-                            } label: {
-                                Image(systemName: "trash")
-                                    .foregroundColor(AztecTheme.bloodRed)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.triangle.2.circlepath.icloud")
+                                Text("RE-SYNC")
+                                    .font(AztecTheme.sfProBold(size: 11))
+                                    .tracking(1)
                             }
+                            .foregroundColor(AztecTheme.neonYellow)
                         }
-                        .padding(.horizontal)
+
+                        Button {
+                            Task {
+                                await cloudService.deleteTournament()
+                            }
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundColor(AztecTheme.bloodRed)
+                        }
                     }
+                    .padding(.horizontal)
 
                     // Champion display
                     if tournament.status == .completed,
@@ -191,50 +184,15 @@ struct TournamentView: View {
                             .foregroundColor(AztecTheme.hotPink)
                             .multilineTextAlignment(.center)
 
-                        if cloudService.accessLevel == .admin {
-                            Button("CREATE TOURNEY") {
-                                showCreateTournament = true
-                            }
-                            .buttonStyle(AztecButtonStyle())
+                        Button("CREATE TOURNEY") {
+                            showCreateTournament = true
                         }
-
-                        // Lock button
-                        Spacer().frame(height: 16)
-                        Button {
-                            showPinEntry = true
-                        } label: {
-                            let isUnlocked = cloudService.accessLevel != .viewOnly
-                            HStack(spacing: 6) {
-                                Image(systemName: isUnlocked ? "lock.open.fill" : "lock.fill")
-                                    .font(.system(size: 16, weight: .bold))
-                                if isUnlocked {
-                                    Text(cloudService.accessLevel == .admin ? "ADMIN" : "SCOREKEEPER")
-                                        .font(AztecTheme.sfProBold(size: 10))
-                                        .tracking(1)
-                                }
-                            }
-                            .foregroundColor(isUnlocked ? AztecTheme.neonYellow : AztecTheme.hotPink)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(Color.black)
-                            .clipShape(Capsule())
-                            .overlay(
-                                Capsule()
-                                    .stroke(
-                                        isUnlocked ? AztecTheme.neonYellow.opacity(0.5) : AztecTheme.hotPink.opacity(0.4),
-                                        lineWidth: 1.5
-                                    )
-                            )
-                            .shadow(color: isUnlocked ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 4)
-                        }
+                        .buttonStyle(AztecButtonStyle())
                     }
                 }
             }
             .padding(.top, 16)
             .padding(.bottom, 32)
-        }
-        .sheet(isPresented: $showPinEntry) {
-            PinEntrySheet()
         }
         .sheet(isPresented: $showCreateTournament) {
             CreateTournamentSheet()
@@ -242,10 +200,8 @@ struct TournamentView: View {
         .sheet(item: $selectedGame) { selection in
             if selection.game.team1Id != nil && selection.game.team2Id != nil {
                 GameEntrySheet(tierIndex: selection.tierIndex, game: selection.game)
-            } else if cloudService.accessLevel == .admin {
-                TeamAssignmentSheet(tierIndex: selection.tierIndex, gameId: selection.gameId)
             } else {
-                GameEntrySheet(tierIndex: selection.tierIndex, game: selection.game)
+                TeamAssignmentSheet(tierIndex: selection.tierIndex, gameId: selection.gameId)
             }
         }
     }
@@ -482,7 +438,7 @@ struct GameCard: View {
                 if let tier {
                     let hasDrawSlot = (game.team1Id == nil && tier.slotDescription(gameId: game.id, slot: .team1) == "To Be Drawn") ||
                         (game.team2Id == nil && tier.slotDescription(gameId: game.id, slot: .team2) == "To Be Drawn")
-                    if hasDrawSlot && cloudService.accessLevel == .admin {
+                    if hasDrawSlot {
                         Text("TAP TO ASSIGN TEAMS")
                             .font(AztecTheme.sfProBold(size: 10))
                             .tracking(1)
