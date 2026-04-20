@@ -419,7 +419,7 @@ class CloudSyncService: ObservableObject {
             ("Tinseltown JV",        ["Cuidado", "Dublé", "$alary", "Cojones", "Flashdance"]),
             ("D$$",                  ["Lil Diamond", "Cap'n", "Katfish", "Rooster", "Hell Yeah Why Not?"]),
             ("Steel City",           ["Solo Shot", "Clown Car", "Madre", "MidBen", "Mothman"]),
-            ("Gold Coast",           ["The Mechanic", "Cocaine Greg", "The Big Puna", "The Rookie", "Swingin Moe"]),
+            ("Gold Coast",           ["The Mechanic", "Cocaine Greg", "The Big Puna", "The Rook", "Swingin Moe"]),
             ("Mothership Champs",    ["Soy Peligroso", "Jeffery Bomber", "Deep Space", "ODC", "Plough Jones"]),
             ("Jet City Champs",      ["Daisy Cutter", "Well Fed Man", "Dirt Bag", "AAA", "Deadliest Catch"]),
             ("Tinseltown Champs",    ["The Deal", "Dong Robber", "Lunch Money", "Candyman"]),
