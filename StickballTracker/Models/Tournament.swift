@@ -221,6 +221,6 @@ struct PlayerGameStats: Identifiable, Codable {
 enum StickballField: String, CaseIterable, Codable {
     case valleDeMystique = "Valle De Mystique"
     case lilValle = "Lil Valle"
-    case elPotrero = "El Potrero"
-    case laFinca = "La Finca"
+    case elRuedo = "El Ruedo"
+    case elRuedoII = "El Ruedo II"
 }

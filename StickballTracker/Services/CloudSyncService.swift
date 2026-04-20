@@ -19,7 +19,7 @@ class CloudSyncService: ObservableObject {
     @Published var tournament: Tournament?
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var accessLevel: AccessLevel = .admin
+    @Published var accessLevel: AccessLevel = .viewOnly
     /// True once the Firestore tournament listener has returned at least one snapshot.
     /// Used by views to distinguish "still loading" from "confirmed no tournament".
     @Published var hasLoadedTournament: Bool = false
@@ -381,6 +381,7 @@ class CloudSyncService: ObservableObject {
     /// once per app launch after the players snapshot has arrived and at
     /// least a handful of players exist (to avoid racing the initial seed).
     func runRoseCityDraftPoolMigrationIfNeeded() {
+        guard accessLevel == .admin else { return }
         guard !didMigrateRoseCityDraftPool else { return }
         guard players.count >= Self.roseCityDraftPool.count else { return }
         let draftees = players.filter {
@@ -943,17 +944,17 @@ class CloudSyncService: ObservableObject {
         g13.scheduledTime = gameTime(day: 25, hour: 9)          // 9:00 AM SATURDAY
 
         // === Field Assignments ===
-        // Games 1,2,5,6,9,10,11,13 → El Potrero
-        // Games 3,4,7,8,12 → La Finca
-        let potrero = StickballField.elPotrero.rawValue
-        let finca = StickballField.laFinca.rawValue
-        g1.field = potrero;  g2.field = potrero
-        g3.field = finca;    g4.field = finca
-        g5.field = potrero;  g6.field = potrero
-        g7.field = finca;    g8.field = finca
-        g9.field = potrero;  g10.field = potrero
-        g11.field = potrero; g12.field = finca
-        g13.field = potrero
+        // Games 1,2,5,6,9,10,11,13 → El Ruedo
+        // Games 3,4,7,8,12 → El Ruedo II
+        let ruedo = StickballField.elRuedo.rawValue
+        let ruedoII = StickballField.elRuedoII.rawValue
+        g1.field = ruedo;  g2.field = ruedo
+        g3.field = ruedoII;    g4.field = ruedoII
+        g5.field = ruedo;  g6.field = ruedo
+        g7.field = ruedoII;    g8.field = ruedoII
+        g9.field = ruedo;  g10.field = ruedo
+        g11.field = ruedo; g12.field = ruedoII
+        g13.field = ruedo
 
         tier.games = [g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13]
 
@@ -1142,6 +1143,13 @@ class CloudSyncService: ObservableObject {
         g5.scheduledTime = gameTime(day: 26, hour: 15)          // 3:00 PM
         g6.scheduledTime = gameTime(day: 26, hour: 16, minute: 30)  // 4:30 PM
         g7.scheduledTime = gameTime(day: 26, hour: 18)          // 6:00 PM
+
+        // === Field Assignments — all Finals games at El Ruedo ===
+        let elRuedo = StickballField.elRuedo.rawValue
+        g1.field = elRuedo; g2.field = elRuedo
+        g3.field = elRuedo; g4.field = elRuedo
+        g5.field = elRuedo; g6.field = elRuedo
+        g7.field = elRuedo
 
         tier.games = [g1, g2, g3, g4, g5, g6, g7]
 

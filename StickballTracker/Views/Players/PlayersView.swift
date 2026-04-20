@@ -29,7 +29,7 @@ struct PlayersView: View {
                     .aztecTextField()
 
                     // Pink plus in yellow circle (add baller button)
-                    if true {
+                    if cloudService.accessLevel == .admin {
                         Button {
                             showingAddPlayer = true
                         } label: {
@@ -347,7 +347,7 @@ struct PlayerDetailSheet: View {
                         .neonCard()
 
                         // Save button
-                        if true {
+                        if cloudService.accessLevel == .admin {
                             Button("SAVE CHANGES") {
                                 Task {
                                     var updated = player
@@ -367,7 +367,7 @@ struct PlayerDetailSheet: View {
                         }
 
                         // Delete button
-                        if true {
+                        if cloudService.accessLevel == .admin {
                             Button("DELETE BALLER") {
                                 showDeleteConfirm = true
                             }
