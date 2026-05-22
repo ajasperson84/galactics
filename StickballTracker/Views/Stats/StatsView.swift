@@ -219,9 +219,17 @@ struct StatsTableHeader: View {
 }
 
 struct StatsTableRow: View {
+    @EnvironmentObject var cloudService: CloudSyncService
     let rank: Int
     let player: Player
     let highlightStat: StatsView.StatSort
+
+    private var playerTeam: Team? {
+        if let teamId = player.teamId {
+            return cloudService.team(for: teamId)
+        }
+        return nil
+    }
 
     var body: some View {
         HStack(spacing: 4) {
@@ -235,6 +243,10 @@ struct StatsTableRow: View {
                 )
                 .shadow(color: rank == 1 ? AztecTheme.neonYellow.opacity(0.4) : .clear, radius: 3)
                 .frame(width: 20, alignment: .center)
+
+            if let team = playerTeam {
+                TeamIconView(team: team, size: 20, glowRadius: 3)
+            }
 
             Text(player.name)
                 .font(AztecTheme.sfProBold(size: 14))
