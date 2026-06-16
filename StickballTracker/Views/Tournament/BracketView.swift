@@ -1,5 +1,28 @@
 import SwiftUI
 
+enum BracketNames {
+    static let abbreviations: [String: String] = [
+        "Tinseltown Champs": "TTFB Champs",
+        "Tinseltown JV": "TTFB JV",
+        "Rose City Champs": "Rose Champs",
+        "Rose City JV": "Rose JV",
+        "Mothership Champs": "Mother Champs",
+        "Mothership JV Blacks": "Mother Black JV",
+        "Mothership JV Reds": "Mother Red JV",
+        "No Mames Wey Jovenes": "Jovenes",
+        "No Mames Wey Viejos": "Viejos",
+        "Jet City Champs": "Jets",
+        "Steel City": "Steel",
+        "Banditos": "Bandits",
+        "Gold Coast": "Coast",
+        "D$$": "D$$",
+    ]
+
+    static func displayName(for team: Team) -> String {
+        abbreviations[team.name] ?? String(team.name.prefix(8))
+    }
+}
+
 struct BracketView: View {
     @EnvironmentObject var cloudService: CloudSyncService
     let tier: TournamentTier
@@ -169,27 +192,6 @@ struct BracketView: View {
         }
 
         return (positions, totalHeight)
-    }
-
-    private static let bracketNameMap: [String: String] = [
-        "Tinseltown Champs": "TTFB Champs",
-        "Tinseltown JV": "TTFB JV",
-        "Rose City Champs": "Rose Champs",
-        "Rose City JV": "Rose JV",
-        "Mothership Champs": "Mother Champs",
-        "Mothership JV Blacks": "Mother Black JV",
-        "Mothership JV Reds": "Mother Red JV",
-        "No Mames Wey Jovenes": "Jovenes",
-        "No Mames Wey Viejos": "Viejos",
-        "Jet City Champs": "Jets",
-        "Steel City": "Steel",
-        "Banditos": "Bandits",
-        "Gold Coast": "Coast",
-        "D$$": "D$$",
-    ]
-
-    private func bracketDisplayName(for team: Team) -> String {
-        Self.bracketNameMap[team.name] ?? String(team.name.prefix(8))
     }
 
     private func bracketSection(title: String, color: Color, rounds: [BracketRoundGroup], advancingLabel: String? = nil) -> some View {
@@ -391,31 +393,10 @@ struct BracketGameNode: View {
         .buttonStyle(.plain)
     }
 
-    private static let bracketNameMap: [String: String] = [
-        "Tinseltown Champs": "TTFB Champs",
-        "Tinseltown JV": "TTFB JV",
-        "Rose City Champs": "Rose Champs",
-        "Rose City JV": "Rose JV",
-        "Mothership Champs": "Mother Champs",
-        "Mothership JV Blacks": "Mother Black JV",
-        "Mothership JV Reds": "Mother Red JV",
-        "No Mames Wey Jovenes": "Jovenes",
-        "No Mames Wey Viejos": "Viejos",
-        "Jet City Champs": "Jets",
-        "Steel City": "Steel",
-        "Banditos": "Bandits",
-        "Gold Coast": "Coast",
-        "D$$": "D$$",
-    ]
-
-    private func bracketDisplayName(for team: Team) -> String {
-        Self.bracketNameMap[team.name] ?? String(team.name.prefix(8))
-    }
-
     private func teamRow(teamId: String?, slot: TeamSlot, score: Int, isWinner: Bool) -> some View {
         HStack(spacing: 4) {
             if let teamId, let team = cloudService.team(for: teamId) {
-                Text(bracketDisplayName(for: team).uppercased())
+                Text(BracketNames.displayName(for: team).uppercased())
                     .font(AztecTheme.sfProBold(size: 10))
                     .foregroundColor(isWinner ? AztecTheme.neonYellow : AztecTheme.lightText)
                     .shadow(color: isWinner ? AztecTheme.neonYellow.opacity(0.7) : .clear, radius: isWinner ? 4 : 0)
