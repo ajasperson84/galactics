@@ -71,17 +71,6 @@ struct TournamentTier: Identifiable, Codable {
         games.first { $0.id == gameId }
     }
 
-    /// Get games for a specific bracket round
-    func gamesForWinnersRound(_ roundIndex: Int) -> [TournamentGame] {
-        guard roundIndex < winnersBracketRounds.count else { return [] }
-        return winnersBracketRounds[roundIndex].gameIds.compactMap { id in game(byId: id) }
-    }
-
-    func gamesForLosersRound(_ roundIndex: Int) -> [TournamentGame] {
-        guard roundIndex < losersBracketRounds.count else { return [] }
-        return losersBracketRounds[roundIndex].gameIds.compactMap { id in game(byId: id) }
-    }
-
     /// Describe what team will fill a given slot (e.g. "W G3", "L G10", "To Be Drawn")
     func slotDescription(gameId: String, slot: TeamSlot) -> String {
         // Check if any game feeds into this slot

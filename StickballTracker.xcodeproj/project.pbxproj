@@ -15,7 +15,6 @@
 		A100000006 /* CloudSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000006; };
 		A100000007 /* AztecTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000007; };
 		A100000008 /* AztecBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000008; };
-		A100000009 /* PlayersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000009; };
 		A100000010 /* TeamsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000010; };
 		A100000011 /* TournamentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000011; };
 		A100000012 /* GameEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000012; };
@@ -38,7 +37,6 @@
 		B100000006 /* CloudSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncService.swift; sourceTree = "<group>"; };
 		B100000007 /* AztecTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AztecTheme.swift; sourceTree = "<group>"; };
 		B100000008 /* AztecBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AztecBackground.swift; sourceTree = "<group>"; };
-		B100000009 /* PlayersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayersView.swift; sourceTree = "<group>"; };
 		B100000010 /* TeamsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamsView.swift; sourceTree = "<group>"; };
 		B100000011 /* TournamentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TournamentView.swift; sourceTree = "<group>"; };
 		B100000012 /* GameEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEntrySheet.swift; sourceTree = "<group>"; };
@@ -145,7 +143,6 @@
 		G100000007 /* Players */ = {
 			isa = PBXGroup;
 			children = (
-				B100000009 /* PlayersView.swift */,
 			);
 			path = Players;
 			sourceTree = "<group>";
@@ -270,7 +267,6 @@
 				A100000006 /* CloudSyncService.swift in Sources */,
 				A100000007 /* AztecTheme.swift in Sources */,
 				A100000008 /* AztecBackground.swift in Sources */,
-				A100000009 /* PlayersView.swift in Sources */,
 				A100000010 /* TeamsView.swift in Sources */,
 				A100000011 /* TournamentView.swift in Sources */,
 				A100000012 /* GameEntrySheet.swift in Sources */,

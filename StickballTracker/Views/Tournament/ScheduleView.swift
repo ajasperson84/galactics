@@ -116,7 +116,6 @@ struct PinEntrySheet: View {
     @Environment(\.dismiss) var dismiss
     @State private var enteredPIN = ""
     @State private var shakeOffset: CGFloat = 0
-    @State private var showError = false
 
     private let scorekeeperCode = "5687"
     private let adminCode = "3255"
@@ -211,7 +210,6 @@ struct PinEntrySheet: View {
             cloudService.accessLevel = .scorekeeper
             dismiss()
         } else {
-            showError = true
             withAnimation(.default) {
                 shakeOffset = 10
             }
@@ -232,7 +230,6 @@ struct PinEntrySheet: View {
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 enteredPIN = ""
-                showError = false
             }
         }
     }

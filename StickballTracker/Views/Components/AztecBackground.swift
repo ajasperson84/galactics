@@ -26,7 +26,6 @@ struct AztecHeader: View {
 struct AztecSectionHeader: View {
     let title: String
     var color: Color = AztecTheme.neonYellow
-    var shapeIndex: Int = 0
 
     var body: some View {
         HStack(spacing: 0) {
