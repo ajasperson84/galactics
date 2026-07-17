@@ -10,6 +10,7 @@ struct StatsView: View {
         case salamies = "Salamies"
         case doublePlays = "Dbl Plays"
         case drops = "Drops"
+        case gamesPlayed = "GP"
 
         var label: String { rawValue }
 
@@ -19,6 +20,7 @@ struct StatsView: View {
             case .salamies: return AztecTheme.neonYellow
             case .doublePlays: return AztecTheme.hotPink
             case .drops: return AztecTheme.hotPink
+            case .gamesPlayed: return AztecTheme.neonYellow
             }
         }
     }
@@ -29,6 +31,7 @@ struct StatsView: View {
         case .salamies: return player.stats.salamies
         case .doublePlays: return player.stats.doublePlays
         case .drops: return player.stats.drops
+        case .gamesPlayed: return player.stats.gamesPlayed
         }
     }
 
@@ -39,6 +42,7 @@ struct StatsView: View {
         case .salamies: return players.reduce(0) { $0 + $1.stats.salamies }
         case .doublePlays: return players.reduce(0) { $0 + $1.stats.doublePlays }
         case .drops: return players.reduce(0) { $0 + $1.stats.drops }
+        case .gamesPlayed: return players.reduce(0) { $0 + $1.stats.gamesPlayed }
         }
     }
 
@@ -204,6 +208,8 @@ struct StatsTableHeader: View {
                 .frame(width: 24, alignment: .trailing)
             Text("DRP")
                 .frame(width: 28, alignment: .trailing)
+            Text("GP")
+                .frame(width: 24, alignment: .trailing)
         }
         .font(AztecTheme.sfProBold(size: 10))
         .foregroundColor(AztecTheme.hotPink)
@@ -265,6 +271,12 @@ struct StatsTableRow: View {
                 .foregroundColor(highlightStat == .drops ? AztecTheme.hotPink : AztecTheme.hotPink.opacity(0.7))
                 .shadow(color: highlightStat == .drops ? AztecTheme.hotPink.opacity(0.3) : .clear, radius: 2)
                 .frame(width: 28, alignment: .trailing)
+
+            Text("\(player.stats.gamesPlayed)")
+                .font(.system(size: 11, weight: highlightStat == .gamesPlayed ? .black : .bold))
+                .foregroundColor(highlightStat == .gamesPlayed ? AztecTheme.neonYellow : AztecTheme.neonYellow.opacity(0.7))
+                .shadow(color: highlightStat == .gamesPlayed ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
+                .frame(width: 24, alignment: .trailing)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
@@ -290,6 +302,7 @@ struct TeamAggregatedRow: View {
     var totalSalamies: Int { teamPlayers.reduce(0) { $0 + $1.stats.salamies } }
     var totalDoublePlays: Int { teamPlayers.reduce(0) { $0 + $1.stats.doublePlays } }
     var totalDrops: Int { teamPlayers.reduce(0) { $0 + $1.stats.drops } }
+    var totalGamesPlayed: Int { teamPlayers.reduce(0) { $0 + $1.stats.gamesPlayed } }
 
     private func statColor(_ stat: StatsView.StatSort) -> Color {
         highlightStat == stat ? AztecTheme.neonYellow : AztecTheme.neonYellow.opacity(0.7)
@@ -349,6 +362,16 @@ struct TeamAggregatedRow: View {
                         .foregroundColor(statColor(.drops))
                         .shadow(color: highlightStat == .drops ? AztecTheme.hotPink.opacity(0.3) : .clear, radius: 2)
                     Text("Dr")
+                        .font(AztecTheme.sfProBold(size: 9))
+                        .foregroundColor(AztecTheme.hotPink)
+                }
+
+                VStack(spacing: 1) {
+                    Text("\(totalGamesPlayed)")
+                        .font(statWeight(.gamesPlayed))
+                        .foregroundColor(statColor(.gamesPlayed))
+                        .shadow(color: highlightStat == .gamesPlayed ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
+                    Text("GP")
                         .font(AztecTheme.sfProBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
                 }

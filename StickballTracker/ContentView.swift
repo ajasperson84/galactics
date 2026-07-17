@@ -17,9 +17,6 @@ struct ContentView: View {
             }
         }
 
-        var backgroundColor: Color {
-            return Color.black
-        }
     }
 
     var body: some View {

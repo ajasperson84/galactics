@@ -280,11 +280,21 @@ struct GameEntrySheet: View {
 
                         // Submit (scorekeeper+ only, non-completed games)
                         if canEditScores {
+                            if team1Score == team2Score {
+                                Text("Scores cannot be tied to record a game")
+                                    .font(AztecTheme.sfProBold(size: 13))
+                                    .foregroundColor(AztecTheme.hotPink)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.top, 8)
+                            }
+
                             Button("RECORD GAME") {
                                 showConfirm = true
                             }
                             .buttonStyle(AztecButtonStyle())
-                            .padding(.top, 8)
+                            .disabled(team1Score == team2Score)
+                            .opacity(team1Score == team2Score ? 0.4 : 1)
+                            .padding(.top, 4)
                         }
                     }
                     .padding()

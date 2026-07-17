@@ -171,27 +171,6 @@ struct BracketView: View {
         return (positions, totalHeight)
     }
 
-    private static let bracketNameMap: [String: String] = [
-        "Tinseltown Champs": "TTFB Champs",
-        "Tinseltown JV": "TTFB JV",
-        "Rose City Champs": "Rose Champs",
-        "Rose City JV": "Rose JV",
-        "Mothership Champs": "Mother Champs",
-        "Mothership JV Blacks": "Mother Black JV",
-        "Mothership JV Reds": "Mother Red JV",
-        "No Mames Wey Jovenes": "Jovenes",
-        "No Mames Wey Viejos": "Viejos",
-        "Jet City Champs": "Jets",
-        "Steel City": "Steel",
-        "Banditos": "Bandits",
-        "Gold Coast": "Coast",
-        "D$$": "D$$",
-    ]
-
-    private func bracketDisplayName(for team: Team) -> String {
-        Self.bracketNameMap[team.name] ?? String(team.name.prefix(8))
-    }
-
     private func bracketSection(title: String, color: Color, rounds: [BracketRoundGroup], advancingLabel: String? = nil) -> some View {
         let (positions, totalHeight) = computePositions(rounds: rounds)
         let isChampColumn = advancingLabel?.contains("GALACTICOS") == true
@@ -329,6 +308,27 @@ struct BracketView: View {
 
 // MARK: - Bracket Game Node (compact card for bracket view)
 
+private let bracketNameMap: [String: String] = [
+    "Tinseltown Champs": "TTFB Champs",
+    "Tinseltown JV": "TTFB JV",
+    "Rose City Champs": "Rose Champs",
+    "Rose City JV": "Rose JV",
+    "Mothership Champs": "Mother Champs",
+    "Mothership JV Blacks": "Mother Black JV",
+    "Mothership JV Reds": "Mother Red JV",
+    "No Mames Wey Jovenes": "Jovenes",
+    "No Mames Wey Viejos": "Viejos",
+    "Jet City Champs": "Jets",
+    "Steel City": "Steel",
+    "Banditos": "Bandits",
+    "Gold Coast": "Coast",
+    "D$$": "D$$",
+]
+
+private func bracketDisplayName(for team: Team) -> String {
+    bracketNameMap[team.name] ?? String(team.name.prefix(8))
+}
+
 struct BracketGameNode: View {
     @EnvironmentObject var cloudService: CloudSyncService
     let game: TournamentGame
@@ -389,27 +389,6 @@ struct BracketGameNode: View {
             .shadow(color: game.status == .inProgress ? accentColor.opacity(0.3) : .clear, radius: 4)
         }
         .buttonStyle(.plain)
-    }
-
-    private static let bracketNameMap: [String: String] = [
-        "Tinseltown Champs": "TTFB Champs",
-        "Tinseltown JV": "TTFB JV",
-        "Rose City Champs": "Rose Champs",
-        "Rose City JV": "Rose JV",
-        "Mothership Champs": "Mother Champs",
-        "Mothership JV Blacks": "Mother Black JV",
-        "Mothership JV Reds": "Mother Red JV",
-        "No Mames Wey Jovenes": "Jovenes",
-        "No Mames Wey Viejos": "Viejos",
-        "Jet City Champs": "Jets",
-        "Steel City": "Steel",
-        "Banditos": "Bandits",
-        "Gold Coast": "Coast",
-        "D$$": "D$$",
-    ]
-
-    private func bracketDisplayName(for team: Team) -> String {
-        Self.bracketNameMap[team.name] ?? String(team.name.prefix(8))
     }
 
     private func teamRow(teamId: String?, slot: TeamSlot, score: Int, isWinner: Bool) -> some View {
