@@ -30,7 +30,7 @@ struct ScheduleView: View {
                         .font(.system(size: 32, weight: .bold))
                         .foregroundColor(AztecTheme.hotPink)
                     Text("No games scheduled yet")
-                        .font(AztecTheme.sfProBold(size: 16))
+                        .font(AztecTheme.futuraBold(size: 16))
                         .foregroundColor(AztecTheme.hotPink)
                 }
             } else {
@@ -142,7 +142,7 @@ struct PinEntrySheet: View {
 
                     if cloudService.accessLevel != .viewOnly {
                         Text(cloudService.accessLevel == .admin ? "ADMIN ACCESS" : "SCOREKEEPER ACCESS")
-                            .font(AztecTheme.sfProBold(size: 16))
+                            .font(AztecTheme.futuraBold(size: 16))
                             .foregroundColor(AztecTheme.hotPink)
 
                         Button("LOCK") {
@@ -245,7 +245,7 @@ struct PinButton: View {
     var body: some View {
         Button(action: action) {
             Text(number)
-                .font(AztecTheme.sfProBold(size: 28))
+                .font(AztecTheme.futuraBold(size: 28))
                 .foregroundColor(AztecTheme.neonYellow)
                 .frame(width: 72, height: 72)
                 .background(

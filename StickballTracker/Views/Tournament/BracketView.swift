@@ -171,27 +171,6 @@ struct BracketView: View {
         return (positions, totalHeight)
     }
 
-    private static let bracketNameMap: [String: String] = [
-        "Tinseltown Champs": "TTFB Champs",
-        "Tinseltown JV": "TTFB JV",
-        "Rose City Champs": "Rose Champs",
-        "Rose City JV": "Rose JV",
-        "Mothership Champs": "Mother Champs",
-        "Mothership JV Blacks": "Mother Black JV",
-        "Mothership JV Reds": "Mother Red JV",
-        "No Mames Wey Jovenes": "Jovenes",
-        "No Mames Wey Viejos": "Viejos",
-        "Jet City Champs": "Jets",
-        "Steel City": "Steel",
-        "Banditos": "Bandits",
-        "Gold Coast": "Coast",
-        "D$$": "D$$",
-    ]
-
-    private func bracketDisplayName(for team: Team) -> String {
-        Self.bracketNameMap[team.name] ?? String(team.name.prefix(8))
-    }
-
     private func bracketSection(title: String, color: Color, rounds: [BracketRoundGroup], advancingLabel: String? = nil) -> some View {
         let (positions, totalHeight) = computePositions(rounds: rounds)
         let isChampColumn = advancingLabel?.contains("GALACTICOS") == true
@@ -279,7 +258,7 @@ struct BracketView: View {
                         // Advancing teams display
                         ZStack {
                             Text(label)
-                                .font(AztecTheme.sfProBold(size: labelFontSize))
+                                .font(AztecTheme.futuraBold(size: labelFontSize))
                                 .tracking(1)
                                 .foregroundColor(color)
                                 .multilineTextAlignment(.center)
@@ -290,7 +269,7 @@ struct BracketView: View {
                                     HStack(spacing: 6) {
                                         TeamIconView(team: team, size: iconSize, glowRadius: 4)
                                         Text(team.name.uppercased())
-                                            .font(AztecTheme.sfProBold(size: fontSize))
+                                            .font(AztecTheme.futuraBold(size: fontSize))
                                             .foregroundColor(AztecTheme.neonYellow)
                                             .lineLimit(1)
                                             .minimumScaleFactor(0.5)
@@ -307,7 +286,7 @@ struct BracketView: View {
                                         HStack(spacing: 6) {
                                             TeamIconView(team: team, size: iconSize, glowRadius: 4)
                                             Text(team.name.uppercased())
-                                                .font(AztecTheme.sfProBold(size: fontSize))
+                                                .font(AztecTheme.futuraBold(size: fontSize))
                                                 .foregroundColor(AztecTheme.neonYellow)
                                                 .lineLimit(1)
                                                 .minimumScaleFactor(0.5)
@@ -344,11 +323,11 @@ struct BracketGameNode: View {
                 // Game number + inning
                 HStack(spacing: 4) {
                     Text("G\(game.gameNumber)")
-                        .font(AztecTheme.sfProBold(size: 9))
+                        .font(AztecTheme.futuraBold(size: 9))
                         .foregroundColor(accentColor.opacity(0.7))
                     if game.status == .inProgress, let inning = game.currentInning {
                         Text("INN \(inning)")
-                            .font(AztecTheme.sfProBold(size: 8))
+                            .font(AztecTheme.futuraBold(size: 8))
                             .foregroundColor(AztecTheme.neonYellow)
                             .shadow(color: AztecTheme.neonYellow.opacity(0.5), radius: 2)
                     }
@@ -416,14 +395,14 @@ struct BracketGameNode: View {
         HStack(spacing: 4) {
             if let teamId, let team = cloudService.team(for: teamId) {
                 Text(bracketDisplayName(for: team).uppercased())
-                    .font(AztecTheme.sfProBold(size: 10))
+                    .font(AztecTheme.futuraBold(size: 10))
                     .foregroundColor(isWinner ? AztecTheme.neonYellow : AztecTheme.lightText)
                     .shadow(color: isWinner ? AztecTheme.neonYellow.opacity(0.7) : .clear, radius: isWinner ? 4 : 0)
                     .lineLimit(1)
             } else {
                 let desc = tier?.slotDescription(gameId: game.id, slot: slot) ?? "TBD"
                 Text(desc.uppercased())
-                    .font(AztecTheme.sfProBold(size: 9))
+                    .font(AztecTheme.futuraBold(size: 9))
                     .foregroundColor(AztecTheme.dimText)
                     .lineLimit(1)
             }

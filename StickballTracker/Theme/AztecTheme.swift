@@ -14,18 +14,8 @@ enum AztecTheme {
 
     // MARK: - Backgrounds
     static let background = Color.black
-    static let cardBg = Color.black
-    static let sheetBg = Color.black
-
-    // Section backgrounds — all black
-    static let tourneyBg = Color.black
-    static let squadsBg = Color.black
-    static let ballersBg = Color.black
-    static let statsBg = Color.black
 
     // MARK: - Semantic Color Aliases
-    static let obsidian = Color.black
-    static let darkStone = Color.black
     static let stone = Color.white.opacity(0.35)
 
     // Primary accents map to new palette
@@ -43,23 +33,6 @@ enum AztecTheme {
     // MARK: - Text Colors
     static let lightText = Color.white
     static let dimText = Color.white.opacity(0.5)
-    static let ink = neonYellow
-
-    // MARK: - Card Palette (cycled per-item)
-    static let cardColors: [Color] = [
-        hotPink.opacity(0.12),
-        jade.opacity(0.10),
-        neonYellow.opacity(0.08),
-        cosmic.opacity(0.12),
-        tennisGreen.opacity(0.08),
-        neonOrange.opacity(0.10),
-        Color(red: 0.70, green: 0.0, blue: 1.0).opacity(0.12),
-        bloodRed.opacity(0.10),
-    ]
-
-    static func cardColor(for index: Int) -> Color {
-        cardColors[index % cardColors.count]
-    }
 
     // MARK: - Gradients
     static let goldGradient = LinearGradient(
@@ -74,22 +47,10 @@ enum AztecTheme {
         endPoint: .trailing
     )
 
-    static let cosmicGradient = LinearGradient(
-        colors: [cosmic, Color(red: 0.15, green: 0.30, blue: 0.85)],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-
     static let pinkGradient = LinearGradient(
         colors: [hotPink, hotPink.opacity(0.6)],
         startPoint: .leading,
         endPoint: .trailing
-    )
-
-    static let cardGradient = LinearGradient(
-        colors: [Color.black, Color.black],
-        startPoint: .top,
-        endPoint: .bottom
     )
 
     /// Border gradient: yellow on the left, pink on the right
@@ -108,29 +69,14 @@ enum AztecTheme {
     }
 
     /// Futura Bold — game info, player stats, body text
-    static func sfProBold(size: CGFloat) -> Font {
+    static func futuraBold(size: CGFloat) -> Font {
         Font.custom("Futura-Bold", size: size)
     }
 
     /// Futura Medium — secondary body text
-    static func sfProMedium(size: CGFloat) -> Font {
+    static func futuraMedium(size: CGFloat) -> Font {
         Font.custom("Futura-Medium", size: size)
     }
-
-    /// Futura Regular — lighter text
-    static func sfProRegular(size: CGFloat) -> Font {
-        Font.custom("Futura-Medium", size: size)
-    }
-
-    // Font aliases — all now use SF Pro Bold (no italics)
-    static func jazzFont(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func jazzBody(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
-    static func jazzLight(size: CGFloat) -> Font { sfProRegular(size: size * 2) }
-    static func impact(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func typewriter(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
-    static func typewriterBold(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func handwritten(size: CGFloat) -> Font { hobbsFont(size: size) }
-    static func chunky(size: CGFloat) -> Font { hobbsFont(size: size) }
 
     /// Hobbs kerning — 30% tighter (negative tracking)
     static let hobbsKerning: CGFloat = -1.5
@@ -144,13 +90,6 @@ enum AztecTheme {
         Rectangle().fill(neonYellow.opacity(0.3)).frame(height: 1)
     }
 
-    static var jadeBorderLine: some View {
-        Rectangle().fill(jade.opacity(0.3)).frame(height: 1)
-    }
-
-    static func glowShadow(color: Color = hotPink, radius: CGFloat = 8) -> some View {
-        Color.clear.shadow(color: color.opacity(0.3), radius: radius)
-    }
 }
 
 // MARK: - Neon Card Modifier
@@ -158,7 +97,6 @@ enum AztecTheme {
 /// Dark card with neon border glow — the core visual building block.
 /// Black background, 50% thicker outlines.
 struct NeonCardModifier: ViewModifier {
-    var borderColor: Color = AztecTheme.hotPink
     var cornerRadius: CGFloat = 12
     var glowIntensity: CGFloat = 1.0
 
@@ -180,30 +118,24 @@ struct NeonCardModifier: ViewModifier {
 
 extension View {
     /// Apply dark neon-bordered card style with glow.
-    func neonCard(border: Color = AztecTheme.hotPink, cornerRadius: CGFloat = 12, glow: CGFloat = 1.0) -> some View {
-        modifier(NeonCardModifier(borderColor: border, cornerRadius: cornerRadius, glowIntensity: glow))
+    func neonCard(cornerRadius: CGFloat = 12, glow: CGFloat = 1.0) -> some View {
+        modifier(NeonCardModifier(cornerRadius: cornerRadius, glowIntensity: glow))
     }
 }
 
 // MARK: - Legacy Card Style (updated to neon)
 
 struct AztecCard: ViewModifier {
-    var highlight: Color = AztecTheme.hotPink
-
     func body(content: Content) -> some View {
         content
             .padding(16)
-            .neonCard(border: highlight)
+            .neonCard()
     }
 }
 
 extension View {
-    func aztecCard(highlight: Color = AztecTheme.hotPink) -> some View {
-        modifier(AztecCard(highlight: highlight))
-    }
-
-    func aztecCardColored(index: Int, highlight: Color = AztecTheme.hotPink) -> some View {
-        modifier(AztecCard(highlight: highlight))
+    func aztecCard() -> some View {
+        modifier(AztecCard())
     }
 }
 
@@ -215,7 +147,7 @@ struct AztecButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(AztecTheme.sfProBold(size: 16))
+            .font(AztecTheme.futuraBold(size: 16))
             .foregroundColor(color)
             .padding(.horizontal, 24)
             .padding(.vertical, 14)
@@ -236,7 +168,7 @@ struct AztecSecondaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(AztecTheme.sfProBold(size: 14))
+            .font(AztecTheme.futuraBold(size: 14))
             .foregroundColor(color)
             .padding(.horizontal, 18)
             .padding(.vertical, 12)
@@ -257,7 +189,7 @@ struct AztecSecondaryButtonStyle: ButtonStyle {
 struct AztecDismissButtonStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(AztecTheme.sfProBold(size: 14))
+            .font(AztecTheme.futuraBold(size: 14))
             .foregroundColor(AztecTheme.hotPink)
             .padding(.horizontal, 14)
             .padding(.vertical, 6)
@@ -281,7 +213,7 @@ extension View {
 struct AztecTextField: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(AztecTheme.sfProBold(size: 16))
+            .font(AztecTheme.futuraBold(size: 16))
             .foregroundColor(.white)
             .accentColor(AztecTheme.neonYellow)
             .padding(12)
