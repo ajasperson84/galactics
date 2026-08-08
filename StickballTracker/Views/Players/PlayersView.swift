@@ -147,6 +147,13 @@ struct AddPlayerSheet: View {
     @State private var playerName = ""
     @State private var selectedTeamId: String?
 
+    private var availableTeams: [Team] {
+        let trimmed = playerName.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return cloudService.teams }
+        let stub = Player(name: trimmed)
+        return cloudService.allowedTeamsForPlayer(stub)
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -157,6 +164,12 @@ struct AddPlayerSheet: View {
 
                     TextField("Baller Name", text: $playerName)
                         .aztecTextField()
+                        .onChange(of: playerName) { _ in
+                            if let selectedTeamId,
+                               !availableTeams.contains(where: { $0.id == selectedTeamId }) {
+                                self.selectedTeamId = nil
+                            }
+                        }
 
                     AztecSectionHeader(title: "Assign to Squad", color: AztecTheme.hotPink)
 
@@ -191,7 +204,7 @@ struct AddPlayerSheet: View {
                                 )
                             }
 
-                            ForEach(cloudService.teams) { team in
+                            ForEach(availableTeams) { team in
                                 Button {
                                     selectedTeamId = team.id
                                 } label: {
@@ -272,6 +285,7 @@ struct PlayerDetailSheet: View {
             ("Salamies", player.stats.salamies),
             ("Dbl Plays", player.stats.doublePlays),
             ("Drops", player.stats.drops),
+            ("Games", player.stats.gamesPlayed),
         ]
     }
 
