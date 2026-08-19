@@ -48,16 +48,18 @@ class CloudSyncService: ObservableObject {
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if let error {
+                        #if DEBUG
                         let nsErr = error as NSError
                         print("[CloudSync] WRITE FAILED \(collection)/\(id): \(error.localizedDescription) (code=\(nsErr.code) domain=\(nsErr.domain))")
+                        #endif
                         self.errorMessage = "Cloud sync failed (\(collection)): \(error.localizedDescription)"
-                    } else {
-                        print("[CloudSync] write OK \(collection)/\(id)")
                     }
                 }
             }
         } catch {
+            #if DEBUG
             print("[CloudSync] ENCODING FAILED \(collection)/\(id): \(error)")
+            #endif
             errorMessage = "Encoding error (\(collection)): \(error.localizedDescription)"
         }
     }
@@ -68,11 +70,11 @@ class CloudSyncService: ObservableObject {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 if let error {
+                    #if DEBUG
                     let nsErr = error as NSError
                     print("[CloudSync] DELETE FAILED \(collection)/\(id): \(error.localizedDescription) (code=\(nsErr.code) domain=\(nsErr.domain))")
+                    #endif
                     self.errorMessage = "Cloud sync failed (\(collection)): \(error.localizedDescription)"
-                } else {
-                    print("[CloudSync] delete OK \(collection)/\(id)")
                 }
             }
         }
@@ -150,14 +152,14 @@ class CloudSyncService: ObservableObject {
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if let error {
+                        #if DEBUG
                         let nsErr = error as NSError
                         print("[CloudSync] players listener error: \(error.localizedDescription) (code=\(nsErr.code))")
+                        #endif
                         self.errorMessage = "Players sync error: \(error.localizedDescription)"
                         return
                     }
                     guard let snapshot else { return }
-                    let source = snapshot.metadata.isFromCache ? "cache" : "server"
-                    print("[CloudSync] players snapshot: \(snapshot.documents.count) docs from \(source)")
                     self.players = snapshot.documents.compactMap { try? $0.data(as: Player.self) }
                     self.savePlayers()
                     self.runRoseCityDraftPoolMigrationIfNeeded()
@@ -171,14 +173,14 @@ class CloudSyncService: ObservableObject {
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if let error {
+                        #if DEBUG
                         let nsErr = error as NSError
                         print("[CloudSync] teams listener error: \(error.localizedDescription) (code=\(nsErr.code))")
+                        #endif
                         self.errorMessage = "Teams sync error: \(error.localizedDescription)"
                         return
                     }
                     guard let snapshot else { return }
-                    let source = snapshot.metadata.isFromCache ? "cache" : "server"
-                    print("[CloudSync] teams snapshot: \(snapshot.documents.count) docs from \(source)")
                     self.teams = snapshot.documents.compactMap { try? $0.data(as: Team.self) }
                     self.saveTeams()
                 }
@@ -196,8 +198,10 @@ class CloudSyncService: ObservableObject {
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if let error {
+                        #if DEBUG
                         let nsErr = error as NSError
                         print("[CloudSync] tournament listener error: \(error.localizedDescription) (code=\(nsErr.code) domain=\(nsErr.domain))")
+                        #endif
                         self.errorMessage = "Tourney sync error: \(error.localizedDescription)"
                         // Mark as loaded so the UI can stop showing a spinner and
                         // surface whatever cached state we have (or empty state).
@@ -208,16 +212,15 @@ class CloudSyncService: ObservableObject {
                         self.hasLoadedTournament = true
                         return
                     }
-                    let source = snapshot.metadata.isFromCache ? "cache" : "server"
-                    print("[CloudSync] tournament snapshot: \(snapshot.documents.count) docs from \(source) (pendingWrites=\(snapshot.metadata.hasPendingWrites))")
-
                     // Decode every doc; pick the most-recently-created one.
                     // Falls back gracefully if `createdAt` is missing.
                     let decoded: [Tournament] = snapshot.documents.compactMap { doc in
                         do {
                             return try doc.data(as: Tournament.self)
                         } catch {
+                            #if DEBUG
                             print("[CloudSync] Failed to decode tournament \(doc.documentID): \(error)")
+                            #endif
                             return nil
                         }
                     }
@@ -226,9 +229,6 @@ class CloudSyncService: ObservableObject {
                         self.tournament = latest
                         self.saveTournament()
                     } else if !snapshot.documents.isEmpty {
-                        // Docs exist but none could be decoded — surface the error
-                        // and keep any existing local copy rather than wiping it.
-                        print("[CloudSync] tournament snapshot had \(snapshot.documents.count) doc(s) but none decoded")
                         self.errorMessage = "Failed to decode tourney data."
                     } else if !snapshot.metadata.isFromCache {
                         // Confirmed by SERVER: no tournament exists in Firestore.
@@ -524,11 +524,9 @@ class CloudSyncService: ObservableObject {
     /// this to push the local copy back to the cloud.
     func resyncTournamentToCloud() async {
         guard let tournament else {
-            print("[CloudSync] resync skipped — no local tournament to upload")
             errorMessage = "No local tourney to re-sync."
             return
         }
-        print("[CloudSync] resyncing tournament \(tournament.id) (\(tournament.name)) to cloud")
         writeDocument(tournament, to: "tournaments", id: tournament.id)
     }
 
@@ -545,13 +543,10 @@ class CloudSyncService: ObservableObject {
         // than racing against orphan docs from earlier sessions.
         do {
             let snapshot = try await db.collection("tournaments").getDocuments()
-            print("[CloudSync] deleteTournament clearing \(snapshot.documents.count) tournament doc(s)")
             for doc in snapshot.documents {
                 deleteDocument(in: "tournaments", id: doc.documentID)
             }
         } catch {
-            let nsErr = error as NSError
-            print("[CloudSync] deleteTournament enumerate failed: \(error.localizedDescription) (code=\(nsErr.code))")
             errorMessage = "Failed to clear tourneys: \(error.localizedDescription)"
         }
     }

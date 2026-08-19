@@ -7,6 +7,7 @@ struct TournamentView: View {
     @State private var viewMode: ViewMode = .schedule
     @State private var selectedTierIndex: Int = 0
     @State private var showPinEntry = false
+    @State private var showDeleteConfirm = false
 
     enum ViewMode: String, CaseIterable {
         case schedule = "Schedule"
@@ -52,9 +53,7 @@ struct TournamentView: View {
                             }
 
                             Button {
-                                Task {
-                                    await cloudService.deleteTournament()
-                                }
+                                showDeleteConfirm = true
                             } label: {
                                 Image(systemName: "trash")
                                     .foregroundColor(AztecTheme.bloodRed)
@@ -226,6 +225,16 @@ struct TournamentView: View {
         }
         .sheet(isPresented: $showPinEntry) {
             PinEntrySheet()
+        }
+        .alert("Delete Tournament?", isPresented: $showDeleteConfirm) {
+            Button("Delete", role: .destructive) {
+                Task {
+                    await cloudService.deleteTournament()
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This will permanently delete the tournament, all brackets, and game results. This cannot be undone.")
         }
     }
 }
