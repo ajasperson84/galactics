@@ -196,6 +196,8 @@ struct StatsTableHeader: View {
                 .frame(width: 20, alignment: .center)
             Text("BALLER")
                 .frame(maxWidth: .infinity, alignment: .leading)
+            Text("GP")
+                .frame(width: 22, alignment: .trailing)
             Text("DNG")
                 .frame(width: 32, alignment: .trailing)
             Text("SAL")
@@ -219,9 +221,17 @@ struct StatsTableHeader: View {
 }
 
 struct StatsTableRow: View {
+    @EnvironmentObject var cloudService: CloudSyncService
     let rank: Int
     let player: Player
     let highlightStat: StatsView.StatSort
+
+    private var playerTeam: Team? {
+        if let teamId = player.teamId {
+            return cloudService.team(for: teamId)
+        }
+        return nil
+    }
 
     var body: some View {
         HStack(spacing: 4) {
@@ -236,11 +246,20 @@ struct StatsTableRow: View {
                 .shadow(color: rank == 1 ? AztecTheme.neonYellow.opacity(0.4) : .clear, radius: 3)
                 .frame(width: 20, alignment: .center)
 
+            if let team = playerTeam {
+                TeamIconView(team: team, size: 20, glowRadius: 3)
+            }
+
             Text(player.name)
                 .font(AztecTheme.sfProBold(size: 14))
                 .foregroundColor(AztecTheme.neonYellow)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
+
+            Text("\(player.stats.gamesPlayed)")
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundColor(AztecTheme.dimText)
+                .frame(width: 22, alignment: .trailing)
 
             Text("\(player.stats.dongs)")
                 .font(.system(size: 11, weight: highlightStat == .dongs ? .black : .bold))
