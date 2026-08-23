@@ -108,21 +108,25 @@ enum AztecTheme {
     }
 
     /// Futura Bold — game info, player stats, body text
+    /// (legacy name from an earlier SF Pro era; kept for call-site compat)
     static func sfProBold(size: CGFloat) -> Font {
         Font.custom("Futura-Bold", size: size)
     }
 
     /// Futura Medium — secondary body text
+    /// (legacy name from an earlier SF Pro era; kept for call-site compat)
     static func sfProMedium(size: CGFloat) -> Font {
         Font.custom("Futura-Medium", size: size)
     }
 
-    /// Futura Regular — lighter text
+    /// Futura Medium (lighter weight alias) — iOS Futura has no "Regular"
+    /// weight, so this intentionally maps to Medium like sfProMedium.
+    /// (legacy name from an earlier SF Pro era; kept for call-site compat)
     static func sfProRegular(size: CGFloat) -> Font {
         Font.custom("Futura-Medium", size: size)
     }
 
-    // Font aliases — all now use SF Pro Bold (no italics)
+    // Font aliases — all now use Futura (legacy names kept)
     static func jazzFont(size: CGFloat) -> Font { sfProBold(size: size * 2) }
     static func jazzBody(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
     static func jazzLight(size: CGFloat) -> Font { sfProRegular(size: size * 2) }

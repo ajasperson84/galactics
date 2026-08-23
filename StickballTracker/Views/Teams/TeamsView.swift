@@ -600,7 +600,14 @@ struct AddPlayerToTeamSheet: View {
     let team: Team
 
     var availablePlayers: [Player] {
-        cloudService.players.filter { $0.teamId != team.id }
+        cloudService.players.filter { player in
+            // Exclude players already on this team
+            guard player.teamId != team.id else { return false }
+            // Enforce draft pool restrictions: only show players
+            // whose allowed teams include the target team
+            let allowed = cloudService.allowedTeamsForPlayer(player)
+            return allowed.contains(where: { $0.id == team.id })
+        }
     }
 
     var body: some View {

@@ -70,15 +70,23 @@ struct TournamentView: View {
                     }
                     .padding(.horizontal)
 
-                    // Champion display
+                    // Champion display — check if-necessary game first (it's
+                    // only activated when the LB champion forces a second
+                    // match), then fall back to the championship game.
                     if tournament.status == .completed,
                        let lastTier = tournament.tiers.last {
-                        let champGameId = lastTier.ifNecessaryGameId ?? lastTier.championshipGameId
-                        if let champId = champGameId,
-                           let champGame = lastTier.game(byId: champId),
-                           champGame.status == .completed,
-                           let winnerId = champGame.winnerId,
+                        if let ifNecId = lastTier.ifNecessaryGameId,
+                           let ifNecGame = lastTier.game(byId: ifNecId),
+                           ifNecGame.status == .completed,
+                           let winnerId = ifNecGame.winnerId,
                            let champion = cloudService.team(for: winnerId) {
+                            ChampionBanner(teamName: champion.name, winnerId: winnerId)
+                                .padding(.horizontal)
+                        } else if let champId = lastTier.championshipGameId,
+                                  let champGame = lastTier.game(byId: champId),
+                                  champGame.status == .completed,
+                                  let winnerId = champGame.winnerId,
+                                  let champion = cloudService.team(for: winnerId) {
                             ChampionBanner(teamName: champion.name, winnerId: winnerId)
                                 .padding(.horizontal)
                         }
@@ -365,13 +373,7 @@ struct GameCard: View {
     }
 
     private func splitForSchedule(_ name: String) -> [String] {
-        if name.hasPrefix("Mothership JV") {
-            return ["Mothership", String(name.dropFirst("Mothership ".count))]
-        }
-        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
-            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
-        }
-        return [name]
+        splitTeamName(name)
     }
 
     var body: some View {
