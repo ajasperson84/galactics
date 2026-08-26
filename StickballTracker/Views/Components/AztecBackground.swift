@@ -2,8 +2,6 @@ import SwiftUI
 
 /// App header — uses G4_header_YellowandPink image.
 struct AztecHeader: View {
-    let title: String
-
     var body: some View {
         VStack(spacing: 0) {
             Image("G4_header_YellowandPink")
@@ -26,7 +24,6 @@ struct AztecHeader: View {
 struct AztecSectionHeader: View {
     let title: String
     var color: Color = AztecTheme.neonYellow
-    var shapeIndex: Int = 0
 
     var body: some View {
         HStack(spacing: 0) {
