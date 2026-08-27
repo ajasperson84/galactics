@@ -19,7 +19,9 @@ class CloudSyncService: ObservableObject {
     @Published var tournament: Tournament?
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var accessLevel: AccessLevel = .viewOnly
+    @Published var accessLevel: AccessLevel = .viewOnly {
+        didSet { UserDefaults.standard.set(accessLevel.rawValue, forKey: "savedAccessLevel") }
+    }
     /// True once the Firestore tournament listener has returned at least one snapshot.
     /// Used by views to distinguish "still loading" from "confirmed no tournament".
     @Published var hasLoadedTournament: Bool = false
@@ -88,6 +90,13 @@ class CloudSyncService: ObservableObject {
     private static var tournamentFile: URL { documentsDir.appendingPathComponent("tournament.json") }
 
     init() {
+        // Restore previously saved access level so users don't have to
+        // re-enter the PIN on every launch.
+        let saved = UserDefaults.standard.integer(forKey: "savedAccessLevel")
+        if let level = AccessLevel(rawValue: saved) {
+            accessLevel = level
+        }
+
         // Firestore offline persistence is enabled by default on iOS, so the
         // local cache survives across launches and reads work offline.
         loadFromDisk()
