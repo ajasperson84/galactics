@@ -414,17 +414,7 @@ struct GameEntrySheet: View {
     }
 
     private static func splitTeamName(_ name: String) -> [String] {
-        // "Mothership JV Reds" → ["Mothership", "JV Reds"]
-        // "Mothership JV Blacks" → ["Mothership", "JV Blacks"]
-        // "No Mames Wey Jovenes" → ["No Mames Wey", "Jovenes"]
-        // "No Mames Wey Viejos" → ["No Mames Wey", "Viejos"]
-        if name.hasPrefix("Mothership JV") {
-            return ["Mothership", String(name.dropFirst("Mothership ".count))]
-        }
-        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
-            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
-        }
-        return [name]
+        splitStickballTeamName(name)
     }
 
     private func submitGame() {

@@ -365,13 +365,7 @@ struct GameCard: View {
     }
 
     private func splitForSchedule(_ name: String) -> [String] {
-        if name.hasPrefix("Mothership JV") {
-            return ["Mothership", String(name.dropFirst("Mothership ".count))]
-        }
-        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
-            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
-        }
-        return [name]
+        splitStickballTeamName(name)
     }
 
     var body: some View {
@@ -628,21 +622,21 @@ struct CreateTournamentSheet: View {
                                         CloudSyncService.TierConfig(
                                             tierNumber: 1,
                                             tierName: "Round 1",
-                                            dayLabel: "",
+                                            dayLabel: "Friday",
                                             date: day1Date,
                                             teamIds: day1TeamIds
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 2,
                                             tierName: "Round 2",
-                                            dayLabel: "",
+                                            dayLabel: "Saturday",
                                             date: day2Date,
                                             teamIds: day2TeamIds
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 3,
                                             tierName: "Finals",
-                                            dayLabel: "",
+                                            dayLabel: "Sunday",
                                             date: day3Date,
                                             teamIds: []
                                         ),

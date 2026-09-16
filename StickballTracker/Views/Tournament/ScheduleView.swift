@@ -161,6 +161,14 @@ struct PinEntrySheet: View {
                         }
                         .modifier(ShakeModifier(offset: shakeOffset))
 
+                        if showError {
+                            Text("INVALID PIN")
+                                .font(AztecTheme.sfProBold(size: 14))
+                                .foregroundColor(AztecTheme.bloodRed)
+                                .shadow(color: AztecTheme.bloodRed.opacity(0.5), radius: 4)
+                                .transition(.opacity)
+                        }
+
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
                             ForEach(1...9, id: \.self) { number in
                                 PinButton(number: "\(number)") {
