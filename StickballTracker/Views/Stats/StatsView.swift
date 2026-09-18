@@ -62,7 +62,7 @@ struct StatsView: View {
                 } label: {
                     let altColor = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
                     Text(sort.label)
-                        .font(AztecTheme.sfProBold(size: 13))
+                        .font(AztecTheme.futuraBold(size: 13))
                         .foregroundColor(
                             selection.wrappedValue == sort ? Color.black : altColor
                         )
@@ -111,10 +111,10 @@ struct StatsView: View {
                         .font(.system(size: 40, weight: .bold))
                         .foregroundColor(AztecTheme.hotPink)
                     Text("No stats recorded yet")
-                        .font(AztecTheme.sfProBold(size: 16))
+                        .font(AztecTheme.futuraBold(size: 16))
                         .foregroundColor(AztecTheme.hotPink)
                     Text("Play some games to see leaderboards.")
-                        .font(AztecTheme.sfProMedium(size: 14))
+                        .font(AztecTheme.futuraMedium(size: 14))
                         .foregroundColor(AztecTheme.neonYellow)
                     Spacer()
                 }
@@ -162,7 +162,7 @@ struct StatsView: View {
                 VStack(spacing: 8) {
                     Spacer().frame(height: 12)
                     Text("No squads with \(teamSortBy.label.lowercased()) yet")
-                        .font(AztecTheme.sfProBold(size: 14))
+                        .font(AztecTheme.futuraBold(size: 14))
                         .foregroundColor(AztecTheme.hotPink)
                     Spacer()
                 }
@@ -196,6 +196,8 @@ struct StatsTableHeader: View {
                 .frame(width: 20, alignment: .center)
             Text("BALLER")
                 .frame(maxWidth: .infinity, alignment: .leading)
+            Text("GP")
+                .frame(width: 24, alignment: .trailing)
             Text("DNG")
                 .frame(width: 32, alignment: .trailing)
             Text("SAL")
@@ -205,7 +207,7 @@ struct StatsTableHeader: View {
             Text("DRP")
                 .frame(width: 28, alignment: .trailing)
         }
-        .font(AztecTheme.sfProBold(size: 10))
+        .font(AztecTheme.futuraBold(size: 10))
         .foregroundColor(AztecTheme.hotPink)
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
@@ -237,10 +239,15 @@ struct StatsTableRow: View {
                 .frame(width: 20, alignment: .center)
 
             Text(player.name)
-                .font(AztecTheme.sfProBold(size: 14))
+                .font(AztecTheme.futuraBold(size: 14))
                 .foregroundColor(AztecTheme.neonYellow)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
+
+            Text("\(player.stats.gamesPlayed)")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(AztecTheme.dimText)
+                .frame(width: 24, alignment: .trailing)
 
             Text("\(player.stats.dongs)")
                 .font(.system(size: 11, weight: highlightStat == .dongs ? .black : .bold))
@@ -296,7 +303,7 @@ struct TeamAggregatedRow: View {
     }
 
     private func statWeight(_ stat: StatsView.StatSort) -> Font {
-        AztecTheme.sfProBold(size: highlightStat == stat ? 16 : 14)
+        AztecTheme.futuraBold(size: highlightStat == stat ? 16 : 14)
     }
 
     var body: some View {
@@ -319,7 +326,7 @@ struct TeamAggregatedRow: View {
                         .foregroundColor(statColor(.dongs))
                         .shadow(color: highlightStat == .dongs ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
                     Text("D")
-                        .font(AztecTheme.sfProBold(size: 9))
+                        .font(AztecTheme.futuraBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
                 }
 
@@ -329,7 +336,7 @@ struct TeamAggregatedRow: View {
                         .foregroundColor(statColor(.salamies))
                         .shadow(color: highlightStat == .salamies ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
                     Text("S")
-                        .font(AztecTheme.sfProBold(size: 9))
+                        .font(AztecTheme.futuraBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
                 }
 
@@ -339,7 +346,7 @@ struct TeamAggregatedRow: View {
                         .foregroundColor(statColor(.doublePlays))
                         .shadow(color: highlightStat == .doublePlays ? AztecTheme.hotPink.opacity(0.3) : .clear, radius: 2)
                     Text("DP")
-                        .font(AztecTheme.sfProBold(size: 9))
+                        .font(AztecTheme.futuraBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
                 }
 
@@ -349,7 +356,7 @@ struct TeamAggregatedRow: View {
                         .foregroundColor(statColor(.drops))
                         .shadow(color: highlightStat == .drops ? AztecTheme.hotPink.opacity(0.3) : .clear, radius: 2)
                     Text("Dr")
-                        .font(AztecTheme.sfProBold(size: 9))
+                        .font(AztecTheme.futuraBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
                 }
             }

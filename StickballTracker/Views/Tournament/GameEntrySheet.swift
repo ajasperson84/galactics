@@ -54,13 +54,13 @@ struct GameEntrySheet: View {
                         // Game header
                         VStack(spacing: 4) {
                             Text("GAME \(game.gameNumber)")
-                                .font(AztecTheme.sfProBold(size: 14))
+                                .font(AztecTheme.futuraBold(size: 14))
                                 .tracking(3)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
 
                             Text(bracketLabel)
-                                .font(AztecTheme.sfProBold(size: 12))
+                                .font(AztecTheme.futuraBold(size: 12))
                                 .foregroundColor(AztecTheme.neonYellow)
                         }
 
@@ -72,7 +72,7 @@ struct GameEntrySheet: View {
                                         .font(.system(size: 12, weight: .bold))
                                         .foregroundColor(AztecTheme.neonYellow)
                                     Text(time.formatted(.dateTime.hour().minute()))
-                                        .font(AztecTheme.sfProBold(size: 14))
+                                        .font(AztecTheme.futuraBold(size: 14))
                                         .foregroundColor(AztecTheme.neonYellow)
                                 }
                             }
@@ -82,7 +82,7 @@ struct GameEntrySheet: View {
                                         .font(.system(size: 12, weight: .bold))
                                         .foregroundColor(AztecTheme.hotPink)
                                     Text(field)
-                                        .font(AztecTheme.sfProBold(size: 14))
+                                        .font(AztecTheme.futuraBold(size: 14))
                                         .foregroundColor(AztecTheme.neonYellow)
                                 }
                             }
@@ -195,7 +195,7 @@ struct GameEntrySheet: View {
                         if canEditScores {
                             VStack(spacing: 6) {
                                 Text("INNING")
-                                    .font(AztecTheme.sfProBold(size: 11))
+                                    .font(AztecTheme.futuraBold(size: 11))
                                     .tracking(2)
                                     .foregroundColor(AztecTheme.hotPink)
 
@@ -280,11 +280,21 @@ struct GameEntrySheet: View {
 
                         // Submit (scorekeeper+ only, non-completed games)
                         if canEditScores {
+                            if team1Score == team2Score {
+                                Text("TIED — A WINNER IS REQUIRED")
+                                    .font(AztecTheme.futuraBold(size: 12))
+                                    .tracking(1)
+                                    .foregroundColor(AztecTheme.hotPink)
+                                    .padding(.top, 8)
+                            }
+
                             Button("RECORD GAME") {
                                 showConfirm = true
                             }
                             .buttonStyle(AztecButtonStyle())
                             .padding(.top, 8)
+                            .disabled(team1Score == team2Score)
+                            .opacity(team1Score == team2Score ? 0.4 : 1.0)
                         }
                     }
                     .padding()
@@ -414,17 +424,7 @@ struct GameEntrySheet: View {
     }
 
     private static func splitTeamName(_ name: String) -> [String] {
-        // "Mothership JV Reds" → ["Mothership", "JV Reds"]
-        // "Mothership JV Blacks" → ["Mothership", "JV Blacks"]
-        // "No Mames Wey Jovenes" → ["No Mames Wey", "Jovenes"]
-        // "No Mames Wey Viejos" → ["No Mames Wey", "Viejos"]
-        if name.hasPrefix("Mothership JV") {
-            return ["Mothership", String(name.dropFirst("Mothership ".count))]
-        }
-        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
-            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
-        }
-        return [name]
+        TeamNameHelper.split(name)
     }
 
     private func submitGame() {
@@ -460,7 +460,7 @@ struct ReadOnlyStatRow: View {
     var body: some View {
         HStack {
             Text(playerName)
-                .font(AztecTheme.sfProBold(size: 19))
+                .font(AztecTheme.futuraBold(size: 19))
                 .foregroundColor(AztecTheme.neonYellow)
 
             Spacer()
@@ -515,7 +515,7 @@ struct QuickStatEntry: View {
             } label: {
                 HStack {
                     Text(playerName)
-                        .font(AztecTheme.sfProBold(size: 19))
+                        .font(AztecTheme.futuraBold(size: 19))
                         .foregroundColor(AztecTheme.neonYellow)
 
                     Spacer()
@@ -581,7 +581,7 @@ struct StatStepperRow: View {
     var body: some View {
         HStack {
             Text(label)
-                .font(AztecTheme.sfProBold(size: 12))
+                .font(AztecTheme.futuraBold(size: 12))
                 .tracking(0.5)
                 .foregroundColor(AztecTheme.hotPink)
                 .frame(width: 72, alignment: .leading)

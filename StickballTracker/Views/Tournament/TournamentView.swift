@@ -45,7 +45,7 @@ struct TournamentView: View {
                                 HStack(spacing: 4) {
                                     Image(systemName: "arrow.triangle.2.circlepath.icloud")
                                     Text("RE-SYNC")
-                                        .font(AztecTheme.sfProBold(size: 11))
+                                        .font(AztecTheme.futuraBold(size: 11))
                                         .tracking(1)
                                 }
                                 .foregroundColor(AztecTheme.neonYellow)
@@ -104,7 +104,7 @@ struct TournamentView: View {
                                     let color = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
                                     let label = index == 0 ? "ROUND 1" : index == 1 ? "ROUND 2" : "FINALS"
                                     Text(label)
-                                        .font(AztecTheme.sfProBold(size: 14))
+                                        .font(AztecTheme.futuraBold(size: 14))
                                     .foregroundColor(isSelected ? Color.black : color)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
@@ -190,7 +190,7 @@ struct TournamentView: View {
                             .foregroundColor(AztecTheme.neonYellow)
 
                         Text("Create a tourney to set up brackets\nand start tracking games.")
-                            .font(AztecTheme.sfProMedium(size: 16))
+                            .font(AztecTheme.futuraMedium(size: 16))
                             .foregroundColor(AztecTheme.hotPink)
                             .multilineTextAlignment(.center)
 
@@ -347,7 +347,7 @@ struct GameCard: View {
             VStack(spacing: 0) {
                 ForEach(lines, id: \.self) { line in
                     Text(line.uppercased())
-                        .font(AztecTheme.sfProBold(size: compact ? 11 : 14))
+                        .font(AztecTheme.futuraBold(size: compact ? 11 : 14))
                         .foregroundColor(color)
                         .shadow(color: color.opacity(game.team1Id != nil || game.team2Id != nil ? 0.5 : 0), radius: 4)
                         .lineLimit(1)
@@ -356,7 +356,7 @@ struct GameCard: View {
             }
         } else {
             Text(name.uppercased())
-                .font(AztecTheme.sfProBold(size: compact ? 12 : 16))
+                .font(AztecTheme.futuraBold(size: compact ? 12 : 16))
                 .foregroundColor(color)
                 .shadow(color: color.opacity(game.team1Id != nil || game.team2Id != nil ? 0.5 : 0), radius: 4)
                 .lineLimit(1)
@@ -365,13 +365,7 @@ struct GameCard: View {
     }
 
     private func splitForSchedule(_ name: String) -> [String] {
-        if name.hasPrefix("Mothership JV") {
-            return ["Mothership", String(name.dropFirst("Mothership ".count))]
-        }
-        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
-            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
-        }
-        return [name]
+        TeamNameHelper.split(name)
     }
 
     var body: some View {
@@ -382,19 +376,19 @@ struct GameCard: View {
                 // Header: Game #, field, status
                 HStack {
                     Text("GAME \(game.gameNumber)")
-                        .font(AztecTheme.sfProBold(size: compact ? 10 : 12))
+                        .font(AztecTheme.futuraBold(size: compact ? 10 : 12))
                         .foregroundColor(AztecTheme.neonYellow)
 
                     if let field = game.field {
                         Text(field.uppercased())
-                            .font(AztecTheme.sfProBold(size: compact ? 8 : 10))
+                            .font(AztecTheme.futuraBold(size: compact ? 8 : 10))
                             .foregroundColor(AztecTheme.hotPink)
                     }
 
                     Spacer()
 
                     Text(statusLabel)
-                        .font(AztecTheme.sfProBold(size: compact ? 9 : 11))
+                        .font(AztecTheme.futuraBold(size: compact ? 9 : 11))
                         .foregroundColor(statusColor)
                 }
 
@@ -463,7 +457,7 @@ struct GameCard: View {
                         (game.team2Id == nil && tier.slotDescription(gameId: game.id, slot: .team2) == "To Be Drawn")
                     if hasDrawSlot {
                         Text("TAP TO ASSIGN TEAMS")
-                            .font(AztecTheme.sfProBold(size: 10))
+                            .font(AztecTheme.futuraBold(size: 10))
                             .tracking(1)
                             .foregroundColor(AztecTheme.neonYellow)
                             .padding(.top, 2)
@@ -537,7 +531,7 @@ struct CreateTournamentSheet: View {
 
                         if !allTeamsSeeded {
                             Text("All 14 teams must be seeded before creating the tourney.")
-                                .font(AztecTheme.sfProMedium(size: 14))
+                                .font(AztecTheme.futuraMedium(size: 14))
                                 .foregroundColor(AztecTheme.hotPink)
                                 .multilineTextAlignment(.center)
 
@@ -559,7 +553,7 @@ struct CreateTournamentSheet: View {
                         // Round 1 summary
                         VStack(alignment: .leading, spacing: 4) {
                             Text("ROUND 1")
-                                .font(AztecTheme.sfProBold(size: 14))
+                                .font(AztecTheme.futuraBold(size: 14))
                                 .foregroundColor(AztecTheme.neonYellow)
                             ForEach(day1TeamNames, id: \.self) { name in
                                 let found = cloudService.teams.contains { $0.name == name }
@@ -568,7 +562,7 @@ struct CreateTournamentSheet: View {
                                         .font(.system(size: 10))
                                         .foregroundColor(found ? AztecTheme.neonYellow : AztecTheme.dimText)
                                     Text(name)
-                                        .font(AztecTheme.sfProMedium(size: 12))
+                                        .font(AztecTheme.futuraMedium(size: 12))
                                         .foregroundColor(found ? AztecTheme.lightText : AztecTheme.dimText)
                                 }
                             }
@@ -579,7 +573,7 @@ struct CreateTournamentSheet: View {
                         // Round 2 summary
                         VStack(alignment: .leading, spacing: 4) {
                             Text("ROUND 2 — 5 + 3 advancing")
-                                .font(AztecTheme.sfProBold(size: 14))
+                                .font(AztecTheme.futuraBold(size: 14))
                                 .foregroundColor(AztecTheme.hotPink)
                             ForEach(day2TeamNames, id: \.self) { name in
                                 let found = cloudService.teams.contains { $0.name == name }
@@ -588,12 +582,12 @@ struct CreateTournamentSheet: View {
                                         .font(.system(size: 10))
                                         .foregroundColor(found ? AztecTheme.neonYellow : AztecTheme.dimText)
                                     Text(name)
-                                        .font(AztecTheme.sfProMedium(size: 12))
+                                        .font(AztecTheme.futuraMedium(size: 12))
                                         .foregroundColor(found ? AztecTheme.lightText : AztecTheme.dimText)
                                 }
                             }
                             Text("+ 3 winners from Round 1")
-                                .font(AztecTheme.sfProMedium(size: 12))
+                                .font(AztecTheme.futuraMedium(size: 12))
                                 .foregroundColor(AztecTheme.dimText)
                         }
                         .padding()
@@ -602,10 +596,10 @@ struct CreateTournamentSheet: View {
                         // Round 3 summary
                         VStack(alignment: .leading, spacing: 4) {
                             Text("ROUND 3")
-                                .font(AztecTheme.sfProBold(size: 14))
+                                .font(AztecTheme.futuraBold(size: 14))
                                 .foregroundColor(AztecTheme.neonYellow)
                             Text("Top 4 finishers from Round 2")
-                                .font(AztecTheme.sfProMedium(size: 12))
+                                .font(AztecTheme.futuraMedium(size: 12))
                                 .foregroundColor(AztecTheme.dimText)
                         }
                         .padding()
@@ -628,21 +622,21 @@ struct CreateTournamentSheet: View {
                                         CloudSyncService.TierConfig(
                                             tierNumber: 1,
                                             tierName: "Round 1",
-                                            dayLabel: "",
+                                            dayLabel: "Friday",
                                             date: day1Date,
                                             teamIds: day1TeamIds
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 2,
                                             tierName: "Round 2",
-                                            dayLabel: "",
+                                            dayLabel: "Saturday",
                                             date: day2Date,
                                             teamIds: day2TeamIds
                                         ),
                                         CloudSyncService.TierConfig(
                                             tierNumber: 3,
                                             tierName: "Finals",
-                                            dayLabel: "",
+                                            dayLabel: "Sunday",
                                             date: day3Date,
                                             teamIds: []
                                         ),
@@ -713,7 +707,7 @@ struct TeamAssignmentSheet: View {
                                 .shadow(color: AztecTheme.neonYellow.opacity(0.4), radius: 4)
 
                             Text("ASSIGN TEAMS")
-                                .font(AztecTheme.sfProBold(size: 14))
+                                .font(AztecTheme.futuraBold(size: 14))
                                 .tracking(2)
                                 .foregroundColor(AztecTheme.hotPink)
                                 .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 3)
@@ -755,7 +749,7 @@ struct TeamAssignmentSheet: View {
 
                             if game.team1Id != nil && game.team2Id != nil {
                                 Text("BOTH TEAMS ASSIGNED")
-                                    .font(AztecTheme.sfProBold(size: 12))
+                                    .font(AztecTheme.futuraBold(size: 12))
                                     .tracking(1)
                                     .foregroundColor(AztecTheme.neonYellow)
                                     .padding(.top, 8)
@@ -779,7 +773,7 @@ struct TeamAssignmentSheet: View {
     private func slotPicker(title: String, slot: TeamSlot) -> some View {
         VStack(spacing: 8) {
             Text(title)
-                .font(AztecTheme.sfProBold(size: 11))
+                .font(AztecTheme.futuraBold(size: 11))
                 .tracking(2)
                 .foregroundColor(AztecTheme.hotPink)
 
@@ -789,7 +783,7 @@ struct TeamAssignmentSheet: View {
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(AztecTheme.dimText)
                     Text("Waiting for teams...")
-                        .font(AztecTheme.sfProMedium(size: 14))
+                        .font(AztecTheme.futuraMedium(size: 14))
                         .foregroundColor(AztecTheme.dimText)
                 }
                 .padding()
@@ -838,7 +832,7 @@ struct TeamAssignmentSheet: View {
                 .foregroundColor(AztecTheme.neonYellow)
             Spacer()
             Text(label)
-                .font(AztecTheme.sfProBold(size: 10))
+                .font(AztecTheme.futuraBold(size: 10))
                 .foregroundColor(AztecTheme.hotPink)
         }
         .padding(14)
@@ -856,7 +850,7 @@ struct TeamAssignmentSheet: View {
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(AztecTheme.dimText)
             Text(label)
-                .font(AztecTheme.sfProMedium(size: 14))
+                .font(AztecTheme.futuraMedium(size: 14))
                 .foregroundColor(AztecTheme.dimText)
             Spacer()
         }
