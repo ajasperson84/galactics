@@ -62,17 +62,17 @@ struct SyncErrorBanner: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("CLOUD SYNC ERROR")
-                    .font(AztecTheme.sfProBold(size: 12))
+                    .font(AztecTheme.futuraBold(size: 12))
                     .tracking(1.5)
                     .foregroundColor(AztecTheme.bloodRed)
 
                 Text(message)
-                    .font(AztecTheme.sfProMedium(size: 13))
+                    .font(AztecTheme.futuraMedium(size: 13))
                     .foregroundColor(.white)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Text("Changes may not be reaching other devices. Check Firestore security rules.")
-                    .font(AztecTheme.sfProMedium(size: 11))
+                    .font(AztecTheme.futuraMedium(size: 11))
                     .foregroundColor(.white.opacity(0.7))
                     .fixedSize(horizontal: false, vertical: true)
             }

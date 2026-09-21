@@ -113,12 +113,12 @@ struct TeamCard: View {
                 // Team record (replaces dongs)
                 VStack(spacing: 2) {
                     Text(teamRecord)
-                        .font(AztecTheme.sfProBold(size: 22))
+                        .font(AztecTheme.futuraBold(size: 22))
                         .foregroundColor(AztecTheme.neonYellow)
                         .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
 
                     Text("RECORD")
-                        .font(AztecTheme.sfProBold(size: 10))
+                        .font(AztecTheme.futuraBold(size: 10))
                         .foregroundColor(AztecTheme.hotPink)
                 }
             }
@@ -126,7 +126,7 @@ struct TeamCard: View {
             // Player names — SF Pro, pink, wrapping up to 2 lines
             if !teamPlayers.isEmpty {
                 Text(teamPlayers.map { $0.name }.joined(separator: "  ·  "))
-                    .font(AztecTheme.sfProBold(size: 16))
+                    .font(AztecTheme.futuraBold(size: 16))
                     .foregroundColor(AztecTheme.hotPink)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -265,7 +265,7 @@ struct AddTeamSheet: View {
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text("TEAM ICON")
-                                .font(AztecTheme.sfProBold(size: 12))
+                                .font(AztecTheme.futuraBold(size: 12))
                                 .foregroundColor(AztecTheme.hotPink)
                             TextField("Asset name (e.g. team-rosecity)", text: $iconName)
                                 .aztecTextField()
@@ -274,7 +274,7 @@ struct AddTeamSheet: View {
                         // Player names section
                         VStack(alignment: .leading, spacing: 8) {
                             Text("BALLERS")
-                                .font(AztecTheme.sfProBold(size: 12))
+                                .font(AztecTheme.futuraBold(size: 12))
                                 .foregroundColor(AztecTheme.hotPink)
 
                             ForEach(playerNames.indices, id: \.self) { index in
@@ -301,7 +301,7 @@ struct AddTeamSheet: View {
                                     Image(systemName: "plus.circle.fill")
                                     Text("ADD BALLER")
                                 }
-                                .font(AztecTheme.sfProBold(size: 14))
+                                .font(AztecTheme.futuraBold(size: 14))
                                 .foregroundColor(AztecTheme.neonYellow)
                             }
                         }
@@ -402,7 +402,7 @@ struct TeamDetailSheet: View {
                                 .foregroundColor(AztecTheme.neonYellow)
                                 .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
                             Text("RECORD")
-                                .font(AztecTheme.sfProBold(size: 18))
+                                .font(AztecTheme.futuraBold(size: 18))
                                 .foregroundColor(AztecTheme.hotPink)
                         }
 
@@ -446,7 +446,7 @@ struct TeamDetailSheet: View {
                                     Image(systemName: "person.badge.plus")
                                     Text("CREATE NEW BALLER")
                                 }
-                                .font(AztecTheme.sfProBold(size: 14))
+                                .font(AztecTheme.futuraBold(size: 14))
                                 .foregroundColor(AztecTheme.neonYellow)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
@@ -561,7 +561,7 @@ struct CreatePlayerSheet: View {
                     AztecSectionHeader(title: "New Baller")
 
                     Text("Adding to \(team.name)")
-                        .font(AztecTheme.sfProMedium(size: 14))
+                        .font(AztecTheme.futuraMedium(size: 14))
                         .foregroundColor(AztecTheme.hotPink)
 
                     TextField("Baller Name", text: $playerName)
@@ -629,7 +629,7 @@ struct AddPlayerToTeamSheet: View {
                             } label: {
                                 HStack {
                                     Text(player.name)
-                                        .font(AztecTheme.sfProBold(size: 18))
+                                        .font(AztecTheme.futuraBold(size: 18))
                                         .foregroundColor(AztecTheme.neonYellow)
 
                                     Spacer()
@@ -640,11 +640,11 @@ struct AddPlayerToTeamSheet: View {
                                     } else if let currentTeamId = player.teamId,
                                        let currentTeam = cloudService.team(for: currentTeamId) {
                                         Text(currentTeam.name)
-                                            .font(AztecTheme.sfProMedium(size: 12))
+                                            .font(AztecTheme.futuraMedium(size: 12))
                                             .foregroundColor(AztecTheme.hotPink)
                                     } else {
                                         Text("Free Agent")
-                                            .font(AztecTheme.sfProMedium(size: 12))
+                                            .font(AztecTheme.futuraMedium(size: 12))
                                             .foregroundColor(AztecTheme.hotPink)
                                     }
                                 }
@@ -687,7 +687,7 @@ struct PlayerStatRow: View {
             Spacer()
 
             Text("\(value)")
-                .font(AztecTheme.sfProBold(size: 27))
+                .font(AztecTheme.futuraBold(size: 27))
                 .foregroundColor(AztecTheme.neonYellow)
                 .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 2)
         }
@@ -708,7 +708,7 @@ struct StatBubble: View {
                 .foregroundColor(AztecTheme.neonYellow)
                 .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
             Text(label)
-                .font(AztecTheme.sfProBold(size: 15))
+                .font(AztecTheme.futuraBold(size: 15))
                 .foregroundColor(AztecTheme.hotPink)
         }
         .frame(maxWidth: .infinity)

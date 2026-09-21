@@ -19,7 +19,15 @@ class CloudSyncService: ObservableObject {
     @Published var tournament: Tournament?
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var accessLevel: AccessLevel = .viewOnly
+    @Published var accessLevel: AccessLevel = {
+        if let raw = UserDefaults.standard.object(forKey: "accessLevel") as? Int,
+           let level = AccessLevel(rawValue: raw) {
+            return level
+        }
+        return .viewOnly
+    }() {
+        didSet { UserDefaults.standard.set(accessLevel.rawValue, forKey: "accessLevel") }
+    }
     /// True once the Firestore tournament listener has returned at least one snapshot.
     /// Used by views to distinguish "still loading" from "confirmed no tournament".
     @Published var hasLoadedTournament: Bool = false
