@@ -342,9 +342,93 @@ struct PlayerDetailSheet: View {
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 4)
                             }
+
+                            HStack {
+                                Text("Games")
+                                    .font(AztecTheme.hobbsFont(size: 30))
+                                    .tracking(AztecTheme.hobbsKerning)
+                                    .foregroundColor(AztecTheme.hotPink)
+
+                                Spacer()
+
+                                Text("\(player.stats.gamesPlayed)")
+                                    .font(AztecTheme.sfProBold(size: 30))
+                                    .foregroundColor(AztecTheme.neonYellow)
+                                    .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 4)
                         }
                         .padding(.vertical, 8)
                         .neonCard()
+
+                        // Team assignment picker
+                        if cloudService.accessLevel == .admin {
+                            Text("SQUAD")
+                                .font(AztecTheme.hobbsFont(size: 36))
+                                .tracking(AztecTheme.hobbsKerning)
+                                .foregroundColor(AztecTheme.neonYellow)
+                                .shadow(color: AztecTheme.hotPink.opacity(0.4), radius: 4)
+
+                            VStack(spacing: 6) {
+                                Button {
+                                    selectedTeamId = nil
+                                } label: {
+                                    HStack {
+                                        Text("Free Agent")
+                                            .font(AztecTheme.sfProBold(size: 16))
+                                            .foregroundColor(AztecTheme.neonYellow)
+                                        Spacer()
+                                        if selectedTeamId == nil {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(AztecTheme.neonYellow)
+                                        }
+                                    }
+                                    .padding(12)
+                                    .background(Color.black)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(
+                                                selectedTeamId == nil
+                                                    ? AztecTheme.neonYellow
+                                                    : AztecTheme.hotPink.opacity(0.3),
+                                                lineWidth: 2.25
+                                            )
+                                    )
+                                }
+
+                                ForEach(cloudService.teams) { team in
+                                    Button {
+                                        selectedTeamId = team.id
+                                    } label: {
+                                        HStack {
+                                            TeamIconView(team: team, size: 28)
+                                            Text(team.name)
+                                                .font(AztecTheme.sfProBold(size: 16))
+                                                .foregroundColor(AztecTheme.neonYellow)
+                                            Spacer()
+                                            if selectedTeamId == team.id {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                    .foregroundColor(AztecTheme.neonYellow)
+                                            }
+                                        }
+                                        .padding(12)
+                                        .background(Color.black)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(
+                                                    selectedTeamId == team.id
+                                                        ? AztecTheme.neonYellow
+                                                        : AztecTheme.hotPink.opacity(0.3),
+                                                    lineWidth: 2.25
+                                                )
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
                         // Save button
                         if cloudService.accessLevel == .admin {
