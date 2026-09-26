@@ -19,7 +19,9 @@ class CloudSyncService: ObservableObject {
     @Published var tournament: Tournament?
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var accessLevel: AccessLevel = .viewOnly
+    @Published var accessLevel: AccessLevel = .viewOnly {
+        didSet { UserDefaults.standard.set(accessLevel.rawValue, forKey: "accessLevel") }
+    }
     /// True once the Firestore tournament listener has returned at least one snapshot.
     /// Used by views to distinguish "still loading" from "confirmed no tournament".
     @Published var hasLoadedTournament: Bool = false
@@ -91,6 +93,9 @@ class CloudSyncService: ObservableObject {
         // Firestore offline persistence is enabled by default on iOS, so the
         // local cache survives across launches and reads work offline.
         loadFromDisk()
+        if let saved = AccessLevel(rawValue: UserDefaults.standard.integer(forKey: "accessLevel")) {
+            accessLevel = saved
+        }
         attachListeners()
     }
 

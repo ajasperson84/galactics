@@ -13,9 +13,11 @@ struct GameEntrySheet: View {
     @State private var playerStats: [String: EditablePlayerStats] = [:]
     @State private var currentInning: Int = 1
     @State private var showConfirm = false
+    @State private var showTieWarning = false
 
     var isCompleted: Bool { game.status == .completed }
     var canEditScores: Bool { !isCompleted && cloudService.accessLevel.rawValue >= AccessLevel.scorekeeper.rawValue }
+    var isTied: Bool { team1Score == team2Score }
 
     var team1: Team? {
         game.team1Id.flatMap { cloudService.team(for: $0) }
@@ -281,7 +283,11 @@ struct GameEntrySheet: View {
                         // Submit (scorekeeper+ only, non-completed games)
                         if canEditScores {
                             Button("RECORD GAME") {
-                                showConfirm = true
+                                if isTied {
+                                    showTieWarning = true
+                                } else {
+                                    showConfirm = true
+                                }
                             }
                             .buttonStyle(AztecButtonStyle())
                             .padding(.top, 8)
@@ -306,6 +312,11 @@ struct GameEntrySheet: View {
                 let t1 = team1?.name ?? "Team 1"
                 let t2 = team2?.name ?? "Team 2"
                 Text("\(t1) \(team1Score) - \(team2Score) \(t2)")
+            }
+            .alert("Tied Score", isPresented: $showTieWarning) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Games cannot end in a tie. Play extra innings to determine a winner.")
             }
             .onAppear {
                 // Hydrate from the latest game state (including in-progress games) so

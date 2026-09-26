@@ -119,7 +119,7 @@ enum AztecTheme {
 
     /// Futura Regular — lighter text
     static func sfProRegular(size: CGFloat) -> Font {
-        Font.custom("Futura-Medium", size: size)
+        Font.custom("Futura-Regular", size: size)
     }
 
     // Font aliases — all now use SF Pro Bold (no italics)
