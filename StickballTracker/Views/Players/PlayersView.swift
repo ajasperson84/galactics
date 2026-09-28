@@ -104,7 +104,7 @@ struct PlayerRow: View {
                                 .stroke(AztecTheme.hotPink.opacity(0.5), lineWidth: 2.25)
                         )
                     Text("FA")
-                        .font(AztecTheme.sfProBold(size: 14))
+                        .font(AztecTheme.futuraBold(size: 14))
                         .foregroundColor(AztecTheme.hotPink)
                 }
             }
@@ -119,7 +119,7 @@ struct PlayerRow: View {
                     .minimumScaleFactor(0.4)
 
                 Text(teamName)
-                    .font(AztecTheme.sfProBold(size: 14))
+                    .font(AztecTheme.futuraBold(size: 14))
                     .foregroundColor(AztecTheme.hotPink)
                     .lineLimit(1)
             }
@@ -128,7 +128,7 @@ struct PlayerRow: View {
 
             // Dongs — half size (reduced)
             Text("\(player.stats.dongs) D")
-                .font(AztecTheme.sfProBold(size: 14))
+                .font(AztecTheme.futuraBold(size: 14))
                 .foregroundColor(AztecTheme.neonYellow)
                 .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
 
@@ -169,7 +169,7 @@ struct AddPlayerSheet: View {
                             } label: {
                                 HStack {
                                     Text("Free Agent")
-                                        .font(AztecTheme.sfProBold(size: 16))
+                                        .font(AztecTheme.futuraBold(size: 16))
                                         .foregroundColor(AztecTheme.neonYellow)
                                     Spacer()
                                     if selectedTeamId == nil {
@@ -197,7 +197,7 @@ struct AddPlayerSheet: View {
                                 } label: {
                                     HStack {
                                         Text(team.name)
-                                            .font(AztecTheme.sfProBold(size: 16))
+                                            .font(AztecTheme.futuraBold(size: 16))
                                             .foregroundColor(AztecTheme.neonYellow)
                                         Spacer()
                                         if selectedTeamId == team.id {
@@ -335,7 +335,7 @@ struct PlayerDetailSheet: View {
                                     Spacer()
 
                                     Text("\(item.value)")
-                                        .font(AztecTheme.sfProBold(size: 30))
+                                        .font(AztecTheme.futuraBold(size: 30))
                                         .foregroundColor(AztecTheme.neonYellow)
                                         .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
                                 }

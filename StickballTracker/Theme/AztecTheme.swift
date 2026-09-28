@@ -107,28 +107,20 @@ enum AztecTheme {
         Font.custom("HobbsFont-Regular", size: size * 1.15)
     }
 
-    /// Futura Bold — game info, player stats, body text
-    static func sfProBold(size: CGFloat) -> Font {
+    static func futuraBold(size: CGFloat) -> Font {
         Font.custom("Futura-Bold", size: size)
     }
 
-    /// Futura Medium — secondary body text
-    static func sfProMedium(size: CGFloat) -> Font {
+    static func futuraMedium(size: CGFloat) -> Font {
         Font.custom("Futura-Medium", size: size)
     }
 
-    /// Futura Regular — lighter text
-    static func sfProRegular(size: CGFloat) -> Font {
-        Font.custom("Futura-Medium", size: size)
-    }
-
-    // Font aliases — all now use SF Pro Bold (no italics)
-    static func jazzFont(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func jazzBody(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
-    static func jazzLight(size: CGFloat) -> Font { sfProRegular(size: size * 2) }
-    static func impact(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func typewriter(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
-    static func typewriterBold(size: CGFloat) -> Font { sfProBold(size: size * 2) }
+    static func jazzFont(size: CGFloat) -> Font { futuraBold(size: size * 2) }
+    static func jazzBody(size: CGFloat) -> Font { futuraMedium(size: size * 2) }
+    static func jazzLight(size: CGFloat) -> Font { futuraMedium(size: size * 2) }
+    static func impact(size: CGFloat) -> Font { futuraBold(size: size * 2) }
+    static func typewriter(size: CGFloat) -> Font { futuraMedium(size: size * 2) }
+    static func typewriterBold(size: CGFloat) -> Font { futuraBold(size: size * 2) }
     static func handwritten(size: CGFloat) -> Font { hobbsFont(size: size) }
     static func chunky(size: CGFloat) -> Font { hobbsFont(size: size) }
 
@@ -215,7 +207,7 @@ struct AztecButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(AztecTheme.sfProBold(size: 16))
+            .font(AztecTheme.futuraBold(size: 16))
             .foregroundColor(color)
             .padding(.horizontal, 24)
             .padding(.vertical, 14)
@@ -236,7 +228,7 @@ struct AztecSecondaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(AztecTheme.sfProBold(size: 14))
+            .font(AztecTheme.futuraBold(size: 14))
             .foregroundColor(color)
             .padding(.horizontal, 18)
             .padding(.vertical, 12)
@@ -257,7 +249,7 @@ struct AztecSecondaryButtonStyle: ButtonStyle {
 struct AztecDismissButtonStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(AztecTheme.sfProBold(size: 14))
+            .font(AztecTheme.futuraBold(size: 14))
             .foregroundColor(AztecTheme.hotPink)
             .padding(.horizontal, 14)
             .padding(.vertical, 6)
@@ -281,7 +273,7 @@ extension View {
 struct AztecTextField: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(AztecTheme.sfProBold(size: 16))
+            .font(AztecTheme.futuraBold(size: 16))
             .foregroundColor(.white)
             .accentColor(AztecTheme.neonYellow)
             .padding(12)
