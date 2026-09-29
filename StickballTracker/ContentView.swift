@@ -17,9 +17,6 @@ struct ContentView: View {
             }
         }
 
-        var backgroundColor: Color {
-            return Color.black
-        }
     }
 
     var body: some View {
@@ -28,7 +25,7 @@ struct ContentView: View {
 
             VStack(spacing: 0) {
                 // Header
-                AztecHeader(title: "G FOUR")
+                AztecHeader()
 
                 // Menu bar under header — text 2.5x larger
                 HStack(spacing: 0) {
@@ -60,6 +57,15 @@ struct ContentView: View {
                     Rectangle()
                         .fill(AztecTheme.hotPink.opacity(0.4))
                         .frame(height: 1)
+                }
+
+                // Sync error banner — visible on all tabs
+                if let errorMessage = cloudService.errorMessage {
+                    SyncErrorBanner(message: errorMessage) {
+                        cloudService.errorMessage = nil
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 4)
                 }
 
                 // Content

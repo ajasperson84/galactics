@@ -600,7 +600,11 @@ struct AddPlayerToTeamSheet: View {
     let team: Team
 
     var availablePlayers: [Player] {
-        cloudService.players.filter { $0.teamId != team.id }
+        cloudService.players.filter { player in
+            guard player.teamId != team.id else { return false }
+            let allowed = cloudService.allowedTeamsForPlayer(player)
+            return allowed.contains(where: { $0.id == team.id })
+        }
     }
 
     var body: some View {

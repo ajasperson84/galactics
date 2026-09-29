@@ -23,16 +23,6 @@ struct TournamentView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Cloud sync error banner — surfaces Firestore errors
-                // (permission denied, offline, etc.) so the user actually
-                // sees when their changes aren't reaching the server.
-                if let errorMessage = cloudService.errorMessage {
-                    SyncErrorBanner(message: errorMessage) {
-                        cloudService.errorMessage = nil
-                    }
-                    .padding(.horizontal)
-                }
-
                 if let tournament = cloudService.tournament {
                     HStack(spacing: 16) {
                         Spacer()
@@ -122,8 +112,10 @@ struct TournamentView: View {
                     }
 
                     // Round subtitle
-                    if selectedTierIndex < 2 {
-                        Text(selectedTierIndex == 0 ? "9 Teams Enter,  3 Advance" : "8 Teams Enter,  4 Advance")
+                    if selectedTierIndex <= 2 {
+                        Text(selectedTierIndex == 0 ? "9 Teams Enter,  3 Advance" :
+                             selectedTierIndex == 1 ? "8 Teams Enter,  4 Advance" :
+                             "4 Teams Enter,  1 Champion")
                             .font(AztecTheme.hobbsFont(size: 28))
                             .tracking(AztecTheme.hobbsKerning)
                             .foregroundColor(AztecTheme.hotPink)
@@ -365,13 +357,7 @@ struct GameCard: View {
     }
 
     private func splitForSchedule(_ name: String) -> [String] {
-        if name.hasPrefix("Mothership JV") {
-            return ["Mothership", String(name.dropFirst("Mothership ".count))]
-        }
-        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
-            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
-        }
-        return [name]
+        TeamNameHelper.split(name)
     }
 
     var body: some View {

@@ -117,20 +117,10 @@ enum AztecTheme {
         Font.custom("Futura-Medium", size: size)
     }
 
-    /// Futura Regular — lighter text
+    /// Futura Medium — lighter text (iOS has no Futura-Regular)
     static func sfProRegular(size: CGFloat) -> Font {
         Font.custom("Futura-Medium", size: size)
     }
-
-    // Font aliases — all now use SF Pro Bold (no italics)
-    static func jazzFont(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func jazzBody(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
-    static func jazzLight(size: CGFloat) -> Font { sfProRegular(size: size * 2) }
-    static func impact(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func typewriter(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
-    static func typewriterBold(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func handwritten(size: CGFloat) -> Font { hobbsFont(size: size) }
-    static func chunky(size: CGFloat) -> Font { hobbsFont(size: size) }
 
     /// Hobbs kerning — 30% tighter (negative tracking)
     static let hobbsKerning: CGFloat = -1.5
@@ -202,9 +192,6 @@ extension View {
         modifier(AztecCard(highlight: highlight))
     }
 
-    func aztecCardColored(index: Int, highlight: Color = AztecTheme.hotPink) -> some View {
-        modifier(AztecCard(highlight: highlight))
-    }
 }
 
 // MARK: - Button Styles
