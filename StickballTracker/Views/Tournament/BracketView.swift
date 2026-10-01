@@ -171,7 +171,7 @@ struct BracketView: View {
         return (positions, totalHeight)
     }
 
-    private static let bracketNameMap: [String: String] = [
+    static let bracketNameMap: [String: String] = [
         "Tinseltown Champs": "TTFB Champs",
         "Tinseltown JV": "TTFB JV",
         "Rose City Champs": "Rose Champs",
@@ -391,25 +391,8 @@ struct BracketGameNode: View {
         .buttonStyle(.plain)
     }
 
-    private static let bracketNameMap: [String: String] = [
-        "Tinseltown Champs": "TTFB Champs",
-        "Tinseltown JV": "TTFB JV",
-        "Rose City Champs": "Rose Champs",
-        "Rose City JV": "Rose JV",
-        "Mothership Champs": "Mother Champs",
-        "Mothership JV Blacks": "Mother Black JV",
-        "Mothership JV Reds": "Mother Red JV",
-        "No Mames Wey Jovenes": "Jovenes",
-        "No Mames Wey Viejos": "Viejos",
-        "Jet City Champs": "Jets",
-        "Steel City": "Steel",
-        "Banditos": "Bandits",
-        "Gold Coast": "Coast",
-        "D$$": "D$$",
-    ]
-
     private func bracketDisplayName(for team: Team) -> String {
-        Self.bracketNameMap[team.name] ?? String(team.name.prefix(8))
+        BracketView.bracketNameMap[team.name] ?? String(team.name.prefix(8))
     }
 
     private func teamRow(teamId: String?, slot: TeamSlot, score: Int, isWinner: Bool) -> some View {

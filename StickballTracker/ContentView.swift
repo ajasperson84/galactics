@@ -16,10 +16,6 @@ struct ContentView: View {
             case .stats: return "chart.bar.fill"
             }
         }
-
-        var backgroundColor: Color {
-            return Color.black
-        }
     }
 
     var body: some View {
