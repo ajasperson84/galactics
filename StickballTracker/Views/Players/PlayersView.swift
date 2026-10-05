@@ -268,6 +268,7 @@ struct PlayerDetailSheet: View {
 
     private var statItems: [(label: String, value: Int)] {
         [
+            ("Games Played", player.stats.gamesPlayed),
             ("Dongs", player.stats.dongs),
             ("Salamies", player.stats.salamies),
             ("Dbl Plays", player.stats.doublePlays),

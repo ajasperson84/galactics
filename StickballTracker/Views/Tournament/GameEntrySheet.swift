@@ -280,11 +280,21 @@ struct GameEntrySheet: View {
 
                         // Submit (scorekeeper+ only, non-completed games)
                         if canEditScores {
+                            if team1Score == team2Score {
+                                Text("TIED SCORES — ADD EXTRA INNINGS")
+                                    .font(AztecTheme.sfProBold(size: 12))
+                                    .tracking(1)
+                                    .foregroundColor(AztecTheme.hotPink)
+                                    .padding(.top, 4)
+                            }
+
                             Button("RECORD GAME") {
                                 showConfirm = true
                             }
                             .buttonStyle(AztecButtonStyle())
                             .padding(.top, 8)
+                            .disabled(team1Score == team2Score)
+                            .opacity(team1Score == team2Score ? 0.4 : 1.0)
                         }
                     }
                     .padding()
@@ -414,17 +424,7 @@ struct GameEntrySheet: View {
     }
 
     private static func splitTeamName(_ name: String) -> [String] {
-        // "Mothership JV Reds" → ["Mothership", "JV Reds"]
-        // "Mothership JV Blacks" → ["Mothership", "JV Blacks"]
-        // "No Mames Wey Jovenes" → ["No Mames Wey", "Jovenes"]
-        // "No Mames Wey Viejos" → ["No Mames Wey", "Viejos"]
-        if name.hasPrefix("Mothership JV") {
-            return ["Mothership", String(name.dropFirst("Mothership ".count))]
-        }
-        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
-            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
-        }
-        return [name]
+        TeamDisplayNames.splitTeamName(name)
     }
 
     private func submitGame() {

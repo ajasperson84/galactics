@@ -117,7 +117,7 @@ enum AztecTheme {
         Font.custom("Futura-Medium", size: size)
     }
 
-    /// Futura Regular — lighter text
+    /// Futura Medium (same weight as sfProMedium — iOS has no lighter Futura)
     static func sfProRegular(size: CGFloat) -> Font {
         Font.custom("Futura-Medium", size: size)
     }
@@ -150,6 +150,41 @@ enum AztecTheme {
 
     static func glowShadow(color: Color = hotPink, radius: CGFloat = 8) -> some View {
         Color.clear.shadow(color: color.opacity(0.3), radius: radius)
+    }
+}
+
+// MARK: - Team Display Names
+
+enum TeamDisplayNames {
+    static let bracketNameMap: [String: String] = [
+        "Tinseltown Champs": "TTFB Champs",
+        "Tinseltown JV": "TTFB JV",
+        "Rose City Champs": "Rose Champs",
+        "Rose City JV": "Rose JV",
+        "Mothership Champs": "Mother Champs",
+        "Mothership JV Blacks": "Mother Black JV",
+        "Mothership JV Reds": "Mother Red JV",
+        "No Mames Wey Jovenes": "Jovenes",
+        "No Mames Wey Viejos": "Viejos",
+        "Jet City Champs": "Jets",
+        "Steel City": "Steel",
+        "Banditos": "Bandits",
+        "Gold Coast": "Coast",
+        "D$$": "D$$",
+    ]
+
+    static func bracketDisplayName(for teamName: String) -> String {
+        bracketNameMap[teamName] ?? String(teamName.prefix(8))
+    }
+
+    static func splitTeamName(_ name: String) -> [String] {
+        if name.hasPrefix("Mothership JV") {
+            return ["Mothership", String(name.dropFirst("Mothership ".count))]
+        }
+        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
+            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
+        }
+        return [name]
     }
 }
 
