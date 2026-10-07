@@ -8,12 +8,14 @@ struct ContentView: View {
         case tournament = "Tourney"
         case teams = "Squads"
         case stats = "Stats"
+        case players = "Ballers"
 
         var icon: String {
             switch self {
             case .tournament: return "trophy.fill"
             case .teams: return "person.3.fill"
             case .stats: return "chart.bar.fill"
+            case .players: return "figure.baseball"
             }
         }
 
@@ -68,6 +70,7 @@ struct ContentView: View {
                     case .tournament: TournamentView()
                     case .teams: TeamsView()
                     case .stats: StatsView()
+                    case .players: PlayersView()
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

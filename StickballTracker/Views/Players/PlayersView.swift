@@ -268,6 +268,7 @@ struct PlayerDetailSheet: View {
 
     private var statItems: [(label: String, value: Int)] {
         [
+            ("Games", player.stats.gamesPlayed),
             ("Dongs", player.stats.dongs),
             ("Salamies", player.stats.salamies),
             ("Dbl Plays", player.stats.doublePlays),
@@ -316,6 +317,58 @@ struct PlayerDetailSheet: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(AztecTheme.hotPink.opacity(0.5), lineWidth: 2.25)
                             )
+
+                        // Team reassignment picker (admin only)
+                        if cloudService.accessLevel == .admin {
+                            VStack(spacing: 8) {
+                                Text("SQUAD")
+                                    .font(AztecTheme.hobbsFont(size: 30))
+                                    .tracking(AztecTheme.hobbsKerning)
+                                    .foregroundColor(AztecTheme.hotPink)
+
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 8) {
+                                        Button {
+                                            selectedTeamId = nil
+                                        } label: {
+                                            Text("Free Agent")
+                                                .font(AztecTheme.sfProBold(size: 13))
+                                                .foregroundColor(selectedTeamId == nil ? Color.black : AztecTheme.neonYellow)
+                                                .padding(.horizontal, 12)
+                                                .padding(.vertical, 8)
+                                                .background(selectedTeamId == nil ? AztecTheme.neonYellow : Color.black)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .stroke(AztecTheme.neonYellow, lineWidth: 2.25)
+                                                )
+                                        }
+
+                                        ForEach(cloudService.teams) { team in
+                                            Button {
+                                                selectedTeamId = team.id
+                                            } label: {
+                                                Text(team.name)
+                                                    .font(AztecTheme.sfProBold(size: 13))
+                                                    .foregroundColor(selectedTeamId == team.id ? Color.black : AztecTheme.neonYellow)
+                                                    .padding(.horizontal, 12)
+                                                    .padding(.vertical, 8)
+                                                    .background(selectedTeamId == team.id ? AztecTheme.neonYellow : Color.black)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                                    .overlay(
+                                                        RoundedRectangle(cornerRadius: 8)
+                                                            .stroke(
+                                                                selectedTeamId == team.id ? AztecTheme.neonYellow : AztecTheme.hotPink.opacity(0.3),
+                                                                lineWidth: 2.25
+                                                            )
+                                                    )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 8)
+                        }
 
                         // Tourney Stats — each on its own line, 2x large, yellow with pink glow
                         Text("TOURNEY STATS")
