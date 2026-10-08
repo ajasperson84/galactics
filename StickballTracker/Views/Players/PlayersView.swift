@@ -272,6 +272,7 @@ struct PlayerDetailSheet: View {
             ("Salamies", player.stats.salamies),
             ("Dbl Plays", player.stats.doublePlays),
             ("Drops", player.stats.drops),
+            ("Games", player.stats.gamesPlayed),
         ]
     }
 

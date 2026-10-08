@@ -847,7 +847,8 @@ class CloudSyncService: ObservableObject {
     // MARK: - Time Helper
 
     private func gameTime(year: Int = 2026, month: Int = 4, day: Int, hour: Int, minute: Int = 0) -> Date {
-        Calendar.current.date(from: DateComponents(year: year, month: month, day: day, hour: hour, minute: minute))!
+        Calendar.current.date(from: DateComponents(year: year, month: month, day: day, hour: hour, minute: minute))
+            ?? Date()
     }
 
     // MARK: - Day 1 Bracket (9 teams, 13 games)
@@ -1186,6 +1187,51 @@ class CloudSyncService: ObservableObject {
 
     func unassignedPlayers() -> [Player] {
         players.filter { $0.teamId == nil }
+    }
+
+    func teamRecord(for teamId: String) -> (wins: Int, losses: Int) {
+        guard let tournament else { return (0, 0) }
+        var wins = 0, losses = 0
+        for tier in tournament.tiers {
+            for game in tier.games where game.status == .completed {
+                guard let winnerId = game.winnerId else { continue }
+                if game.team1Id == teamId || game.team2Id == teamId {
+                    if winnerId == teamId { wins += 1 } else { losses += 1 }
+                }
+            }
+        }
+        return (wins, losses)
+    }
+
+    static func splitTeamName(_ name: String) -> [String] {
+        if name.hasPrefix("Mothership JV") {
+            return ["Mothership", String(name.dropFirst("Mothership ".count))]
+        }
+        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
+            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
+        }
+        return [name]
+    }
+
+    static let bracketNameMap: [String: String] = [
+        "Tinseltown Champs": "TTFB Champs",
+        "Tinseltown JV": "TTFB JV",
+        "Rose City Champs": "Rose Champs",
+        "Rose City JV": "Rose JV",
+        "Mothership Champs": "Mother Champs",
+        "Mothership JV Blacks": "Mother Black JV",
+        "Mothership JV Reds": "Mother Red JV",
+        "No Mames Wey Jovenes": "Jovenes",
+        "No Mames Wey Viejos": "Viejos",
+        "Jet City Champs": "Jets",
+        "Steel City": "Steel",
+        "Banditos": "Bandits",
+        "Gold Coast": "Coast",
+        "D$$": "D$$",
+    ]
+
+    static func bracketDisplayName(for team: Team) -> String {
+        bracketNameMap[team.name] ?? String(team.name.prefix(8))
     }
 
     func isTeamEliminated(_ teamId: String) -> Bool {

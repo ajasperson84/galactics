@@ -7,26 +7,12 @@ struct TeamsView: View {
     /// Teams sorted by record (best first), then by total dongs
     private var sortedTeams: [Team] {
         cloudService.teams.sorted { t1, t2 in
-            let r1 = teamRecord(for: t1)
-            let r2 = teamRecord(for: t2)
+            let r1 = cloudService.teamRecord(for: t1.id)
+            let r2 = cloudService.teamRecord(for: t2.id)
             if r1.wins != r2.wins { return r1.wins > r2.wins }
             if r1.losses != r2.losses { return r1.losses < r2.losses }
             return teamDongs(for: t1) > teamDongs(for: t2)
         }
-    }
-
-    private func teamRecord(for team: Team) -> (wins: Int, losses: Int) {
-        guard let tournament = cloudService.tournament else { return (0, 0) }
-        var wins = 0, losses = 0
-        for tier in tournament.tiers {
-            for game in tier.games where game.status == .completed {
-                guard let winnerId = game.winnerId else { continue }
-                if game.team1Id == team.id || game.team2Id == team.id {
-                    if winnerId == team.id { wins += 1 } else { losses += 1 }
-                }
-            }
-        }
-        return (wins, losses)
     }
 
     private func teamDongs(for team: Team) -> Int {
@@ -78,20 +64,9 @@ struct TeamCard: View {
         cloudService.playersForTeam(team.id)
     }
 
-    /// Compute team record (wins-losses) from tournament games
-    private var teamRecord: String {
-        guard let tournament = cloudService.tournament else { return "0-0" }
-        var wins = 0
-        var losses = 0
-        for tier in tournament.tiers {
-            for game in tier.games where game.status == .completed {
-                guard let winnerId = game.winnerId else { continue }
-                if game.team1Id == team.id || game.team2Id == team.id {
-                    if winnerId == team.id { wins += 1 } else { losses += 1 }
-                }
-            }
-        }
-        return "\(wins)-\(losses)"
+    private var teamRecordString: String {
+        let r = cloudService.teamRecord(for: team.id)
+        return "\(r.wins)-\(r.losses)"
     }
 
     var body: some View {
@@ -112,7 +87,7 @@ struct TeamCard: View {
 
                 // Team record (replaces dongs)
                 VStack(spacing: 2) {
-                    Text(teamRecord)
+                    Text(teamRecordString)
                         .font(AztecTheme.sfProBold(size: 22))
                         .foregroundColor(AztecTheme.neonYellow)
                         .shadow(color: AztecTheme.neonYellow.opacity(0.3), radius: 3)
@@ -363,18 +338,9 @@ struct TeamDetailSheet: View {
         cloudService.playersForTeam(team.id)
     }
 
-    private var teamRecord: String {
-        guard let tournament = cloudService.tournament else { return "0-0" }
-        var wins = 0, losses = 0
-        for tier in tournament.tiers {
-            for game in tier.games where game.status == .completed {
-                guard let winnerId = game.winnerId else { continue }
-                if game.team1Id == team.id || game.team2Id == team.id {
-                    if winnerId == team.id { wins += 1 } else { losses += 1 }
-                }
-            }
-        }
-        return "\(wins)-\(losses)"
+    private var teamRecordString: String {
+        let r = cloudService.teamRecord(for: team.id)
+        return "\(r.wins)-\(r.losses)"
     }
 
     var body: some View {
@@ -396,7 +362,7 @@ struct TeamDetailSheet: View {
 
                         // Team record below icon
                         VStack(spacing: 2) {
-                            Text(teamRecord)
+                            Text(teamRecordString)
                                 .font(AztecTheme.hobbsFont(size: 54))
                                 .tracking(AztecTheme.hobbsKerning)
                                 .foregroundColor(AztecTheme.neonYellow)
@@ -495,6 +461,7 @@ struct TeamDetailSheet: View {
                                     PlayerStatRow(label: "Salamies", value: player.stats.salamies)
                                     PlayerStatRow(label: "Dbl Plays", value: player.stats.doublePlays)
                                     PlayerStatRow(label: "Drops", value: player.stats.drops)
+                                    PlayerStatRow(label: "Games", value: player.stats.gamesPlayed)
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.bottom, 10)
