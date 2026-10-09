@@ -284,7 +284,14 @@ struct GameEntrySheet: View {
                                 showConfirm = true
                             }
                             .buttonStyle(AztecButtonStyle())
+                            .disabled(team1Score == team2Score)
                             .padding(.top, 8)
+
+                            if team1Score == team2Score {
+                                Text("Scores cannot be tied — one team must win.")
+                                    .font(AztecTheme.sfProMedium(size: 12))
+                                    .foregroundColor(AztecTheme.hotPink)
+                            }
                         }
                     }
                     .padding()

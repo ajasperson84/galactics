@@ -17,15 +17,7 @@ enum AztecTheme {
     static let cardBg = Color.black
     static let sheetBg = Color.black
 
-    // Section backgrounds — all black
-    static let tourneyBg = Color.black
-    static let squadsBg = Color.black
-    static let ballersBg = Color.black
-    static let statsBg = Color.black
-
     // MARK: - Semantic Color Aliases
-    static let obsidian = Color.black
-    static let darkStone = Color.black
     static let stone = Color.white.opacity(0.35)
 
     // Primary accents map to new palette
@@ -38,28 +30,10 @@ enum AztecTheme {
     static let cosmic = Color(red: 0.35, green: 0.55, blue: 1.0)
     static let tennisGreen = Color(red: 0.22, green: 1.0, blue: 0.08)
     static let neonOrange = Color(red: 1.0, green: 0.55, blue: 0.0)
-    static let neonPink = hotPink
 
     // MARK: - Text Colors
     static let lightText = Color.white
     static let dimText = Color.white.opacity(0.5)
-    static let ink = neonYellow
-
-    // MARK: - Card Palette (cycled per-item)
-    static let cardColors: [Color] = [
-        hotPink.opacity(0.12),
-        jade.opacity(0.10),
-        neonYellow.opacity(0.08),
-        cosmic.opacity(0.12),
-        tennisGreen.opacity(0.08),
-        neonOrange.opacity(0.10),
-        Color(red: 0.70, green: 0.0, blue: 1.0).opacity(0.12),
-        bloodRed.opacity(0.10),
-    ]
-
-    static func cardColor(for index: Int) -> Color {
-        cardColors[index % cardColors.count]
-    }
 
     // MARK: - Gradients
     static let goldGradient = LinearGradient(
@@ -74,22 +48,10 @@ enum AztecTheme {
         endPoint: .trailing
     )
 
-    static let cosmicGradient = LinearGradient(
-        colors: [cosmic, Color(red: 0.15, green: 0.30, blue: 0.85)],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-
     static let pinkGradient = LinearGradient(
         colors: [hotPink, hotPink.opacity(0.6)],
         startPoint: .leading,
         endPoint: .trailing
-    )
-
-    static let cardGradient = LinearGradient(
-        colors: [Color.black, Color.black],
-        startPoint: .top,
-        endPoint: .bottom
     )
 
     /// Border gradient: yellow on the left, pink on the right
@@ -119,38 +81,17 @@ enum AztecTheme {
 
     /// Futura Regular — lighter text
     static func sfProRegular(size: CGFloat) -> Font {
-        Font.custom("Futura-Medium", size: size)
+        Font.custom("Futura-Regular", size: size)
     }
-
-    // Font aliases — all now use SF Pro Bold (no italics)
-    static func jazzFont(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func jazzBody(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
-    static func jazzLight(size: CGFloat) -> Font { sfProRegular(size: size * 2) }
-    static func impact(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func typewriter(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
-    static func typewriterBold(size: CGFloat) -> Font { sfProBold(size: size * 2) }
-    static func handwritten(size: CGFloat) -> Font { hobbsFont(size: size) }
-    static func chunky(size: CGFloat) -> Font { hobbsFont(size: size) }
 
     /// Hobbs kerning — 30% tighter (negative tracking)
     static let hobbsKerning: CGFloat = -1.5
 
     // MARK: - Decorative Elements
-    static var glowingLine: some View {
-        Rectangle().fill(neonYellow)
-    }
-
     static var borderLine: some View {
         Rectangle().fill(neonYellow.opacity(0.3)).frame(height: 1)
     }
 
-    static var jadeBorderLine: some View {
-        Rectangle().fill(jade.opacity(0.3)).frame(height: 1)
-    }
-
-    static func glowShadow(color: Color = hotPink, radius: CGFloat = 8) -> some View {
-        Color.clear.shadow(color: color.opacity(0.3), radius: radius)
-    }
 }
 
 // MARK: - Neon Card Modifier
@@ -202,9 +143,6 @@ extension View {
         modifier(AztecCard(highlight: highlight))
     }
 
-    func aztecCardColored(index: Int, highlight: Color = AztecTheme.hotPink) -> some View {
-        modifier(AztecCard(highlight: highlight))
-    }
 }
 
 // MARK: - Button Styles

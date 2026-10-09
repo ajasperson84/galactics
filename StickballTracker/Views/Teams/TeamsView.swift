@@ -410,11 +410,13 @@ struct TeamDetailSheet: View {
                         let totalDongs = teamPlayers.reduce(0) { $0 + $1.stats.dongs }
                         let totalSalamies = teamPlayers.reduce(0) { $0 + $1.stats.salamies }
                         let totalDP = teamPlayers.reduce(0) { $0 + $1.stats.doublePlays }
+                        let totalDrops = teamPlayers.reduce(0) { $0 + $1.stats.drops }
 
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
                             StatBubble(value: totalDongs, label: "DONGS", color: AztecTheme.neonYellow)
                             StatBubble(value: totalSalamies, label: "SALAMIES", color: AztecTheme.neonYellow)
                             StatBubble(value: totalDP, label: "DBL PLAYS", color: AztecTheme.neonYellow)
+                            StatBubble(value: totalDrops, label: "DROPS", color: AztecTheme.neonYellow)
                         }
                         .padding(16)
                         .neonCard()
