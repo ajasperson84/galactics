@@ -3,6 +3,7 @@ import SwiftUI
 struct TeamsView: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @State private var selectedTeam: Team?
+    @State private var showingAddTeam = false
 
     /// Teams sorted by record (best first), then by total dongs
     private var sortedTeams: [Team] {
@@ -36,6 +37,23 @@ struct TeamsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                if cloudService.accessLevel == .admin {
+                    HStack {
+                        Spacer()
+                        Button {
+                            showingAddTeam = true
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "plus.circle.fill")
+                                Text("CREATE SQUAD")
+                            }
+                            .font(AztecTheme.sfProBold(size: 14))
+                            .foregroundColor(AztecTheme.neonYellow)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+
                 // Teams — sorted by record, then dongs
                 LazyVStack(spacing: 12) {
                     ForEach(Array(sortedTeams.enumerated()), id: \.element.id) { index, team in
@@ -65,6 +83,9 @@ struct TeamsView: View {
         }
         .sheet(item: $selectedTeam) { team in
             TeamDetailSheet(team: team)
+        }
+        .sheet(isPresented: $showingAddTeam) {
+            AddTeamSheet()
         }
     }
 }
@@ -491,6 +512,7 @@ struct TeamDetailSheet: View {
 
                                 // Full stats for each player
                                 VStack(spacing: 4) {
+                                    PlayerStatRow(label: "Games", value: player.stats.gamesPlayed)
                                     PlayerStatRow(label: "Dongs", value: player.stats.dongs)
                                     PlayerStatRow(label: "Salamies", value: player.stats.salamies)
                                     PlayerStatRow(label: "Dbl Plays", value: player.stats.doublePlays)

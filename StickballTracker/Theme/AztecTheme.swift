@@ -86,12 +86,6 @@ enum AztecTheme {
         endPoint: .trailing
     )
 
-    static let cardGradient = LinearGradient(
-        colors: [Color.black, Color.black],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-
     /// Border gradient: yellow on the left, pink on the right
     static let borderGradient = LinearGradient(
         colors: [neonYellow, hotPink],
@@ -117,15 +111,15 @@ enum AztecTheme {
         Font.custom("Futura-Medium", size: size)
     }
 
-    /// Futura Regular — lighter text
-    static func sfProRegular(size: CGFloat) -> Font {
+    /// Futura Medium — lighter text
+    static func futuraMedium(size: CGFloat) -> Font {
         Font.custom("Futura-Medium", size: size)
     }
 
     // Font aliases — all now use SF Pro Bold (no italics)
     static func jazzFont(size: CGFloat) -> Font { sfProBold(size: size * 2) }
     static func jazzBody(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
-    static func jazzLight(size: CGFloat) -> Font { sfProRegular(size: size * 2) }
+    static func jazzLight(size: CGFloat) -> Font { futuraMedium(size: size * 2) }
     static func impact(size: CGFloat) -> Font { sfProBold(size: size * 2) }
     static func typewriter(size: CGFloat) -> Font { sfProMedium(size: size * 2) }
     static func typewriterBold(size: CGFloat) -> Font { sfProBold(size: size * 2) }
