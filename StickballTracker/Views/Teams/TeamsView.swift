@@ -36,6 +36,13 @@ struct TeamsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                if let errorMessage = cloudService.errorMessage {
+                    SyncErrorBanner(message: errorMessage) {
+                        cloudService.errorMessage = nil
+                    }
+                    .padding(.horizontal)
+                }
+
                 // Teams — sorted by record, then dongs
                 LazyVStack(spacing: 12) {
                     ForEach(Array(sortedTeams.enumerated()), id: \.element.id) { index, team in

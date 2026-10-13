@@ -280,10 +280,19 @@ struct GameEntrySheet: View {
 
                         // Submit (scorekeeper+ only, non-completed games)
                         if canEditScores {
+                            if team1Score == team2Score {
+                                Text("TIED GAMES NOT ALLOWED")
+                                    .font(AztecTheme.sfProBold(size: 12))
+                                    .foregroundColor(AztecTheme.hotPink)
+                                    .padding(.top, 4)
+                            }
+
                             Button("RECORD GAME") {
                                 showConfirm = true
                             }
                             .buttonStyle(AztecButtonStyle())
+                            .disabled(team1Score == team2Score)
+                            .opacity(team1Score == team2Score ? 0.4 : 1.0)
                             .padding(.top, 8)
                         }
                     }

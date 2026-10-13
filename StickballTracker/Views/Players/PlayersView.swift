@@ -18,6 +18,13 @@ struct PlayersView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                if let errorMessage = cloudService.errorMessage {
+                    SyncErrorBanner(message: errorMessage) {
+                        cloudService.errorMessage = nil
+                    }
+                    .padding(.horizontal)
+                }
+
                 // Search & Add
                 HStack(spacing: 12) {
                     HStack {
@@ -268,6 +275,7 @@ struct PlayerDetailSheet: View {
 
     private var statItems: [(label: String, value: Int)] {
         [
+            ("Games", player.stats.gamesPlayed),
             ("Dongs", player.stats.dongs),
             ("Salamies", player.stats.salamies),
             ("Dbl Plays", player.stats.doublePlays),
@@ -316,6 +324,56 @@ struct PlayerDetailSheet: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(AztecTheme.hotPink.opacity(0.5), lineWidth: 2.25)
                             )
+
+                        // Squad assignment picker
+                        if cloudService.accessLevel == .admin {
+                            AztecSectionHeader(title: "Squad", color: AztecTheme.hotPink)
+
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    Button {
+                                        selectedTeamId = nil
+                                    } label: {
+                                        Text("Free Agent")
+                                            .font(AztecTheme.sfProBold(size: 14))
+                                            .foregroundColor(selectedTeamId == nil ? Color.black : AztecTheme.neonYellow)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(selectedTeamId == nil ? AztecTheme.neonYellow : Color.black)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(AztecTheme.neonYellow, lineWidth: 2.25)
+                                            )
+                                    }
+
+                                    ForEach(cloudService.teams) { team in
+                                        Button {
+                                            selectedTeamId = team.id
+                                        } label: {
+                                            HStack(spacing: 6) {
+                                                TeamIconView(team: team, size: 24, glowRadius: 0)
+                                                Text(team.name)
+                                                    .font(AztecTheme.sfProBold(size: 14))
+                                                    .foregroundColor(selectedTeamId == team.id ? Color.black : AztecTheme.neonYellow)
+                                            }
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(selectedTeamId == team.id ? AztecTheme.neonYellow : Color.black)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(
+                                                        selectedTeamId == team.id ? AztecTheme.neonYellow : AztecTheme.hotPink.opacity(0.3),
+                                                        lineWidth: 2.25
+                                                    )
+                                            )
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
 
                         // Tourney Stats — each on its own line, 2x large, yellow with pink glow
                         Text("TOURNEY STATS")
