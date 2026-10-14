@@ -264,7 +264,7 @@ struct ChampionBanner: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
-        .neonCard(border: AztecTheme.neonYellow)
+        .neonCard()
     }
 }
 

@@ -158,7 +158,6 @@ enum AztecTheme {
 /// Dark card with neon border glow — the core visual building block.
 /// Black background, 50% thicker outlines.
 struct NeonCardModifier: ViewModifier {
-    var borderColor: Color = AztecTheme.hotPink
     var cornerRadius: CGFloat = 12
     var glowIntensity: CGFloat = 1.0
 
@@ -180,8 +179,8 @@ struct NeonCardModifier: ViewModifier {
 
 extension View {
     /// Apply dark neon-bordered card style with glow.
-    func neonCard(border: Color = AztecTheme.hotPink, cornerRadius: CGFloat = 12, glow: CGFloat = 1.0) -> some View {
-        modifier(NeonCardModifier(borderColor: border, cornerRadius: cornerRadius, glowIntensity: glow))
+    func neonCard(cornerRadius: CGFloat = 12, glow: CGFloat = 1.0) -> some View {
+        modifier(NeonCardModifier(cornerRadius: cornerRadius, glowIntensity: glow))
     }
 }
 
@@ -193,7 +192,7 @@ struct AztecCard: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(16)
-            .neonCard(border: highlight)
+            .neonCard()
     }
 }
 

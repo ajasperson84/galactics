@@ -10,6 +10,7 @@ struct StatsView: View {
         case salamies = "Salamies"
         case doublePlays = "Dbl Plays"
         case drops = "Drops"
+        case gamesPlayed = "GP"
 
         var label: String { rawValue }
 
@@ -19,6 +20,7 @@ struct StatsView: View {
             case .salamies: return AztecTheme.neonYellow
             case .doublePlays: return AztecTheme.hotPink
             case .drops: return AztecTheme.hotPink
+            case .gamesPlayed: return AztecTheme.neonYellow
             }
         }
     }
@@ -29,6 +31,7 @@ struct StatsView: View {
         case .salamies: return player.stats.salamies
         case .doublePlays: return player.stats.doublePlays
         case .drops: return player.stats.drops
+        case .gamesPlayed: return player.stats.gamesPlayed
         }
     }
 
@@ -39,6 +42,7 @@ struct StatsView: View {
         case .salamies: return players.reduce(0) { $0 + $1.stats.salamies }
         case .doublePlays: return players.reduce(0) { $0 + $1.stats.doublePlays }
         case .drops: return players.reduce(0) { $0 + $1.stats.drops }
+        case .gamesPlayed: return players.reduce(0) { $0 + $1.stats.gamesPlayed }
         }
     }
 
@@ -196,6 +200,8 @@ struct StatsTableHeader: View {
                 .frame(width: 20, alignment: .center)
             Text("BALLER")
                 .frame(maxWidth: .infinity, alignment: .leading)
+            Text("GP")
+                .frame(width: 24, alignment: .trailing)
             Text("DNG")
                 .frame(width: 32, alignment: .trailing)
             Text("SAL")
@@ -242,6 +248,12 @@ struct StatsTableRow: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
 
+            Text("\(player.stats.gamesPlayed)")
+                .font(.system(size: 11, weight: highlightStat == .gamesPlayed ? .black : .bold))
+                .foregroundColor(highlightStat == .gamesPlayed ? AztecTheme.neonYellow : AztecTheme.dimText)
+                .shadow(color: highlightStat == .gamesPlayed ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
+                .frame(width: 24, alignment: .trailing)
+
             Text("\(player.stats.dongs)")
                 .font(.system(size: 11, weight: highlightStat == .dongs ? .black : .bold))
                 .foregroundColor(highlightStat == .dongs ? AztecTheme.neonYellow : AztecTheme.neonYellow.opacity(0.7))
@@ -286,6 +298,7 @@ struct TeamAggregatedRow: View {
         cloudService.playersForTeam(team.id)
     }
 
+    var totalGamesPlayed: Int { teamPlayers.reduce(0) { $0 + $1.stats.gamesPlayed } }
     var totalDongs: Int { teamPlayers.reduce(0) { $0 + $1.stats.dongs } }
     var totalSalamies: Int { teamPlayers.reduce(0) { $0 + $1.stats.salamies } }
     var totalDoublePlays: Int { teamPlayers.reduce(0) { $0 + $1.stats.doublePlays } }
@@ -313,6 +326,16 @@ struct TeamAggregatedRow: View {
             Spacer()
 
             HStack(spacing: 12) {
+                VStack(spacing: 1) {
+                    Text("\(totalGamesPlayed)")
+                        .font(statWeight(.gamesPlayed))
+                        .foregroundColor(highlightStat == .gamesPlayed ? AztecTheme.neonYellow : AztecTheme.dimText)
+                        .shadow(color: highlightStat == .gamesPlayed ? AztecTheme.neonYellow.opacity(0.3) : .clear, radius: 2)
+                    Text("GP")
+                        .font(AztecTheme.sfProBold(size: 9))
+                        .foregroundColor(AztecTheme.hotPink)
+                }
+
                 VStack(spacing: 1) {
                     Text("\(totalDongs)")
                         .font(statWeight(.dongs))

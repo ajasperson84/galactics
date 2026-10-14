@@ -16,10 +16,6 @@ struct ContentView: View {
             case .stats: return "chart.bar.fill"
             }
         }
-
-        var backgroundColor: Color {
-            return Color.black
-        }
     }
 
     var body: some View {
@@ -28,7 +24,7 @@ struct ContentView: View {
 
             VStack(spacing: 0) {
                 // Header
-                AztecHeader(title: "G FOUR")
+                AztecHeader()
 
                 // Menu bar under header — text 2.5x larger
                 HStack(spacing: 0) {
