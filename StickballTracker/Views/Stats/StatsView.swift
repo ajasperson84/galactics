@@ -196,6 +196,8 @@ struct StatsTableHeader: View {
                 .frame(width: 20, alignment: .center)
             Text("BALLER")
                 .frame(maxWidth: .infinity, alignment: .leading)
+            Text("GP")
+                .frame(width: 24, alignment: .trailing)
             Text("DNG")
                 .frame(width: 32, alignment: .trailing)
             Text("SAL")
@@ -241,6 +243,11 @@ struct StatsTableRow: View {
                 .foregroundColor(AztecTheme.neonYellow)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
+
+            Text("\(player.stats.gamesPlayed)")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(AztecTheme.dimText)
+                .frame(width: 24, alignment: .trailing)
 
             Text("\(player.stats.dongs)")
                 .font(.system(size: 11, weight: highlightStat == .dongs ? .black : .bold))
