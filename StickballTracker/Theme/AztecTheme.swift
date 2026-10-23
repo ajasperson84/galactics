@@ -171,10 +171,17 @@ struct NeonCardModifier: ViewModifier {
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(AztecTheme.borderGradient, lineWidth: 2.25)
+                    .stroke(
+                        LinearGradient(
+                            colors: [AztecTheme.neonYellow, borderColor],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ),
+                        lineWidth: 2.25
+                    )
             )
             .shadow(color: AztecTheme.neonYellow.opacity(0.3 * glowIntensity), radius: 4, x: -2)
-            .shadow(color: AztecTheme.hotPink.opacity(0.3 * glowIntensity), radius: 4, x: 2)
+            .shadow(color: borderColor.opacity(0.3 * glowIntensity), radius: 4, x: 2)
     }
 }
 
@@ -203,7 +210,9 @@ extension View {
     }
 
     func aztecCardColored(index: Int, highlight: Color = AztecTheme.hotPink) -> some View {
-        modifier(AztecCard(highlight: highlight))
+        self
+            .background(AztecTheme.cardColor(for: index))
+            .modifier(AztecCard(highlight: highlight))
     }
 }
 

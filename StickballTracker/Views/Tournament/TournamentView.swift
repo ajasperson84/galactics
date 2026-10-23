@@ -23,16 +23,6 @@ struct TournamentView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Cloud sync error banner — surfaces Firestore errors
-                // (permission denied, offline, etc.) so the user actually
-                // sees when their changes aren't reaching the server.
-                if let errorMessage = cloudService.errorMessage {
-                    SyncErrorBanner(message: errorMessage) {
-                        cloudService.errorMessage = nil
-                    }
-                    .padding(.horizontal)
-                }
-
                 if let tournament = cloudService.tournament {
                     HStack(spacing: 16) {
                         Spacer()
@@ -102,7 +92,7 @@ struct TournamentView: View {
                                 } label: {
                                     let isSelected = selectedTierIndex == index
                                     let color = index % 2 == 0 ? AztecTheme.neonYellow : AztecTheme.hotPink
-                                    let label = index == 0 ? "ROUND 1" : index == 1 ? "ROUND 2" : "FINALS"
+                                    let label = tier.tierName.uppercased()
                                     Text(label)
                                         .font(AztecTheme.sfProBold(size: 14))
                                     .foregroundColor(isSelected ? Color.black : color)

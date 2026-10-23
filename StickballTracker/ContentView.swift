@@ -7,18 +7,16 @@ struct ContentView: View {
     enum AppTab: String, CaseIterable {
         case tournament = "Tourney"
         case teams = "Squads"
+        case ballers = "Ballers"
         case stats = "Stats"
 
         var icon: String {
             switch self {
             case .tournament: return "trophy.fill"
             case .teams: return "person.3.fill"
+            case .ballers: return "figure.stickball"
             case .stats: return "chart.bar.fill"
             }
-        }
-
-        var backgroundColor: Color {
-            return Color.black
         }
     }
 
@@ -28,7 +26,7 @@ struct ContentView: View {
 
             VStack(spacing: 0) {
                 // Header
-                AztecHeader(title: "G FOUR")
+                AztecHeader()
 
                 // Menu bar under header — text 2.5x larger
                 HStack(spacing: 0) {
@@ -62,11 +60,20 @@ struct ContentView: View {
                         .frame(height: 1)
                 }
 
+                // Sync error banner — visible on all tabs
+                if let errorMessage = cloudService.errorMessage {
+                    SyncErrorBanner(message: errorMessage) {
+                        cloudService.errorMessage = nil
+                    }
+                    .padding(.horizontal)
+                }
+
                 // Content
                 Group {
                     switch selectedTab {
                     case .tournament: TournamentView()
                     case .teams: TeamsView()
+                    case .ballers: PlayersView()
                     case .stats: StatsView()
                     }
                 }
