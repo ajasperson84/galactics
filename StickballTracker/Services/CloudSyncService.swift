@@ -19,7 +19,9 @@ class CloudSyncService: ObservableObject {
     @Published var tournament: Tournament?
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var accessLevel: AccessLevel = .viewOnly
+    @Published var accessLevel: AccessLevel = .viewOnly {
+        didSet { UserDefaults.standard.set(accessLevel.rawValue, forKey: "accessLevel") }
+    }
     /// True once the Firestore tournament listener has returned at least one snapshot.
     /// Used by views to distinguish "still loading" from "confirmed no tournament".
     @Published var hasLoadedTournament: Bool = false
@@ -88,6 +90,10 @@ class CloudSyncService: ObservableObject {
     private static var tournamentFile: URL { documentsDir.appendingPathComponent("tournament.json") }
 
     init() {
+        let saved = UserDefaults.standard.integer(forKey: "accessLevel")
+        if let level = AccessLevel(rawValue: saved) {
+            accessLevel = level
+        }
         // Firestore offline persistence is enabled by default on iOS, so the
         // local cache survives across launches and reads work offline.
         loadFromDisk()
@@ -1171,6 +1177,20 @@ class CloudSyncService: ObservableObject {
     }
 
     // MARK: - Utility
+
+    func teamRecord(for teamId: String) -> (wins: Int, losses: Int) {
+        guard let tournament else { return (0, 0) }
+        var wins = 0, losses = 0
+        for tier in tournament.tiers {
+            for game in tier.games where game.status == .completed {
+                guard let winnerId = game.winnerId else { continue }
+                if game.team1Id == teamId || game.team2Id == teamId {
+                    if winnerId == teamId { wins += 1 } else { losses += 1 }
+                }
+            }
+        }
+        return (wins, losses)
+    }
 
     func playersForTeam(_ teamId: String) -> [Player] {
         players.filter { $0.teamId == teamId }

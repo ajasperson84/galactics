@@ -342,7 +342,7 @@ struct GameCard: View {
 
     @ViewBuilder
     private func scheduleTeamName(_ name: String, color: Color, trailing: Bool = false) -> some View {
-        let lines = splitForSchedule(name)
+        let lines = BracketNames.splitTeamName(name)
         if lines.count > 1 {
             VStack(spacing: 0) {
                 ForEach(lines, id: \.self) { line in
@@ -364,15 +364,6 @@ struct GameCard: View {
         }
     }
 
-    private func splitForSchedule(_ name: String) -> [String] {
-        if name.hasPrefix("Mothership JV") {
-            return ["Mothership", String(name.dropFirst("Mothership ".count))]
-        }
-        if name.hasPrefix("No Mames Wey") && name.count > "No Mames Wey".count {
-            return ["No Mames Wey", String(name.dropFirst("No Mames Wey ".count))]
-        }
-        return [name]
-    }
 
     var body: some View {
         Button {
