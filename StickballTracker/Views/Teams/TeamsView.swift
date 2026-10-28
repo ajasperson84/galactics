@@ -3,6 +3,7 @@ import SwiftUI
 struct TeamsView: View {
     @EnvironmentObject var cloudService: CloudSyncService
     @State private var selectedTeam: Team?
+    @State private var showAddTeam = false
 
     /// Teams sorted by record (best first), then by total dongs
     private var sortedTeams: [Team] {
@@ -36,6 +37,28 @@ struct TeamsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                if cloudService.accessLevel == .admin {
+                    Button {
+                        showAddTeam = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle.fill")
+                            Text("ADD SQUAD")
+                        }
+                        .font(AztecTheme.sfProBold(size: 14))
+                        .foregroundColor(AztecTheme.neonYellow)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.black)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(AztecTheme.neonYellow.opacity(0.5), lineWidth: 2.25)
+                        )
+                    }
+                    .padding(.horizontal)
+                }
+
                 // Teams — sorted by record, then dongs
                 LazyVStack(spacing: 12) {
                     ForEach(Array(sortedTeams.enumerated()), id: \.element.id) { index, team in
@@ -65,6 +88,9 @@ struct TeamsView: View {
         }
         .sheet(item: $selectedTeam) { team in
             TeamDetailSheet(team: team)
+        }
+        .sheet(isPresented: $showAddTeam) {
+            AddTeamSheet()
         }
     }
 }
