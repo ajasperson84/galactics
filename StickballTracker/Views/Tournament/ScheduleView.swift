@@ -65,7 +65,7 @@ struct ScheduleView: View {
                 if !champGames.isEmpty {
                     sectionHeader("CHAMPIONSHIP", color: AztecTheme.neonYellow)
                     ForEach(champGames) { game in
-                        GameCard(game: game) {
+                        GameCard(game: game, tier: tier) {
                             onTapGame?(game)
                         }
                     }
