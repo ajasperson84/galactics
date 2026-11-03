@@ -196,6 +196,8 @@ struct StatsTableHeader: View {
                 .frame(width: 20, alignment: .center)
             Text("BALLER")
                 .frame(maxWidth: .infinity, alignment: .leading)
+            Text("GP")
+                .frame(width: 24, alignment: .trailing)
             Text("DNG")
                 .frame(width: 32, alignment: .trailing)
             Text("SAL")
@@ -241,6 +243,11 @@ struct StatsTableRow: View {
                 .foregroundColor(AztecTheme.neonYellow)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
+
+            Text("\(player.stats.gamesPlayed)")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(AztecTheme.dimText)
+                .frame(width: 24, alignment: .trailing)
 
             Text("\(player.stats.dongs)")
                 .font(.system(size: 11, weight: highlightStat == .dongs ? .black : .bold))
@@ -292,7 +299,8 @@ struct TeamAggregatedRow: View {
     var totalDrops: Int { teamPlayers.reduce(0) { $0 + $1.stats.drops } }
 
     private func statColor(_ stat: StatsView.StatSort) -> Color {
-        highlightStat == stat ? AztecTheme.neonYellow : AztecTheme.neonYellow.opacity(0.7)
+        let baseColor: Color = (stat == .doublePlays || stat == .drops) ? AztecTheme.hotPink : AztecTheme.neonYellow
+        return highlightStat == stat ? baseColor : baseColor.opacity(0.7)
     }
 
     private func statWeight(_ stat: StatsView.StatSort) -> Font {
@@ -337,7 +345,7 @@ struct TeamAggregatedRow: View {
                     Text("\(totalDoublePlays)")
                         .font(statWeight(.doublePlays))
                         .foregroundColor(statColor(.doublePlays))
-                        .shadow(color: highlightStat == .doublePlays ? AztecTheme.hotPink.opacity(0.3) : .clear, radius: 2)
+                        .shadow(color: highlightStat == .doublePlays ? statColor(.doublePlays).opacity(0.3) : .clear, radius: 2)
                     Text("DP")
                         .font(AztecTheme.sfProBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
@@ -347,7 +355,7 @@ struct TeamAggregatedRow: View {
                     Text("\(totalDrops)")
                         .font(statWeight(.drops))
                         .foregroundColor(statColor(.drops))
-                        .shadow(color: highlightStat == .drops ? AztecTheme.hotPink.opacity(0.3) : .clear, radius: 2)
+                        .shadow(color: highlightStat == .drops ? statColor(.drops).opacity(0.3) : .clear, radius: 2)
                     Text("Dr")
                         .font(AztecTheme.sfProBold(size: 9))
                         .foregroundColor(AztecTheme.hotPink)
