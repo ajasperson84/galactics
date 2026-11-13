@@ -196,6 +196,8 @@ struct StatsTableHeader: View {
                 .frame(width: 20, alignment: .center)
             Text("BALLER")
                 .frame(maxWidth: .infinity, alignment: .leading)
+            Text("GP")
+                .frame(width: 24, alignment: .trailing)
             Text("DNG")
                 .frame(width: 32, alignment: .trailing)
             Text("SAL")
@@ -241,6 +243,11 @@ struct StatsTableRow: View {
                 .foregroundColor(AztecTheme.neonYellow)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
+
+            Text("\(player.stats.gamesPlayed)")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(AztecTheme.dimText)
+                .frame(width: 24, alignment: .trailing)
 
             Text("\(player.stats.dongs)")
                 .font(.system(size: 11, weight: highlightStat == .dongs ? .black : .bold))
@@ -291,6 +298,20 @@ struct TeamAggregatedRow: View {
     var totalDoublePlays: Int { teamPlayers.reduce(0) { $0 + $1.stats.doublePlays } }
     var totalDrops: Int { teamPlayers.reduce(0) { $0 + $1.stats.drops } }
 
+    private var teamRecord: String {
+        guard let tournament = cloudService.tournament else { return "0-0" }
+        var wins = 0, losses = 0
+        for tier in tournament.tiers {
+            for game in tier.games where game.status == .completed {
+                guard let winnerId = game.winnerId else { continue }
+                if game.team1Id == team.id || game.team2Id == team.id {
+                    if winnerId == team.id { wins += 1 } else { losses += 1 }
+                }
+            }
+        }
+        return "\(wins)-\(losses)"
+    }
+
     private func statColor(_ stat: StatsView.StatSort) -> Color {
         highlightStat == stat ? AztecTheme.neonYellow : AztecTheme.neonYellow.opacity(0.7)
     }
@@ -303,12 +324,18 @@ struct TeamAggregatedRow: View {
         HStack(spacing: 12) {
             TeamIconView(team: team, size: 28)
 
-            Text(team.name)
-                .font(AztecTheme.hobbsFont(size: 23))
-                .tracking(AztecTheme.hobbsKerning)
-                .foregroundColor(AztecTheme.neonYellow)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(team.name)
+                    .font(AztecTheme.hobbsFont(size: 23))
+                    .tracking(AztecTheme.hobbsKerning)
+                    .foregroundColor(AztecTheme.neonYellow)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+
+                Text(teamRecord)
+                    .font(AztecTheme.sfProBold(size: 12))
+                    .foregroundColor(AztecTheme.hotPink)
+            }
 
             Spacer()
 

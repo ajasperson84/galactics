@@ -491,6 +491,7 @@ struct TeamDetailSheet: View {
 
                                 // Full stats for each player
                                 VStack(spacing: 4) {
+                                    PlayerStatRow(label: "Games", value: player.stats.gamesPlayed)
                                     PlayerStatRow(label: "Dongs", value: player.stats.dongs)
                                     PlayerStatRow(label: "Salamies", value: player.stats.salamies)
                                     PlayerStatRow(label: "Dbl Plays", value: player.stats.doublePlays)
